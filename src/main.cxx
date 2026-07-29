@@ -1,17 +1,24 @@
+#include <triangle.h>
 #include <window.h>
 
 #include "raylib.h"
 
-#include <print>
+constexpr int WIDTH = 1920;
+constexpr int HEIGHT = 1080;
 
 auto main() -> int {
-    std::println("Hello, World!");
+    auto window = arcxel::Window(WIDTH, HEIGHT, "Arcxel Window");
+    auto centre = Vector2{WIDTH / 2.0f, HEIGHT / 2.0f};
 
-    auto window = arcxel::Window(800, 600, "Arcxel Window");
+    auto v1 = Vector2{centre.x, centre.y - 175};
+    auto v2 = Vector2{centre.x - 200, centre.y + 175};
+    auto v3 = Vector2{centre.x + 200, centre.y + 175};
+    auto tri = arcxel::Triangle(v1, v2, v3, ORANGE);
 
     while (!WindowShouldClose()) {
         BeginDrawing();
-        ClearBackground(BLACK);
+        ClearBackground(RAYWHITE);
+        tri.draw();
         EndDrawing();
     }
 
