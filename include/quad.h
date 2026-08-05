@@ -1,4 +1,4 @@
-// <window.h> -*- C++ -*-
+// <quad.h> -*- C++ -*-
 
 //  Arcxel Test Bench
 //  Copyright (C) 2026  Tyler Swann, Georgia Kannelis
@@ -17,37 +17,30 @@
 //  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 //  USA
 
-#ifndef ARCXEL_WINDOW_H
-#define ARCXEL_WINDOW_H
+#ifndef ARCXEL_QUAD_H
+#define ARCXEL_QUAD_H
 
 #include <raylib.h>
 
-#include <string>
-
 namespace arcxel {
 
-struct Window {
+class Quad {
 private:
-    int width;
-    int height;
-    int target_fps;
-    std::string window_name;
+    Rectangle rect;
+    Color colour;
 
 public:
-    explicit Window(
-        int w, int h, std::string win_name = "raylib window", int target_fps = 60
-    )
-        : width(w)
-        , height(h)
-        , target_fps(target_fps)
-        , window_name(win_name) {
-        InitWindow(w, h, window_name.c_str());
-        SetTargetFPS(target_fps);
-    }
+    explicit Quad(Rectangle rect, Color colour)
+        : rect(rect)
+        , colour(colour) {}
 
-    ~Window() noexcept { CloseWindow(); }
-}; // struct Window
+    auto draw() -> void {
+        //DrawRectangleRec(rect, colour);
+        auto mix = Color{ .r = 255, .g = 255, .b = 0, .a = 255};
+        DrawRectangleGradientEx(rect, RED, mix, BLUE, GREEN);
+    }
+}; // class Quad
 
 } // namespace arcxel
 
-#endif // ARCXEL_WINDOW_H
+#endif // ARCXEL_QUAD_H

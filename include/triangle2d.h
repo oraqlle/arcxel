@@ -17,32 +17,41 @@
 //  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 //  USA
 
-#ifndef ARCXEL_TRIANGLE_H
-#define ARCXEL_TRIANGLE_H
+#ifndef ARCXEL_TRIANGLE2D_H
+#define ARCXEL_TRIANGLE2D_H
+
+#include <object.h>
 
 #include <raylib.h>
 
 namespace arcxel {
 
-class Triangle {
+class Triangle2D : Object {
 private:
-    Vector2 v1;
-    Vector2 v2;
-    Vector2 v3;
-    Color colour;
+    Vector2 local_v1;
+    Vector2 local_v2;
+    Vector2 local_v3;
 
 public:
-    explicit Triangle(Vector2 v1, Vector2 v2, Vector2 v3, Color colour)
-        : v1(v1)
-        , v2(v2)
-        , v3(v3)
-        , colour(colour) {}
-
-    auto draw() -> void {
-        DrawTriangle(v1, v2, v3, colour);
+    explicit Triangle2D(
+        Vector2 local_v1, Vector2 local_v2, Vector2 local_v3, Color colour
+    )
+        : Object()
+        , local_v1(local_v1)
+        , local_v2(local_v2)
+        , local_v3(local_v3) {
+        this->position = Vector3(400.0f, 400.0f, 0.0f);
+        this->colour = colour;
     }
-};
+
+    auto render() -> void {
+        auto global_v1 = Vector2(position.x - local_v1.x, position.y - local_v1.y);
+        auto global_v2 = Vector2(position.x + local_v2.x, position.y - local_v2.y);
+        auto global_v3 = Vector2(position.x + local_v3.x, position.y - local_v3.y);
+        DrawTriangle(global_v1, global_v2, global_v3, colour);
+    }
+}; // class Triangle2D
 
 } // namespace arcxel
 
-#endif // ARCXEL_TRIANGLE_H
+#endif // ARCXEL_TRIANGLE2D_H

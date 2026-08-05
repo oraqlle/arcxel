@@ -1,4 +1,4 @@
-// <window.h> -*- C++ -*-
+// <object.h> -*- C++ -*-
 
 //  Arcxel Test Bench
 //  Copyright (C) 2026  Tyler Swann, Georgia Kannelis
@@ -17,37 +17,28 @@
 //  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 //  USA
 
-#ifndef ARCXEL_WINDOW_H
-#define ARCXEL_WINDOW_H
+#ifndef ARCXEL_OBJECT_H
+#define ARCXEL_OBJECT_H
+
+#include <types.h>
 
 #include <raylib.h>
 
-#include <string>
-
 namespace arcxel {
 
-struct Window {
-private:
-    int width;
-    int height;
-    int target_fps;
-    std::string window_name;
+struct Object {
+    Vector3 position;
+    Vector3 velocity;
+    BoundingBox collision_shape;
+    Color colour;
 
-public:
-    explicit Window(
-        int w, int h, std::string win_name = "raylib window", int target_fps = 60
-    )
-        : width(w)
-        , height(h)
-        , target_fps(target_fps)
-        , window_name(win_name) {
-        InitWindow(w, h, window_name.c_str());
-        SetTargetFPS(target_fps);
-    }
+    Object() = default;
 
-    ~Window() noexcept { CloseWindow(); }
-}; // struct Window
+    auto render() -> void {}
+
+    auto update(f64 delta) {}
+}; // struct Object
 
 } // namespace arcxel
 
-#endif // ARCXEL_WINDOW_H
+#endif // ARCXEL_OBJECT_H

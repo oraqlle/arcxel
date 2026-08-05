@@ -1,4 +1,4 @@
-// <window.h> -*- C++ -*-
+// <engine.h> -*- C++ -*-
 
 //  Arcxel Test Bench
 //  Copyright (C) 2026  Tyler Swann, Georgia Kannelis
@@ -17,37 +17,32 @@
 //  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 //  USA
 
-#ifndef ARCXEL_WINDOW_H
-#define ARCXEL_WINDOW_H
+#ifndef ARCXEL_ENGINE_H
+#define ARCXEL_ENGINE_H
+
+#include <window.h>
 
 #include <raylib.h>
 
-#include <string>
-
 namespace arcxel {
 
-struct Window {
+class Engine {
 private:
-    int width;
-    int height;
-    int target_fps;
-    std::string window_name;
+    Window window;
 
 public:
-    explicit Window(
-        int w, int h, std::string win_name = "raylib window", int target_fps = 60
-    )
-        : width(w)
-        , height(h)
-        , target_fps(target_fps)
-        , window_name(win_name) {
-        InitWindow(w, h, window_name.c_str());
-        SetTargetFPS(target_fps);
+    Engine() = delete;
+
+    explicit Engine(Window&& window)
+        : window(window) {}
+
+    auto update(double delta) -> void {
     }
 
-    ~Window() noexcept { CloseWindow(); }
-}; // struct Window
+    auto render(double delta) -> void {
+    }
+}; // class Engine
 
 } // namespace arcxel
 
-#endif // ARCXEL_WINDOW_H
+#endif // ARCXEL_ENGINE_H
