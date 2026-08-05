@@ -20,10 +20,11 @@
 #ifndef ARCXEL_ENTITY_H
 #define ARCXEL_ENTITY_H
 
+#include <types.h>
+
 #include <raylib.h>
 
 #include <bitset>
-#include <cstdint>
 
 namespace arcxel {
 
@@ -32,13 +33,13 @@ namespace arcxel {
 /**
  * @brief Entity ID type
  */
-using Entity = std::uint32_t;
+using Entity = u32;
 
 constexpr Entity MAX_ENTITIES = 5000;
 
 /*** Components ***/
 
-using ComponentType = std::uint8_t;
+using ComponentType = u8;
 
 constexpr ComponentType MAX_COMPONENTS = 32;
 
