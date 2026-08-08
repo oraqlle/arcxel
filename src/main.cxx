@@ -21,7 +21,9 @@ auto main() -> int {
     auto v3 = Vector2{centre.x + 200, centre.y + 175};
     auto tri = arcxel::Triangle(v1, v2, v3, ORANGE);
 
-    arcxel::timing::reserve(1U << 16U);
+    // ~4M samples, about ten minutes of uncapped frames. Samples past this are
+    // dropped, not reallocated.
+    arcxel::timing::reserve(1U << 22U);
     const auto frame_span = arcxel::timing::register_label("frame");
     const auto draw_span = arcxel::timing::register_label("draw");
 

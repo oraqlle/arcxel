@@ -45,6 +45,11 @@ auto to_ms(Duration duration) noexcept -> double {
     return std::chrono::duration<double, std::milli>(duration).count();
 }
 
+// Spans are routinely sub-microsecond, so milliseconds would print as 0.000.
+auto to_us(Duration duration) noexcept -> double {
+    return std::chrono::duration<double, std::micro>(duration).count();
+}
+
 struct Totals {
     std::size_t count = 0;
     Duration total = Duration::zero();
@@ -114,7 +119,7 @@ auto log_summary() -> void {
     );
     log::info(
         "timing: {:<16} {:>8} {:>12} {:>12} {:>12} {:>12}", "label", "count",
-        "total/ms", "mean/ms", "min/ms", "max/ms"
+        "total/ms", "mean/us", "min/us", "max/us"
     );
 
     for (std::size_t id = 0; id < totals.size(); ++id) {
@@ -127,8 +132,8 @@ auto log_summary() -> void {
         log::info(
             "timing: {:<16} {:>8} {:>12.3f} {:>12.3f} {:>12.3f} {:>12.3f}",
             label_names[id], entry.count, to_ms(entry.total),
-            to_ms(entry.total) / static_cast<double>(entry.count), to_ms(entry.min),
-            to_ms(entry.max)
+            to_us(entry.total) / static_cast<double>(entry.count), to_us(entry.min),
+            to_us(entry.max)
         );
     }
 }
