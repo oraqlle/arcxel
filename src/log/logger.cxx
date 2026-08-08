@@ -28,7 +28,7 @@
 #include <cstdarg>
 #include <cstdio>
 #include <ctime>
-#include <print>
+#include <format>
 #include <string_view>
 
 namespace arcxel::log {
@@ -36,6 +36,12 @@ namespace arcxel::log {
 namespace {
 
 std::atomic<Level> current_level{Level::info};
+
+// One write per line, so lines from different threads cannot interleave
+// mid-line. std::print would need GCC 14 or MSVC 19.37; std::format is C++20.
+auto emit(std::string_view line) noexcept -> void {
+    std::fwrite(line.data(), 1, line.size(), stderr);
+}
 
 // Thread safe, unlike std::localtime which shares one static tm.
 auto to_local(std::time_t stamp, std::tm& out) noexcept -> bool {
@@ -120,14 +126,14 @@ auto write(Level lvl, std::string_view message) -> void {
     auto local = std::tm{};
 
     if (!to_local(std::chrono::system_clock::to_time_t(second), local)) {
-        std::println(stderr, "[--:--:--.---] {:<5} {}", to_string(lvl), message);
+        emit(std::format("[--:--:--.---] {:<5} {}\n", to_string(lvl), message));
         return;
     }
 
-    std::println(
-        stderr, "[{:02}:{:02}:{:02}.{:03}] {:<5} {}", local.tm_hour, local.tm_min,
+    emit(std::format(
+        "[{:02}:{:02}:{:02}.{:03}] {:<5} {}\n", local.tm_hour, local.tm_min,
         local.tm_sec, millis, to_string(lvl), message
-    );
+    ));
 }
 
 } // namespace detail
