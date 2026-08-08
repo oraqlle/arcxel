@@ -56,6 +56,7 @@ FetchContent_MakeAvailable(raylib)
 # ---- Library ----
 add_library(
     arcxel_core
+    src/log/logger.cxx
     src/triangle.cxx
     src/window.cxx
 )

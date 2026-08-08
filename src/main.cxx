@@ -1,3 +1,4 @@
+#include <log/logger.h>
 #include <triangle.h>
 #include <window.h>
 
@@ -7,7 +8,10 @@ constexpr int WIDTH = 1920;
 constexpr int HEIGHT = 1080;
 
 auto main() -> int {
+    arcxel::log::adopt_raylib();
+
     auto window = arcxel::Window(WIDTH, HEIGHT, "Arcxel Window");
+    arcxel::log::info("window opened {}x{}", WIDTH, HEIGHT);
     auto centre = Vector2{WIDTH / 2.0f, HEIGHT / 2.0f};
 
     auto v1 = Vector2{centre.x, centre.y - 175};
