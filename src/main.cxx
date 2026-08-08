@@ -23,7 +23,7 @@
 #include <triangle.h>
 #include <window.h>
 
-#include "raylib.h"
+#include <raylib.h>
 
 #include <exception>
 
