@@ -14,6 +14,13 @@ cmake -B build
 cmake --build build
 ```
 
+Builds default to `Release` so measurements are never taken from an unoptimised
+binary. Override explicitly if needed:
+
+```sh
+cmake -B build -DCMAKE_BUILD_TYPE=Debug
+```
+
 ## Roadmap
 
 1. Window Handling

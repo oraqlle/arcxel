@@ -13,6 +13,23 @@ set(BUILD_SHARED_LIBS               ON  CACHE BOOL "" FORCE)
 set(CMAKE_CXX_STANDARD_REQUIRED     ON  CACHE BOOL "" FORCE)
 set(CMAKE_CXX_EXTENSIONS            OFF CACHE BOOL "" FORCE)
 
+# ---- Build Type ----
+# Single-config generators leave this empty, which emits no optimisation flags.
+# An explicit -DCMAKE_BUILD_TYPE still wins.
+get_property(ARCXEL_MULTI_CONFIG GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
+
+if (NOT ARCXEL_MULTI_CONFIG)
+    if (NOT CMAKE_BUILD_TYPE)
+        set(CMAKE_BUILD_TYPE Release CACHE STRING "Build type" FORCE)
+        message(STATUS "arcxel: CMAKE_BUILD_TYPE was unset, defaulting to Release")
+    endif ()
+
+    set_property(
+        CACHE CMAKE_BUILD_TYPE
+        PROPERTY STRINGS Debug Release RelWithDebInfo MinSizeRel
+    )
+endif ()
+
 # ---- raylib Defines ----
 set(BUILD_EXAMPLES  OFF CACHE BOOL "" FORCE) # don't build the supplied examples
 set(BUILD_GAMES     OFF CACHE BOOL "" FORCE) # don't build the supplied example games
