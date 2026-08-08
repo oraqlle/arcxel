@@ -27,20 +27,33 @@ auto run() -> void {
     // dropped, not reallocated.
     arcxel::timing::reserve(1U << 22U);
     const auto frame_span = arcxel::timing::register_label("frame");
+    const auto begin_span = arcxel::timing::register_label("begin");
+    const auto clear_span = arcxel::timing::register_label("clear");
     const auto draw_span = arcxel::timing::register_label("draw");
+    const auto present_span = arcxel::timing::register_label("present");
 
     while (!WindowShouldClose()) {
         ARCXEL_SPAN(frame_span);
 
-        BeginDrawing();
-        ClearBackground(RAYWHITE);
+        {
+            ARCXEL_SPAN(begin_span);
+            BeginDrawing();
+        }
+
+        {
+            ARCXEL_SPAN(clear_span);
+            ClearBackground(RAYWHITE);
+        }
 
         {
             ARCXEL_SPAN(draw_span);
             tri.draw();
         }
 
-        EndDrawing();
+        {
+            ARCXEL_SPAN(present_span);
+            EndDrawing();
+        }
     }
 
     arcxel::timing::log_summary();
