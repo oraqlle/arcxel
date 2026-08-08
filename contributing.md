@@ -4,6 +4,21 @@
 
 * Headers (`*.h`) should only contain interfaces unless they are templates
 * Source files (`*.cxx`) contain implementation
+* Code on a measured hot path may also be defined inline in a header
+
+### The hot path exception
+
+A function defined in a `.cxx` cannot be inlined into a call site in another
+translation unit, as the project does not build with link-time optimisation.
+For code that runs once per measurement, that call is recorded as part of
+whatever is being timed.
+
+`arcxel::timing::Span` and `record()` are the current cases, along with the
+sample storage they touch. Everything cold, meaning label registration, the
+summary and file output, stays in a `.cxx`.
+
+Take the exception only where a measurement justifies it, and say why in the
+header. It is not a general licence to write header-only code.
 
 ```cxx
 // <[header_name].h> -*- C++ -*-
