@@ -50,3 +50,5 @@ vgcore.*
 # Misc.
 .DS_Store
 
+# Scratchpads
+.notes/
