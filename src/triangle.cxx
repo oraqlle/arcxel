@@ -1,4 +1,4 @@
-// <window.h> -*- C++ -*-
+// <triangle.cxx> -*- C++ -*-
 
 //  Arcxel Test Bench
 //  Copyright (C) 2026  Tyler Swann, Georgia Kannelis
@@ -17,28 +17,18 @@
 //  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 //  USA
 
-#ifndef ARCXEL_WINDOW_H
-#define ARCXEL_WINDOW_H
+#include <triangle.h>
 
-#include <string>
+#include <raylib.h>
 
 namespace arcxel {
 
-class Window {
-private:
-    int width;
-    int height;
-    int target_fps;
-    std::string window_name;
+Triangle::Triangle(Vector2 v1, Vector2 v2, Vector2 v3, Color colour)
+    : v1(v1)
+    , v2(v2)
+    , v3(v3)
+    , colour(colour) {}
 
-public:
-    explicit Window(
-        int w, int h, std::string win_name = "raylib window", int target_fps = 0
-    );
-
-    ~Window() noexcept;
-};
+auto Triangle::draw() -> void { DrawTriangle(v1, v2, v3, colour); }
 
 } // namespace arcxel
-
-#endif // ARCXEL_WINDOW_H

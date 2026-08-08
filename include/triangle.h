@@ -32,15 +32,9 @@ private:
     Color colour;
 
 public:
-    explicit Triangle(Vector2 v1, Vector2 v2, Vector2 v3, Color colour)
-        : v1(v1)
-        , v2(v2)
-        , v3(v3)
-        , colour(colour) {}
+    explicit Triangle(Vector2 v1, Vector2 v2, Vector2 v3, Color colour);
 
-    auto draw() -> void {
-        DrawTriangle(v1, v2, v3, colour);
-    }
+    auto draw() -> void;
 };
 
 } // namespace arcxel

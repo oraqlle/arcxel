@@ -53,13 +53,20 @@ FetchContent_MakeAvailable(raylib)
 #find_package(glm 1.0.1 REQUIRED)
 #find_package(tinyobjloader 2.0.0 REQUIRED)
 
-# ---- Headers ----
-include_directories(${CMAKE_SOURCE_DIR}/include)
+# ---- Library ----
+add_library(
+    arcxel_core
+    src/triangle.cxx
+    src/window.cxx
+)
+target_include_directories(arcxel_core PUBLIC ${CMAKE_SOURCE_DIR}/include)
+target_compile_features(arcxel_core PUBLIC cxx_std_23)
+target_link_libraries(arcxel_core PUBLIC raylib)
 
 # ---- Entrypoint ----
 add_executable(arcxel src/main.cxx)
-target_compile_features(arcxel PUBLIC cxx_std_23)
-target_link_libraries(arcxel PRIVATE raylib)
+target_compile_features(arcxel PRIVATE cxx_std_23)
+target_link_libraries(arcxel PRIVATE arcxel_core)
 
 # ---- Installation ----
 #install(TARGETS arcxel RUNTIME COMPONENT runtime)

@@ -1,4 +1,4 @@
-// <window.h> -*- C++ -*-
+// <window.cxx> -*- C++ -*-
 
 //  Arcxel Test Bench
 //  Copyright (C) 2026  Tyler Swann, Georgia Kannelis
@@ -17,28 +17,23 @@
 //  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 //  USA
 
-#ifndef ARCXEL_WINDOW_H
-#define ARCXEL_WINDOW_H
+#include <window.h>
+
+#include <raylib.h>
 
 #include <string>
 
 namespace arcxel {
 
-class Window {
-private:
-    int width;
-    int height;
-    int target_fps;
-    std::string window_name;
+Window::Window(int w, int h, std::string win_name, int target_fps)
+    : width(w)
+    , height(h)
+    , target_fps(target_fps)
+    , window_name(win_name) {
+    InitWindow(w, h, window_name.c_str());
+    SetTargetFPS(target_fps); // 0 leaves the frame rate uncapped
+}
 
-public:
-    explicit Window(
-        int w, int h, std::string win_name = "raylib window", int target_fps = 0
-    );
-
-    ~Window() noexcept;
-};
+Window::~Window() noexcept { CloseWindow(); }
 
 } // namespace arcxel
-
-#endif // ARCXEL_WINDOW_H
