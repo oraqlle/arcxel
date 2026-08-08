@@ -9,7 +9,7 @@
 // <[header_name].h> -*- C++ -*-
 
 //  Arcxel Test Bench
-//  Copyright (C) 2026  Tyler Swann, Georgia Kannelis
+//  Copyright (C) 2026  Tyler Swann, Georgia Kanellis
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -49,7 +49,7 @@ namespace arcxel {
 // <[source_name].cxx> -*- C++ -*-
 
 //  Arcxel Test Bench
-//  Copyright (C) 2026  Tyler Swann, Georgia Kannelis
+//  Copyright (C) 2026  Tyler Swann, Georgia Kanellis
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
