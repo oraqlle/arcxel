@@ -36,6 +36,13 @@ public:
         int w, int h, std::string win_name = "raylib window", int target_fps = 0
     );
 
+    // raylib owns a single global window, so this guard is neither copyable
+    // nor movable.
+    Window(const Window&) = delete;
+    Window(Window&&) = delete;
+    auto operator=(const Window&) -> Window& = delete;
+    auto operator=(Window&&) -> Window& = delete;
+
     ~Window() noexcept;
 };
 

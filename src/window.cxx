@@ -21,6 +21,7 @@
 
 #include <raylib.h>
 
+#include <stdexcept>
 #include <string>
 
 namespace arcxel {
@@ -31,6 +32,11 @@ Window::Window(int w, int h, std::string win_name, int target_fps)
     , target_fps(target_fps)
     , window_name(win_name) {
     InitWindow(w, h, window_name.c_str());
+
+    if (!IsWindowReady()) {
+        throw std::runtime_error("arcxel: window failed to initialise");
+    }
+
     SetTargetFPS(target_fps); // 0 leaves the frame rate uncapped
 }
 
