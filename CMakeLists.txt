@@ -54,8 +54,10 @@ FetchContent_MakeAvailable(raylib)
 #find_package(tinyobjloader 2.0.0 REQUIRED)
 
 # ---- Library ----
+# Static, not shared. The timing headers use inline variables that must resolve
+# to a single instance across the whole program
 add_library(
-    arcxel_core
+    arcxel_core STATIC
     src/log/logger.cxx
     src/timing/registry.cxx
     src/triangle.cxx
