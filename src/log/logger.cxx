@@ -45,8 +45,19 @@ auto emit(std::string_view line) noexcept -> void {
 
 // Thread safe, unlike std::localtime which shares one static tm.
 auto to_local(std::time_t stamp, std::tm& out) noexcept -> bool {
-#ifdef _WIN32
+#if defined(_MSC_VER)
     return ::localtime_s(&out, &stamp) == 0;
+#elif defined(_WIN32)
+    // MinGW defines _WIN32 but not the MSVC localtime_s. The Windows CRT keeps
+    // localtime's result in thread-local storage, so copying it out is safe.
+    const auto* result = std::localtime(&stamp);
+
+    if (result == nullptr) {
+        return false;
+    }
+
+    out = *result;
+    return true;
 #else
     return ::localtime_r(&stamp, &out) != nullptr;
 #endif

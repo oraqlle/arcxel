@@ -28,6 +28,9 @@ if (NOT ARCXEL_MULTI_CONFIG)
         CACHE CMAKE_BUILD_TYPE
         PROPERTY STRINGS Debug Release RelWithDebInfo MinSizeRel
     )
+else ()
+    # Multi-config generators choose at build time, so there is no default here.
+    message(STATUS "arcxel: multi-config generator, build with --config Release")
 endif ()
 
 # ---- raylib Defines ----

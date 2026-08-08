@@ -21,6 +21,14 @@ binary. Override explicitly if needed:
 cmake -B build -DCMAKE_BUILD_TYPE=Debug
 ```
 
+Multi-config generators (Visual Studio, Xcode) pick the configuration when
+building rather than when configuring, so the default above does not apply and
+the configuration must be named explicitly:
+
+```sh
+cmake --build build --config Release
+```
+
 ## Roadmap
 
 1. Window Handling
