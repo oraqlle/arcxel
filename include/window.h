@@ -35,14 +35,14 @@ private:
 
 public:
     explicit Window(
-        int w, int h, std::string win_name = "raylib window", int target_fps = 60
+        int w, int h, std::string win_name = "raylib window", int target_fps = 0
     )
         : width(w)
         , height(h)
         , target_fps(target_fps)
         , window_name(win_name) {
         InitWindow(w, h, window_name.c_str());
-        SetTargetFPS(target_fps);
+        SetTargetFPS(target_fps); // 0 leaves the frame rate uncapped
     }
 
     ~Window() noexcept { CloseWindow(); }
