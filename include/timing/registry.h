@@ -51,6 +51,11 @@ auto label_count() noexcept -> std::size_t;
 // discarded and counted instead.
 auto reserve(std::size_t count) -> void;
 
+// Creates <directory>/<yyyy-mm-dd>/ and returns this run's path stem, e.g.
+// "results/2026-08-08/arcxel-timing-122241". Everything a run produces shares
+// it, so the log and the samples always carry the same timestamp.
+auto begin_run(std::string_view directory = "results") -> std::string;
+
 // ---- Results. Not on the hot path. ----
 
 auto samples() noexcept -> const std::vector<Sample>&;

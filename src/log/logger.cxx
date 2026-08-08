@@ -27,8 +27,11 @@
 #include <chrono>
 #include <cstdarg>
 #include <cstdio>
+#include <cstdlib>
+#include <optional>
 #include <ctime>
 #include <format>
+#include <string>
 #include <string_view>
 
 namespace arcxel::log {
@@ -37,10 +40,29 @@ namespace {
 
 std::atomic<Level> current_level{Level::info};
 
+std::FILE* sink = nullptr;
+
+auto level_from_name(std::string_view name) noexcept -> std::optional<Level> {
+    if (name == "trace") { return Level::trace; }
+    if (name == "debug") { return Level::debug; }
+    if (name == "info") { return Level::info; }
+    if (name == "warn") { return Level::warn; }
+    if (name == "error") { return Level::error; }
+    if (name == "fatal") { return Level::fatal; }
+    if (name == "off") { return Level::off; }
+
+    return std::nullopt;
+}
+
 // One write per line, so lines from different threads cannot interleave
 // mid-line. std::print would need GCC 14 or MSVC 19.37; std::format is C++20.
 auto emit(std::string_view line) noexcept -> void {
     std::fwrite(line.data(), 1, line.size(), stderr);
+
+    if (sink != nullptr) {
+        std::fwrite(line.data(), 1, line.size(), sink);
+        std::fflush(sink);
+    }
 }
 
 // Thread safe, unlike std::localtime which shares one static tm.
@@ -118,6 +140,58 @@ auto set_level(Level lvl) noexcept -> void {
 
 auto level() noexcept -> Level {
     return current_level.load(std::memory_order_relaxed);
+}
+
+auto set_level_from_env() -> void {
+    const auto* value = std::getenv("ARCXEL_LOG_LEVEL");
+
+    if (value == nullptr) {
+        return;
+    }
+
+    const auto parsed = level_from_name(value);
+
+    if (!parsed.has_value()) {
+        warn("log: ignoring unrecognised ARCXEL_LOG_LEVEL '{}'", value);
+        return;
+    }
+
+    // Say so before switching, or raising the threshold would hide the notice.
+    info("log: level set to {} by ARCXEL_LOG_LEVEL", to_string(*parsed));
+
+    if (static_cast<int>(*parsed) < ARCXEL_LOG_MIN_LEVEL) {
+        warn(
+            "log: this build discards anything below {}, so some messages stay "
+            "unavailable",
+            to_string(static_cast<Level>(ARCXEL_LOG_MIN_LEVEL))
+        );
+    }
+
+    set_level(*parsed);
+}
+
+auto set_file(std::string_view path) -> bool {
+    close_file();
+
+    const auto name = std::string(path);
+    sink = std::fopen(name.c_str(), "w");
+
+    if (sink == nullptr) {
+        error("log: could not open {} for writing", name);
+        return false;
+    }
+
+    info("log: also writing to {}", name);
+    return true;
+}
+
+auto close_file() noexcept -> void {
+    if (sink == nullptr) {
+        return;
+    }
+
+    std::fclose(sink);
+    sink = nullptr;
 }
 
 auto adopt_raylib() noexcept -> void {

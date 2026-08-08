@@ -43,9 +43,18 @@ auto to_string(Level level) noexcept -> const char*;
 auto set_level(Level level) noexcept -> void;
 auto level() noexcept -> Level;
 
+// Applies ARCXEL_LOG_LEVEL if set: trace, debug, info, warn, error, fatal or off
+// It can only raise the threshold, never lower it past ARCXEL_LOG_MIN_LEVEL
+auto set_level_from_env() -> void;
+
 // Redirect raylib's own TraceLog output through this logger. Call before
 // InitWindow so raylib's start-up messages are captured too.
 auto adopt_raylib() noexcept -> void;
+
+// Mirror output to a file as well as stderr, replacing any file already open.
+// Lines are flushed as they are written so a crash still leaves a usable log.
+auto set_file(std::string_view path) -> bool;
+auto close_file() noexcept -> void;
 
 namespace detail {
 

@@ -29,6 +29,25 @@ the configuration must be named explicitly:
 cmake --build build --config Release
 ```
 
+## Running
+
+Each run writes its log and its timing samples side by side under `results/`:
+
+```
+results/2026-08-08/arcxel-timing-122933.log
+results/2026-08-08/arcxel-timing-122933.csv
+```
+
+Set `ARCXEL_LOG_LEVEL` to change how much is reported — `trace`, `debug`,
+`info` (the default), `warn`, `error`, `fatal` or `off`:
+
+```sh
+ARCXEL_LOG_LEVEL=warn ./build/arcxel
+```
+
+Release builds discard `trace` and `debug` when compiling, so those two cannot
+be re-enabled at runtime.
+
 ## Roadmap
 
 1. Window Handling

@@ -41,6 +41,9 @@ namespace {
 
 std::vector<std::string> label_names;
 
+// Shared by everything this run writes, so the log and the samples match.
+std::string run_stem;
+
 auto to_ms(Duration duration) noexcept -> double {
     return std::chrono::duration<double, std::milli>(duration).count();
 }
@@ -183,10 +186,11 @@ auto write_csv(std::string_view path) -> bool {
     return true;
 }
 
-auto write_run_csv(std::string_view directory) -> std::string {
+auto begin_run(std::string_view directory) -> std::string {
     // Local time, so the date folder matches the day the run happened. libc++
     // has no chrono time zone support yet, hence the C API.
-    const auto stamp = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
+    const auto stamp =
+        std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
     const auto* local = std::localtime(&stamp);
 
     if (local == nullptr) {
@@ -210,9 +214,19 @@ auto write_run_csv(std::string_view directory) -> std::string {
     }
 
     const auto name = std::format(
-        "arcxel-timing-{:02}{:02}{:02}.csv", local->tm_hour, local->tm_min, local->tm_sec
+        "arcxel-timing-{:02}{:02}{:02}", local->tm_hour, local->tm_min, local->tm_sec
     );
-    const auto path = (dir / name).string();
+
+    run_stem = (dir / name).string();
+    return run_stem;
+}
+
+auto write_run_csv(std::string_view directory) -> std::string {
+    if (run_stem.empty() && begin_run(directory).empty()) {
+        return {};
+    }
+
+    const auto path = run_stem + ".csv";
 
     if (!write_csv(path)) {
         return {};

@@ -14,6 +14,9 @@ constexpr int HEIGHT = 1080;
 namespace {
 
 auto run() -> void {
+    // Before the window, so raylib's start-up messages reach the file too.
+    arcxel::log::set_file(arcxel::timing::begin_run() + ".log");
+
     auto window = arcxel::Window(WIDTH, HEIGHT, "Arcxel Window");
     arcxel::log::info("window opened {}x{}", WIDTH, HEIGHT);
     auto centre = Vector2{WIDTH / 2.0f, HEIGHT / 2.0f};
@@ -63,17 +66,21 @@ auto run() -> void {
 } // namespace
 
 auto main() -> int {
+    arcxel::log::set_level_from_env();
     arcxel::log::adopt_raylib();
 
     try {
         run();
     } catch (const std::exception& error) {
         arcxel::log::fatal("{}", error.what());
+        arcxel::log::close_file();
         return 1;
     } catch (...) {
         arcxel::log::fatal("terminated by an unknown exception");
+        arcxel::log::close_file();
         return 1;
     }
 
+    arcxel::log::close_file();
     return 0;
 }
