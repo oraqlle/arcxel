@@ -27,6 +27,7 @@
 #include <chrono>
 #include <cstdarg>
 #include <cstdio>
+#include <ctime>
 #include <print>
 #include <string_view>
 
@@ -35,6 +36,15 @@ namespace arcxel::log {
 namespace {
 
 std::atomic<Level> current_level{Level::info};
+
+// Thread safe, unlike std::localtime which shares one static tm.
+auto to_local(std::time_t stamp, std::tm& out) noexcept -> bool {
+#ifdef _WIN32
+    return ::localtime_s(&out, &stamp) == 0;
+#else
+    return ::localtime_r(&stamp, &out) != nullptr;
+#endif
+}
 
 auto from_raylib(int raylib_level) noexcept -> Level {
     switch (raylib_level) {
@@ -102,10 +112,22 @@ auto adopt_raylib() noexcept -> void {
 namespace detail {
 
 auto write(Level lvl, std::string_view message) -> void {
-    const auto now =
-        std::chrono::floor<std::chrono::milliseconds>(std::chrono::system_clock::now());
+    const auto now = std::chrono::system_clock::now();
+    const auto second = std::chrono::floor<std::chrono::seconds>(now);
+    const auto millis =
+        std::chrono::duration_cast<std::chrono::milliseconds>(now - second).count();
 
-    std::println(stderr, "[{:%H:%M:%S}] {:<5} {}", now, to_string(lvl), message);
+    auto local = std::tm{};
+
+    if (!to_local(std::chrono::system_clock::to_time_t(second), local)) {
+        std::println(stderr, "[--:--:--.---] {:<5} {}", to_string(lvl), message);
+        return;
+    }
+
+    std::println(
+        stderr, "[{:02}:{:02}:{:02}.{:03}] {:<5} {}", local.tm_hour, local.tm_min,
+        local.tm_sec, millis, to_string(lvl), message
+    );
 }
 
 } // namespace detail

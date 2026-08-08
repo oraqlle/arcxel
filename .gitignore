@@ -49,7 +49,7 @@
 vgcore.*
 
 # Measurement output
-arcxel-timing.csv
+/results/
 
 # Misc.
 .DS_Store

@@ -40,7 +40,7 @@ auto main() -> int {
     }
 
     arcxel::timing::log_summary();
-    arcxel::timing::write_csv("arcxel-timing.csv");
+    arcxel::timing::write_run_csv();
 
     return 0;
 }

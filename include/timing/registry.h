@@ -24,6 +24,7 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <string>
 #include <string_view>
 #include <vector>
 
@@ -57,7 +58,14 @@ auto dropped() noexcept -> std::size_t;
 auto clear() noexcept -> void;
 
 auto log_summary() -> void;
+
+// Writes to an explicit path, replacing anything already there.
 auto write_csv(std::string_view path) -> bool;
+
+// Writes to <directory>/<yyyy-mm-dd>/arcxel-timing-<hhmmss>.csv in local time,
+// creating the directories if needed, so runs never overwrite each other.
+// Returns the path written, or an empty string on failure.
+auto write_run_csv(std::string_view directory = "results") -> std::string;
 
 namespace detail {
 

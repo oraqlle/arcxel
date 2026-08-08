@@ -27,9 +27,12 @@
 #include <cstddef>
 #include <cstdint>
 #include <cstdio>
-#include <limits>
+#include <ctime>
+#include <filesystem>
+#include <format>
 #include <string>
 #include <string_view>
+#include <system_error>
 #include <vector>
 
 namespace arcxel::timing {
@@ -173,6 +176,44 @@ auto write_csv(std::string_view path) -> bool {
 
     log::info("timing: wrote {} samples to {}", detail::store.size(), name);
     return true;
+}
+
+auto write_run_csv(std::string_view directory) -> std::string {
+    // Local time, so the date folder matches the day the run happened. libc++
+    // has no chrono time zone support yet, hence the C API.
+    const auto stamp = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
+    const auto* local = std::localtime(&stamp);
+
+    if (local == nullptr) {
+        log::error("timing: could not resolve local time");
+        return {};
+    }
+
+    const auto dir =
+        std::filesystem::path(directory)
+        / std::format(
+            "{:04}-{:02}-{:02}", local->tm_year + 1900, local->tm_mon + 1, local->tm_mday
+        );
+
+    auto ec = std::error_code{};
+
+    std::filesystem::create_directories(dir, ec);
+
+    if (ec) {
+        log::error("timing: could not create {}: {}", dir.string(), ec.message());
+        return {};
+    }
+
+    const auto name = std::format(
+        "arcxel-timing-{:02}{:02}{:02}.csv", local->tm_hour, local->tm_min, local->tm_sec
+    );
+    const auto path = (dir / name).string();
+
+    if (!write_csv(path)) {
+        return {};
+    }
+
+    return path;
 }
 
 } // namespace arcxel::timing
