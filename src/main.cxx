@@ -6,12 +6,14 @@
 
 #include "raylib.h"
 
+#include <exception>
+
 constexpr int WIDTH = 1920;
 constexpr int HEIGHT = 1080;
 
-auto main() -> int {
-    arcxel::log::adopt_raylib();
+namespace {
 
+auto run() -> void {
     auto window = arcxel::Window(WIDTH, HEIGHT, "Arcxel Window");
     arcxel::log::info("window opened {}x{}", WIDTH, HEIGHT);
     auto centre = Vector2{WIDTH / 2.0f, HEIGHT / 2.0f};
@@ -43,6 +45,22 @@ auto main() -> int {
 
     arcxel::timing::log_summary();
     arcxel::timing::write_run_csv();
+}
+
+} // namespace
+
+auto main() -> int {
+    arcxel::log::adopt_raylib();
+
+    try {
+        run();
+    } catch (const std::exception& error) {
+        arcxel::log::fatal("{}", error.what());
+        return 1;
+    } catch (...) {
+        arcxel::log::fatal("terminated by an unknown exception");
+        return 1;
+    }
 
     return 0;
 }
