@@ -24,19 +24,24 @@
 
 #include <raylib.h>
 
+#include <string>
+
 namespace arcxel {
 
 struct Object {
-    Vector3 position;
-    Vector3 velocity;
-    BoundingBox collision_shape;
-    Color colour;
+    struct Type {
+        std::string classname;
+        u32 classid;
+    }; // struct Type
 
-    Object() = default;
+    Object() noexcept
+        : classtype("", 0) {}
 
-    auto render() -> void {}
+    virtual ~Object() = default;
 
-    auto update(f64 delta) {}
+    Object::Type type() noexcept;
+
+    Type classtype;
 }; // struct Object
 
 } // namespace arcxel
