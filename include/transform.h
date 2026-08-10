@@ -28,15 +28,15 @@
 
 namespace arcxel {
 
-auto Vector3Sqrt(Vector3 v) noexcept -> Vector3 {
+[[nodiscard]] auto Vector3Sqrt(Vector3 v) -> Vector3 {
     return Vector3{.x = std::sqrt(v.x), .y = std::sqrt(v.y), .z = std::sqrt(v.z)};
 }
 
-auto QuaternionConjugate(Quaternion q) noexcept -> Quaternion {
+[[nodiscard]] auto QuaternionConjugate(Quaternion q) -> Quaternion {
     return {.x = -q.x, .y = -q.y, .z = -q.z, .w = q.w};
 }
 
-auto QuaternionVector3Multiply(Quaternion q, Vector3 v) noexcept -> Vector3 {
+[[nodiscard]] auto QuaternionVector3Multiply(Quaternion q, Vector3 v) -> Vector3 {
     auto pq = Quaternion{0.0f, q.x, q.y, q.z};
     auto nq = QuaternionNormalize(q);
     auto cq = QuaternionConjugate(q);
@@ -54,21 +54,21 @@ struct Transform3D : public Object {
 
     ~Transform3D() noexcept = default;
 
-    auto move(Vector3 amount) noexcept -> void {
+    auto translate(Vector3 amount) -> void {
         position = Vector3Add(position, amount);
     }
 
-    auto rotate(Quaternion amount) noexcept -> void {
+    auto rotate(Quaternion amount) -> void {
         rotation = QuaternionMultiply(rotation, amount);
     }
 
-    auto rotate(Vector3 axis, f32 degrees) noexcept -> void {}
+    auto rotate(Vector3 axis, f32 degrees) -> void {}
 
-    auto scale(Vector3 amount) noexcept -> void {
+    auto scale(Vector3 amount) -> void {
         scaler = Vector3Multiply(scaler, amount);
     }
 
-    auto look_at(Vector3 direction) noexcept -> void {
+    auto look_at(Vector3 direction) -> void {
         auto dot = Vector3DotProduct(Vector3{0.0f, 0.0f, -1.0f}, direction);
         if (dot > 0.999999 || dot < -0.999999) {
             rotation = Quaternion{0.0f, 0.0f, 0.0f, 1.0f};
@@ -86,19 +86,19 @@ struct Transform3D : public Object {
         rotation.w = w;
     }
 
-    auto forward() noexcept -> Vector3 {
+    [[nodiscard]] auto forward() -> Vector3 {
         return QuaternionVector3Multiply(rotation, Vector3{0.0f, 0.0f, -1.0f});
     }
 
-    auto up() noexcept -> Vector3 {
+    [[nodiscard]] auto up() -> Vector3 {
         return QuaternionVector3Multiply(rotation, Vector3{0.0f, 1.0f, 0.0f});
     }
 
-    auto right() noexcept -> Vector3 {
+    [[nodiscard]] auto right() -> Vector3 {
         return QuaternionVector3Multiply(rotation, Vector3{1.0f, 0.0f, 0.0f});
     }
 
-    auto transform_matrix() noexcept -> Matrix {
+    [[nodiscard]] auto transform_matrix() -> Matrix {
         auto t = MatrixTranslate(position.x, position.y, position.z);
         auto s = MatrixScale(scaler.x, scaler.y, scaler.z);
         auto r = QuaternionToMatrix(rotation);
