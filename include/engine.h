@@ -29,18 +29,28 @@ namespace arcxel {
 class Engine {
 private:
     Window window;
+    bool running;
 
 public:
     Engine() = delete;
 
-    explicit Engine(Window&& window)
-        : window(window) {}
+    explicit Engine(Window&& window) noexcept
+        : window(std::move(window))
+        , running(true) {}
 
-    auto update(double delta) -> void {
-    }
+    // make singleton
 
-    auto render(double delta) -> void {
-    }
+    [[nodiscard]] auto window_handle() -> Window& { return window; }
+
+    [[nodiscard]] auto is_running() -> bool { return running && !WindowShouldClose(); }
+
+    auto stop() -> void { running = false; }
+
+    auto handle_events() -> void {}
+
+    auto update(double delta) -> void {}
+
+    auto render(double delta) -> void {}
 }; // class Engine
 
 } // namespace arcxel

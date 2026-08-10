@@ -39,7 +39,7 @@ struct Object {
 
     virtual ~Object() = default;
 
-    Object::Type type() noexcept;
+    Object::Type type();
 
     Type classtype;
 }; // struct Object

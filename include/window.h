@@ -34,9 +34,18 @@ private:
     std::string window_name;
 
 public:
+
+    Window(Window&& window) noexcept = default;
+
+    Window(const Window& window) noexcept = delete;
+
+    [[nodiscard]] auto operator=(Window&& window) noexcept -> Window& = default;
+
+    auto operator=(const Window& window) noexcept -> Window& = delete;
+
     explicit Window(
         int w, int h, std::string win_name = "raylib window", int target_fps = 60
-    )
+    ) noexcept
         : width(w)
         , height(h)
         , target_fps(target_fps)
@@ -44,6 +53,7 @@ public:
         InitWindow(w, h, window_name.c_str());
         SetTargetFPS(target_fps);
     }
+
 
     ~Window() noexcept { CloseWindow(); }
 }; // struct Window
