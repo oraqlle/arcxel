@@ -20,6 +20,7 @@
 #ifndef ARCXEL_ENGINE_H
 #define ARCXEL_ENGINE_H
 
+#include <types.h>
 #include <window.h>
 
 #include <raylib.h>
@@ -48,9 +49,9 @@ public:
 
     auto handle_events() -> void {}
 
-    auto update(double delta) -> void {}
+    auto update(f64 delta) -> void {}
 
-    auto render(double delta) -> void {}
+    auto render(f64 delta) -> void {}
 }; // class Engine
 
 } // namespace arcxel
