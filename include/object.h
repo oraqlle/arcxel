@@ -28,7 +28,8 @@
 
 namespace arcxel {
 
-struct Object {
+class Object {
+public:
     struct Type {
         std::string classname;
         u32 classid;
@@ -41,8 +42,10 @@ struct Object {
 
     Object::Type type();
 
+private:
     Type classtype;
-}; // struct Object
+
+}; // class Object
 
 } // namespace arcxel
 

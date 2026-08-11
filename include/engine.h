@@ -28,10 +28,6 @@
 namespace arcxel {
 
 class Engine {
-private:
-    Window window;
-    bool running;
-
 public:
     Engine() = delete;
 
@@ -52,6 +48,11 @@ public:
     auto update(f64 delta) -> void {}
 
     auto render(f64 delta) -> void {}
+
+private:
+    Window window;
+    bool running;
+
 }; // class Engine
 
 } // namespace arcxel

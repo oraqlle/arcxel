@@ -20,6 +20,8 @@
 #ifndef ARCXEL_WINDOW_H
 #define ARCXEL_WINDOW_H
 
+#include <types.h>
+
 #include <raylib.h>
 
 #include <string>
@@ -27,14 +29,7 @@
 namespace arcxel {
 
 struct Window {
-private:
-    int width;
-    int height;
-    int target_fps;
-    std::string window_name;
-
 public:
-
     Window(Window&& window) noexcept = default;
 
     Window(const Window& window) noexcept = delete;
@@ -44,7 +39,7 @@ public:
     auto operator=(const Window& window) noexcept -> Window& = delete;
 
     explicit Window(
-        int w, int h, std::string win_name = "raylib window", int target_fps = 60
+        i32 w, i32 h, std::string win_name = "raylib window", i32 target_fps = 60
     ) noexcept
         : width(w)
         , height(h)
@@ -54,8 +49,13 @@ public:
         SetTargetFPS(target_fps);
     }
 
-
     ~Window() noexcept { CloseWindow(); }
+
+private:
+    i32 width;
+    i32 height;
+    i32 target_fps;
+    std::string window_name;
 }; // struct Window
 
 } // namespace arcxel
