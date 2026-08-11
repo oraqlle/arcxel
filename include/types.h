@@ -1,7 +1,7 @@
 // <types.h> -*- C++ -*-
 
 //  Arcxel Test Bench
-//  Copyright (C) 2026  Tyler Swann, Georgia Kannelis
+//  Copyright (C) 2026  Tyler Swann, Georgia Kanellis
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -17,8 +17,7 @@
 //  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 //  USA
 
-#ifndef ARCXEL_TYPES_H
-#define ARCXEL_TYPES_H
+#pragma once
 
 #include <cstddef>
 #include <cstdint>
@@ -42,5 +41,3 @@ using f32 = float;
 using f64 = double;
 
 } // namespace arcxel
-
-#endif // ARCXEL_TYPES_H

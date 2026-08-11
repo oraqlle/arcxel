@@ -44,6 +44,12 @@ add_executable(arcxel src/main.cxx)
 target_compile_features(arcxel PUBLIC cxx_std_23)
 target_link_libraries(arcxel PRIVATE raylib)
 
+if(MSVC)
+    target_compile_options(arcxel PRIVATE /EHs-c-)
+else()
+    target_compile_options(arcxel PRIVATE -fno-exceptions)
+endif()
+
 # ---- Installation ----
 #install(TARGETS arcxel RUNTIME COMPONENT runtime)
 include(CPack)

@@ -1,10 +1,8 @@
 #include <engine.h>
-#include <quad.h>
-#include <triangle2d.h>
 #include <types.h>
 #include <window.h>
 
-#include "raylib.h"
+#include <raylib.h>
 
 using arcxel::i8;
 using arcxel::i16;

@@ -1,7 +1,7 @@
 // <transform.h> -*- C++ -*-
 
 //  Arcxel Test Bench
-//  Copyright (C) 2026  Tyler Swann, Georgia Kannelis
+//  Copyright (C) 2026  Tyler Swann, Georgia Kanellis
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -17,8 +17,7 @@
 //  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 //  USA
 
-#ifndef ARCXEL_TRANSFORM_H
-#define ARCXEL_TRANSFORM_H
+#pragma once
 
 #include <object.h>
 
@@ -55,9 +54,7 @@ struct Transform3D : public Object {
 
     ~Transform3D() noexcept = default;
 
-    auto translate(Vector3 amount) -> void {
-        position = Vector3Add(position, amount);
-    }
+    auto translate(Vector3 amount) -> void { position = Vector3Add(position, amount); }
 
     auto rotate(Quaternion amount) -> void {
         rotation = QuaternionMultiply(rotation, amount);
@@ -65,9 +62,7 @@ struct Transform3D : public Object {
 
     auto rotate(Vector3 axis, f32 degrees) -> void {}
 
-    auto scale(Vector3 amount) -> void {
-        scaler = Vector3Multiply(scaler, amount);
-    }
+    auto scale(Vector3 amount) -> void { scaler = Vector3Multiply(scaler, amount); }
 
     auto look_at(Vector3 direction) -> void {
         auto dot = Vector3DotProduct(Vector3{0.0f, 0.0f, -1.0f}, direction);
@@ -114,5 +109,3 @@ struct Transform3D : public Object {
 }; // struct Transform3D
 
 } // namespace arcxel
-
-#endif // ARCXEL_TRANSFORM_H

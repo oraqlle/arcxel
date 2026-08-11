@@ -9,7 +9,7 @@
 // <[header_name].h> -*- C++ -*-
 
 //  Arcxel Test Bench
-//  Copyright (C) 2026  Tyler Swann, Georgia Kannelis
+//  Copyright (C) 2026  Tyler Swann, Georgia Kanellis
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -25,8 +25,7 @@
 //  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 //  USA
 
-#ifndef ARCXEL_<HEADER_NAME>_H
-#define ARCXEL_<HEADER_NAME>_H
+#pragma once
 
 #include <> // internal arcxel headers
 
@@ -39,8 +38,6 @@ namespace arcxel {
 // ... header content ...
 
 } // namespace arcxel
-
-#endif // ARCXEL_<HEADER_NAME>_H
 ```
 
 ## Source Files
@@ -49,7 +46,7 @@ namespace arcxel {
 // <[source_name].cxx> -*- C++ -*-
 
 //  Arcxel Test Bench
-//  Copyright (C) 2026  Tyler Swann, Georgia Kannelis
+//  Copyright (C) 2026  Tyler Swann, Georgia Kanellis
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
