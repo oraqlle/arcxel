@@ -20,30 +20,67 @@
 #ifndef ARCXEL_ENTITY_H
 #define ARCXEL_ENTITY_H
 
+#include <component.h>
+#include <object.h>
+#include <transform.h>
 #include <types.h>
 
 #include <raylib.h>
 
-#include <bitset>
+#include <memory>
+#include <optional>
+#include <string>
+#include <vector>
 
 namespace arcxel {
 
-/*** Entity ***/
+class Entity : public Object {
+public:
+    Entity() noexcept
+        : id(0)
+        , name("")
+        , transform() {}
 
-/**
- * @brief Entity ID type
- */
-using Entity = u32;
+    ~Entity() noexcept = default;
 
-constexpr Entity MAX_ENTITIES = 5000;
+    template <typename T>
+    [[nodiscard]] auto create_component() -> std::weak_ptr<T> {
+        auto comp = std::make_shared<T>();
+        components.push_back(comp);
+        return comp;
+    }
 
-/*** Components ***/
+    template <typename T>
+    [[nodiscard]] auto find_component() -> std::optional<std::weak_ptr<T>> {
+        for (auto comp : components) {
+            auto ptr = std::dynamic_pointer_cast<T>(comp);
 
-using ComponentType = u8;
+            if (ptr) {
+                return std::make_optional<std::weak_ptr<T>>(ptr);
+            }
+        }
 
-constexpr ComponentType MAX_COMPONENTS = 32;
+        return std::nullopt;
+    }
 
-using Signature = std::bitset<MAX_COMPONENTS>;
+    template <typename T>
+    auto remove_component(std::weak_ptr<T> comp) -> void {
+        auto it = std::ranges::find(components, comp);
+
+        if (it != components.end()) {
+            components.erase(it);
+        }
+    }
+
+public:
+    u32 id;
+    std::string name;
+    Transform3D transform;
+    Transform trn;
+
+protected:
+    std::vector<std::shared_ptr<Component>> components;
+}; // class Entity
 
 } // namespace arcxel
 

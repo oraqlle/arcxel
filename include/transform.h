@@ -20,11 +20,12 @@
 #ifndef ARCXEL_TRANSFORM_H
 #define ARCXEL_TRANSFORM_H
 
-#include <cmath>
 #include <object.h>
 
 #include <raylib.h>
 #include <raymath.h>
+
+#include <cmath>
 
 namespace arcxel {
 
