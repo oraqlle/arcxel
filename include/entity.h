@@ -75,7 +75,6 @@ public:
     u32 id;
     std::string name;
     Transform3D transform;
-    Transform trn;
 
 protected:
     std::vector<std::shared_ptr<Component>> components;

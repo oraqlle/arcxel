@@ -19,19 +19,37 @@
 
 #pragma once
 
-#include <object.h>
+#include <player.h>
 
 #include <raylib.h>
 
 namespace arcxel {
 
-class Scene : public Object {
+class Scene {
 public:
     Scene() noexcept = default;
 
-    auto update(f64 delta) -> void {}
+    auto handle_events() -> void {
+        player.handle_events();
+    }
 
-    auto render(f64 delta) -> void {}
+    auto update(f64 delta) -> void {
+        player.update(delta);
+    }
+
+    auto render(f64 delta) -> void {
+        player.render(delta);
+    }
+
+    [[nodiscard]] auto primary_camera() -> Camera3D {
+        return player.get_camera();
+    }
+
+public: // Scene objects
+    Player player;
+
+private:
+    Camera3D primary_cam;
 
 }; // class Scene
 

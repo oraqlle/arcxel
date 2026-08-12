@@ -19,6 +19,7 @@
 
 #pragma once
 
+#include "scene.h"
 #include <types.h>
 #include <window.h>
 
@@ -42,15 +43,32 @@ public:
 
     auto stop() -> void { running = false; }
 
-    auto handle_events() -> void {}
+    auto handle_events() -> void {
+        scene.handle_events();
+    }
 
-    auto update(f64 delta) -> void {}
+    auto update(f64 delta) -> void {
+        scene.update(delta);
+    }
 
-    auto render(f64 delta) -> void {}
+    auto render(f64 delta) -> void {
+        auto camera = scene.primary_camera();
+
+        BeginDrawing();
+
+        BeginMode3D(camera);
+
+        scene.render(delta);
+
+        EndMode3D();
+
+        EndDrawing();
+    }
 
 private:
     Window window;
     bool running;
+    Scene scene;
 
 }; // class Engine
 
