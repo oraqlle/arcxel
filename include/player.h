@@ -51,7 +51,7 @@ public:
     auto update(f64 delta) -> void {
         auto move = _movement_controls(delta);
         auto rotation = _look_controls(delta);
-        UpdateCameraPro(camera, move, rotation, 1.0);
+        UpdateCameraPro(&camera, move, rotation, 1.0);
     }
 
     auto render(f64 delta) -> void {}
@@ -63,13 +63,13 @@ protected:
 
         switch (key) {
             case KEY_W:
-                return Vector3Scale(GetCameraForward(camera), velocity);
+                return Vector3Scale(GetCameraForward(&camera), velocity);
             case KEY_A:
-                return Vector3Scale(GetCameraRight(camera), -velocity);
+                return Vector3Scale(GetCameraRight(&camera), -velocity);
             case KEY_S:
-                return Vector3Scale(GetCameraForward(camera), -velocity);
+                return Vector3Scale(GetCameraForward(&camera), -velocity);
             case KEY_D:
-                return Vector3Scale(GetCameraRight(camera), velocity);
+                return Vector3Scale(GetCameraRight(&camera), velocity);
             default:
                 return Vector3{0.0};
         }
