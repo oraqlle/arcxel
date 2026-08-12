@@ -18,8 +18,9 @@ set(BUILD_EXAMPLES  OFF CACHE BOOL "" FORCE) # don't build the supplied examples
 set(BUILD_GAMES     OFF CACHE BOOL "" FORCE) # don't build the supplied example games
 set(WITH_PIC        ON  CACHE BOOL "" FORCE) # Process Independent Code
 
-# ---- Options ----
-
+# ---- Build Options ----
+option(ARXCEL_DEBUG_SANITIZERS "Build with sanitizers enabled" OFF)
+option(ARXCEL_LOGGING "Log traces through program" ON)
 
 # ---- Dependencies ----
 include(FetchContent)
@@ -44,10 +45,23 @@ add_executable(arcxel src/main.cxx)
 target_compile_features(arcxel PUBLIC cxx_std_23)
 target_link_libraries(arcxel PRIVATE raylib)
 
+# ----  Set Options ----
+# Disable Exceptions
 if(MSVC)
     target_compile_options(arcxel PRIVATE /EHs-c-)
 else()
     target_compile_options(arcxel PRIVATE -fno-exceptions)
+endif()
+
+# Sanitizers
+if(ARXCEL_DEBUG_SANITIZERS)
+    if(MSVC)
+        target_compile_options(arcxel PRIVATE /fsanitize=address)
+        target_link_options(arcxel PRIVATE /fsanitize=address)
+    else()
+        target_compile_options(arcxel PRIVATE -fsanitize=address)
+        target_link_options(arcxel PRIVATE -fsanitize=address)
+    endif()
 endif()
 
 # ---- Installation ----
