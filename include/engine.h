@@ -19,9 +19,9 @@
 
 #pragma once
 
-#include "scene.h"
+#include <scene.h>
 #include <types.h>
-#include <window.h>
+#include <window_info.h>
 
 #include <raylib.h>
 
@@ -31,25 +31,24 @@ class Engine {
 public:
     Engine() = delete;
 
-    explicit Engine(Window&& window) noexcept
-        : window(std::move(window))
-        , running(true) {}
+    explicit Engine(const WindowInfo& winfo) noexcept
+        : window_info(winfo)
+        , running(true) {
+        InitWindow(winfo.width, winfo.height, winfo.name.c_str());
+        SetTargetFPS(winfo.target_fps);
+    }
+
+    ~Engine() noexcept { CloseWindow(); };
 
     // make singleton
-
-    [[nodiscard]] auto window_handle() -> Window& { return window; }
 
     [[nodiscard]] auto is_running() -> bool { return running && !WindowShouldClose(); }
 
     auto stop() -> void { running = false; }
 
-    auto handle_events() -> void {
-        scene.handle_events();
-    }
+    auto handle_events() -> void { scene.handle_events(); }
 
-    auto update(f64 delta) -> void {
-        scene.update(delta);
-    }
+    auto update(f64 delta) -> void { scene.update(delta); }
 
     auto render(f64 delta) -> void {
         auto camera = scene.primary_camera();
@@ -65,8 +64,10 @@ public:
         EndDrawing();
     }
 
+public:
+    WindowInfo window_info;
+
 private:
-    Window window;
     bool running;
     Scene scene;
 

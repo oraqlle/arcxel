@@ -1,4 +1,4 @@
-// <window.h> -*- C++ -*-
+// <window_info.h> -*- C++ -*-
 
 //  Arcxel Test Bench
 //  Copyright (C) 2026  Tyler Swann, Georgia Kanellis
@@ -27,34 +27,11 @@
 
 namespace arcxel {
 
-struct Window {
-public:
-    Window(Window&& window) noexcept = default;
-
-    Window(const Window& window) noexcept = delete;
-
-    [[nodiscard]] auto operator=(Window&& window) noexcept -> Window& = default;
-
-    auto operator=(const Window& window) noexcept -> Window& = delete;
-
-    explicit Window(
-        i32 w, i32 h, std::string win_name = "raylib window", i32 target_fps = 60
-    ) noexcept
-        : width(w)
-        , height(h)
-        , target_fps(target_fps)
-        , window_name(win_name) {
-        InitWindow(w, h, window_name.c_str());
-        SetTargetFPS(target_fps);
-    }
-
-    ~Window() noexcept { CloseWindow(); }
-
-private:
+struct WindowInfo {
     i32 width;
     i32 height;
-    i32 target_fps;
-    std::string window_name;
+    i32 target_fps = 60;
+    std::string name = "Arcxel Window";
 }; // struct Window
 
 } // namespace arcxel

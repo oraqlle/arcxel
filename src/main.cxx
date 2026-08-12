@@ -1,9 +1,10 @@
 #include <engine.h>
 #include <types.h>
-#include <window.h>
+#include <window_info.h>
 
 #include <raylib.h>
 
+// clang-format off
 using arcxel::i8;
 using arcxel::i16;
 using arcxel::i32;
@@ -14,18 +15,19 @@ using arcxel::u16;
 using arcxel::u32;
 using arcxel::u64;
 
-using arcxel::usize;
 using arcxel::isize;
+using arcxel::usize;
 
 using arcxel::f32;
 using arcxel::f64;
+// clang-format on
 
 constexpr i32 WIDTH = 1920;
 constexpr i32 HEIGHT = 1080;
 
 auto main() -> int {
-    auto window = arcxel::Window(WIDTH, HEIGHT, "Arcxel Window");
-    auto engine = arcxel::Engine(std::move(window));
+    auto winfo = arcxel::WindowInfo{.width = WIDTH, .height = HEIGHT};
+    auto engine = arcxel::Engine(winfo);
 
     while (engine.is_running()) {
         engine.handle_events();
