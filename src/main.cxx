@@ -27,7 +27,11 @@ constexpr i32 HEIGHT = 1080;
 
 auto main() -> int {
     auto winfo = arcxel::WindowInfo{.width = WIDTH, .height = HEIGHT};
-    auto engine = arcxel::Engine(winfo);
+    InitWindow(winfo.width, winfo.height, winfo.name.c_str());
+    SetTargetFPS(winfo.target_fps);
+    DisableCursor();
+
+    auto engine = arcxel::Engine();
 
     while (engine.is_running()) {
         engine.handle_events();
@@ -39,6 +43,9 @@ auto main() -> int {
 
         engine.render(delta);
     }
+
+    EnableCursor();
+    CloseWindow();
 
     return 0;
 }

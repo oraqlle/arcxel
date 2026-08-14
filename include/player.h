@@ -30,56 +30,55 @@ namespace arcxel {
 class Player {
 public:
     Player() noexcept
-        : camera{0}
-        , speed(5.0)
-        , look_sensitivity(0.0015) {
-        camera.position = Vector3{0.0};
-        camera.target = Vector3{0.0, 0.0, -1.0};
-        camera.up = Vector3{0.0, 1.0, 0.0};
-        camera.fovy = 45.0 * DEG2RAD;
+        : speed(5.0f)
+        , look_sensitivity(0.03f) {
+        camera.position = Vector3{0.0f, 10.0f, 10.0f};
+        camera.target = Vector3{0.0f, 0.0f, 0.0f};
+        camera.up = Vector3{0.0f, 1.0f, 0.0f};
+        camera.fovy = 45.0;
         camera.projection = CameraProjection::CAMERA_PERSPECTIVE;
     }
 
     ~Player() noexcept = default;
 
-    [[nodiscard]] auto get_camera() -> Camera3D {
-        return camera;
-    }
+    [[nodiscard]] auto get_camera() -> Camera3D { return camera; }
 
     auto handle_events() -> void {}
 
     auto update(f64 delta) -> void {
+        // auto move = Vector3Zero();
+        //auto rotation = Vector3Zero();
+
         auto move = _movement_controls(delta);
         auto rotation = _look_controls(delta);
-        UpdateCameraPro(&camera, move, rotation, 1.0);
+        UpdateCameraPro(&camera, move, rotation, 0.0);
     }
 
     auto render(f64 delta) -> void {}
 
 protected:
     [[nodiscard]] auto _movement_controls(f64 delta) -> Vector3 {
-        auto key = GetKeyPressed();
-        auto velocity = speed * delta;
+        auto velocity = speed * static_cast<f32>(delta);
 
-        switch (key) {
+        switch (GetKeyPressed()) {
             case KEY_W:
-                return Vector3Scale(GetCameraForward(&camera), velocity);
+                return Vector3{velocity, 0.0f, 0.0f};
             case KEY_A:
-                return Vector3Scale(GetCameraRight(&camera), -velocity);
+                return Vector3{0.0f, -velocity, 0.0f};
             case KEY_S:
-                return Vector3Scale(GetCameraForward(&camera), -velocity);
+                return Vector3{-velocity, 0.0f, 0.0f};
             case KEY_D:
-                return Vector3Scale(GetCameraRight(&camera), velocity);
+                return Vector3{0.0f, velocity, 0.0f};
             default:
-                return Vector3{0.0};
+                return Vector3Zero();
         }
     }
 
     [[nodiscard]] auto _look_controls(f64 delta) -> Vector3 {
         auto mouse = GetMouseDelta();
-        auto pitch_delta = -mouse.y * look_sensitivity;
+        auto pitch_delta = mouse.y * look_sensitivity;
         auto yaw_delta = mouse.x * look_sensitivity;
-        return {yaw_delta, pitch_delta, 1.0};
+        return {yaw_delta, pitch_delta, 0.0f};
     }
 
 private:

@@ -1,4 +1,4 @@
-// <engine.h> -*- C++ -*-
+// <game_object.h> -*- C++ -*-
 
 //  Arcxel Test Bench
 //  Copyright (C) 2026  Tyler Swann, Georgia Kanellis
@@ -19,50 +19,33 @@
 
 #pragma once
 
-#include <scene.h>
+#include <transform.h>
 #include <types.h>
-#include <window_info.h>
 
 #include <raylib.h>
 
 namespace arcxel {
 
-class Engine {
+class GameObject {
 public:
-    Engine() noexcept
-        : running(true) {};
+    GameObject() noexcept = default;
 
-    ~Engine() noexcept = default;
+    virtual ~GameObject() noexcept = default;
 
-    // make singleton
+    explicit GameObject(Transform3D transform)
+        : transform(transform) {}
 
-    [[nodiscard]] auto is_running() -> bool { return running && !WindowShouldClose(); }
-
-    auto stop() -> void { running = false; }
-
-    auto handle_events() -> void { scene.handle_events(); }
-
-    auto update(f64 delta) -> void { scene.update(delta); }
-
-    auto render(f64 delta) -> void {
-        auto camera = scene.primary_camera();
-
-        BeginDrawing();
-        ClearBackground(RAYWHITE);
-
-        BeginMode3D(camera);
-
-        scene.render(delta);
-
-        EndMode3D();
-
-        EndDrawing();
+    auto handle_events() -> void {
     }
 
-private:
-    bool running;
-    Scene scene;
+    auto update(f64 delta) -> void {
+    }
 
-}; // class Engine
+    auto render(f64 delta) -> void {
+    }
+
+public:
+    Transform3D transform;
+}; // class GameObject
 
 } // namespace arcxel
