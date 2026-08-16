@@ -29,6 +29,7 @@ namespace arcxel {
 class Scene {
 public:
     Scene() noexcept {
+        cube.transform.position.z = -15.0f;
 }
 
     auto handle_events() -> void {
@@ -42,7 +43,7 @@ public:
     }
 
     auto render(f64 delta) -> void {
-        DrawGrid(10, 1.0f);
+        DrawGrid(10000, 1.0f);
         cube.render(delta);
         player.render(delta);
     }

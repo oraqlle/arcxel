@@ -31,9 +31,10 @@ class Player {
 public:
     Player() noexcept
         : speed(5.0f)
-        , look_sensitivity(0.03f) {
-        camera.position = Vector3{0.0f, 10.0f, 10.0f};
-        camera.target = Vector3{0.0f, 0.0f, 0.0f};
+        , sprint_speed_scale(1.75f)
+        , look_sensitivity(0.0015f) {
+        camera.position = Vector3Zero();
+        camera.target = Vector3{0.0f, 0.0f, -1.0f};
         camera.up = Vector3{0.0f, 1.0f, 0.0f};
         camera.fovy = 45.0;
         camera.projection = CameraProjection::CAMERA_PERSPECTIVE;
@@ -46,45 +47,56 @@ public:
     auto handle_events() -> void {}
 
     auto update(f64 delta) -> void {
-        // auto move = Vector3Zero();
-        //auto rotation = Vector3Zero();
-
-        auto move = _movement_controls(delta);
-        auto rotation = _look_controls(delta);
-        UpdateCameraPro(&camera, move, rotation, 0.0);
+        _look_controls(delta);
+        _movement_controls(delta);
     }
 
     auto render(f64 delta) -> void {}
 
 protected:
-    [[nodiscard]] auto _movement_controls(f64 delta) -> Vector3 {
-        auto velocity = speed * static_cast<f32>(delta);
+    auto _movement_controls(f64 delta) -> void {
+        auto speed_delta = speed * static_cast<f32>(delta);
 
-        switch (GetKeyPressed()) {
-            case KEY_W:
-                return Vector3{velocity, 0.0f, 0.0f};
-            case KEY_A:
-                return Vector3{0.0f, -velocity, 0.0f};
-            case KEY_S:
-                return Vector3{-velocity, 0.0f, 0.0f};
-            case KEY_D:
-                return Vector3{0.0f, velocity, 0.0f};
-            default:
-                return Vector3Zero();
+        if (IsKeyDown(KEY_LEFT_SHIFT)) {
+            speed_delta *= sprint_speed_scale;
+        }
+
+        if (IsKeyDown(KEY_W)) {
+            CameraMoveForward(&camera, speed_delta, false);
+        }
+
+        if (IsKeyDown(KEY_A)) {
+            CameraMoveRight(&camera, -speed_delta, false);
+        }
+
+        if (IsKeyDown(KEY_S)) {
+            CameraMoveForward(&camera, -speed_delta, false);
+        }
+
+        if (IsKeyDown(KEY_D)) {
+            CameraMoveRight(&camera, speed_delta, false);
+        }
+
+        if (IsKeyDown(KEY_Q)) {
+            CameraMoveUp(&camera, -speed_delta);
+        }
+
+        if (IsKeyDown(KEY_E)) {
+            CameraMoveUp(&camera, speed_delta);
         }
     }
 
-    [[nodiscard]] auto _look_controls(f64 delta) -> Vector3 {
+    auto _look_controls(f64 delta) -> void {
         auto mouse = GetMouseDelta();
-        auto pitch_delta = mouse.y * look_sensitivity;
-        auto yaw_delta = mouse.x * look_sensitivity;
-        return {yaw_delta, pitch_delta, 0.0f};
+        CameraYaw(&camera, -mouse.x * look_sensitivity, false);
+        CameraPitch(&camera, -mouse.y * look_sensitivity, true, false, false);
     }
 
 private:
     Camera3D camera;
 
     f32 speed;
+    f32 sprint_speed_scale;
     f32 look_sensitivity;
 }; // class Player
 
