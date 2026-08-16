@@ -40,10 +40,24 @@ FetchContent_MakeAvailable(raylib)
 # ---- Headers ----
 include_directories(${CMAKE_SOURCE_DIR}/include)
 
+# ---- Declare Library ----
+add_library(
+    arcxel_lib OBJECT
+    src/cube.cxx
+    src/engine.cxx
+    src/game_object.cxx
+    src/object.cxx
+    src/player.cxx
+    src/scene.cxx
+    src/transform.cxx
+)
+
+target_link_libraries(arcxel_lib PRIVATE raylib)
+
 # ---- Entrypoint ----
 add_executable(arcxel src/main.cxx)
 target_compile_features(arcxel PUBLIC cxx_std_23)
-target_link_libraries(arcxel PRIVATE raylib)
+target_link_libraries(arcxel PRIVATE raylib arcxel_lib)
 
 # ----  Set Options ----
 # Disable Exceptions

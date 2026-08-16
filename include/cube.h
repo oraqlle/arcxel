@@ -27,32 +27,15 @@ namespace arcxel {
 
 class Cube : public GameObject {
 public:
-    Cube() noexcept
-        : GameObject()
-        , width(1.0f)
-        , height(1.0f)
-        , length(1.0f)
-        , colour(RED) {
-        mesh = GenMeshCube(width, height, length);
-        model = LoadModelFromMesh(mesh);
-    };
+    Cube() noexcept;
 
-    explicit Cube(Transform3D transform) noexcept
-        : GameObject(transform)
-        , width(1.0f)
-        , height(1.0f)
-        , length(1.0f)
-        , colour(RED) {
-        this->transform = transform;
-        mesh = GenMeshCube(width, height, length);
-        model = LoadModelFromMesh(mesh);
-    }
+    explicit Cube(Transform3D transform) noexcept;
 
     ~Cube() noexcept = default;
 
-    auto update(f64 delta) -> void {}
+    auto update(f64 delta) -> void;
 
-    auto render(f64 delta) -> void { DrawModel(model, transform.position, 1.0f, colour); }
+    auto render(f64 delta) -> void;
 
 private:
     f32 width;

@@ -34,8 +34,7 @@ public:
         u32 classid;
     }; // struct Type
 
-    Object() noexcept
-        : classtype("", 0) {}
+    Object() noexcept;
 
     virtual ~Object() = default;
 

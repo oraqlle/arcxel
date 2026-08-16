@@ -29,35 +29,21 @@ namespace arcxel {
 
 class Engine {
 public:
-    Engine() noexcept
-        : running(true) {};
+    Engine() noexcept;
 
     ~Engine() noexcept = default;
 
     // make singleton
 
-    [[nodiscard]] auto is_running() -> bool { return running && !WindowShouldClose(); }
+    [[nodiscard]] auto is_running() -> bool;
 
-    auto stop() -> void { running = false; }
+    auto stop() -> void;
 
-    auto handle_events() -> void { scene.handle_events(); }
+    auto handle_events() -> void;
 
-    auto update(f64 delta) -> void { scene.update(delta); }
+    auto update(f64 delta) -> void;
 
-    auto render(f64 delta) -> void {
-        auto camera = scene.primary_camera();
-
-        BeginDrawing();
-        ClearBackground(RAYWHITE);
-
-        BeginMode3D(camera);
-
-        scene.render(delta);
-
-        EndMode3D();
-
-        EndDrawing();
-    }
+    auto render(f64 delta) -> void;
 
 private:
     bool running;

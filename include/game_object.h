@@ -32,17 +32,13 @@ public:
 
     virtual ~GameObject() noexcept = default;
 
-    explicit GameObject(Transform3D transform)
-        : transform(transform) {}
+    explicit GameObject(Transform3D transform);
 
-    auto handle_events() -> void {
-    }
+    auto handle_events() -> void;
 
-    auto update(f64 delta) -> void {
-    }
+    auto update(f64 delta) -> void;
 
-    auto render(f64 delta) -> void {
-    }
+    auto render(f64 delta) -> void;
 
 public:
     Transform3D transform;

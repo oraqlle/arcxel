@@ -19,7 +19,7 @@
 
 #pragma once
 
-#include "cube.h"
+#include <cube.h>
 #include <player.h>
 
 #include <raylib.h>
@@ -28,27 +28,15 @@ namespace arcxel {
 
 class Scene {
 public:
-    Scene() noexcept {
-        cube.transform.position.z = -15.0f;
-}
+    Scene() noexcept;
 
-    auto handle_events() -> void {
-        cube.handle_events();
-        player.handle_events();
-    }
+    auto handle_events() -> void;
 
-    auto update(f64 delta) -> void {
-        cube.update(delta);
-        player.update(delta);
-    }
+    auto update(f64 delta) -> void;
 
-    auto render(f64 delta) -> void {
-        DrawGrid(10000, 1.0f);
-        cube.render(delta);
-        player.render(delta);
-    }
+    auto render(f64 delta) -> void;
 
-    [[nodiscard]] auto primary_camera() -> Camera3D { return player.get_camera(); }
+    [[nodiscard]] auto primary_camera() -> Camera3D;
 
 public: // Scene objects
     Cube cube;
