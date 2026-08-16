@@ -19,8 +19,7 @@
 
 #pragma once
 
-#include <component.h>
-#include <transform.h>
+#include "transform.h"
 
 #include <raylib.h>
 #include <raymath.h>

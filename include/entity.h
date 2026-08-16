@@ -19,10 +19,10 @@
 
 #pragma once
 
-#include <component.h>
-#include <object.h>
-#include <transform.h>
-#include <types.h>
+#include "component.h"
+#include "object.h"
+#include "transform.h"
+#include "types.h"
 
 #include <raylib.h>
 

@@ -19,8 +19,8 @@
 
 #pragma once
 
-#include <cube.h>
-#include <player.h>
+#include "cube.h"
+#include "player.h"
 
 #include <raylib.h>
 

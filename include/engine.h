@@ -19,9 +19,8 @@
 
 #pragma once
 
-#include <scene.h>
-#include <types.h>
-#include <window_info.h>
+#include "scene.h"
+#include "types.h"
 
 #include <raylib.h>
 
