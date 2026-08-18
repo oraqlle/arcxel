@@ -4,8 +4,10 @@ Test bench for analysing different threading architectures for game engine workl
 
 ## Dependencies
 
-This game relies on raylib which lists it's dependencies on its
-[wiki](https://github.com/raysan5/raylib/wiki/raylib-dependencies)
+Arcxel relies on raylib, which lists its dependencies on its
+[wiki](https://github.com/raysan5/raylib/wiki/raylib-dependencies). raylib is
+fetched and built from source, and linked statically so that measured calls into
+it do not pay for cross-image dispatch.
 
 ## Building
 
@@ -28,6 +30,21 @@ the configuration must be named explicitly:
 ```sh
 cmake --build build --config Release
 ```
+
+## Build options
+
+| Option | Default | Effect |
+| --- | --- | --- |
+| `ARCXEL_PROFILING` | `ON` | Records timing spans. `OFF` compiles every span away. |
+| `ARCXEL_LOGGING` | `ON` | `OFF` discards every level at compile time and leaves raylib's own output alone. |
+| `ARCXEL_DEBUG_SANITIZERS` | `OFF` | Builds with AddressSanitizer, on the library as well as the executable. |
+
+```sh
+cmake -B build -DARCXEL_PROFILING=OFF
+```
+
+Measuring the profiler's own cost means building both ways and comparing, so
+`ARCXEL_PROFILING` exists to make the second build possible.
 
 ## Running
 
