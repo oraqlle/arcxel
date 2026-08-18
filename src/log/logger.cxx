@@ -97,11 +97,9 @@ auto from_raylib(int raylib_level) noexcept -> Level {
     }
 }
 
-// raylib supplies a printf-style format and a va_list, so the message has to be
-// rendered here before it can join the std::format path. Nothing may escape:
-// this is called from C.
-auto raylib_callback(int raylib_level, const char* text, va_list args) noexcept
-    -> void {
+[[maybe_unused]] auto raylib_callback(
+    int raylib_level, const char* text, va_list args
+) noexcept -> void {
     try {
         char buffer[1024];
 
@@ -159,11 +157,11 @@ auto set_level_from_env() -> void {
     // Say so before switching, or raising the threshold would hide the notice.
     info("log: level set to {} by ARCXEL_LOG_LEVEL", to_string(*parsed));
 
-    if (static_cast<int>(*parsed) < ARCXEL_LOG_MIN_LEVEL) {
+    if (*parsed < min_level) {
         warn(
             "log: this build discards anything below {}, so some messages stay "
             "unavailable",
-            to_string(static_cast<Level>(ARCXEL_LOG_MIN_LEVEL))
+            to_string(min_level)
         );
     }
 
@@ -195,9 +193,13 @@ auto close_file() noexcept -> void {
 }
 
 auto adopt_raylib() noexcept -> void {
-    // Let everything through raylib's own filter; ours decides what is kept.
-    SetTraceLogLevel(LOG_ALL);
-    SetTraceLogCallback(raylib_callback);
+    // Nothing would be written when logging is off, so raylib keeps its own
+    // output rather than routing it through a logger that discards everything.
+    if constexpr (logging_enabled) {
+        // Let everything through raylib's own filter; ours decides what is kept.
+        SetTraceLogLevel(LOG_ALL);
+        SetTraceLogCallback(raylib_callback);
+    }
 }
 
 namespace detail {

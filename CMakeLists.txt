@@ -84,7 +84,10 @@ target_compile_features(arcxel_lib PUBLIC cxx_std_23)
 
 # PUBLIC: main.cxx includes span.h, so the executable needs the same value
 target_compile_definitions(
-    arcxel_lib PUBLIC ARCXEL_PROFILING=$<BOOL:${ARCXEL_PROFILING}>
+    arcxel_lib
+    PUBLIC
+        ARCXEL_LOGGING=$<BOOL:${ARCXEL_LOGGING}>
+        ARCXEL_PROFILING=$<BOOL:${ARCXEL_PROFILING}>
 )
 target_link_libraries(arcxel_lib PUBLIC raylib)
 

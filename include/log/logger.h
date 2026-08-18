@@ -26,17 +26,23 @@
 #include <string_view>
 #include <utility>
 
-// Calls below this level are discarded at compile time. Release keeps info and
-// above so trace and debug cost nothing in a measured build.
-#ifndef ARCXEL_LOG_MIN_LEVEL
-#    ifdef NDEBUG
-#        define ARCXEL_LOG_MIN_LEVEL 2
-#    else
-#        define ARCXEL_LOG_MIN_LEVEL 0
-#    endif
+// The build system supplies this; the fallback is for compiling without CMake.
+#ifndef ARCXEL_LOGGING
+#    define ARCXEL_LOGGING 1
 #endif
 
 namespace arcxel::log {
+
+inline constexpr bool logging_enabled = ARCXEL_LOGGING != 0;
+
+#ifdef NDEBUG
+inline constexpr bool debug_build = false;
+#else
+inline constexpr bool debug_build = true;
+#endif
+
+inline constexpr Level min_level =
+    !logging_enabled ? Level::off : (debug_build ? Level::trace : Level::info);
 
 auto to_string(Level level) noexcept -> const char*;
 
@@ -44,7 +50,7 @@ auto set_level(Level level) noexcept -> void;
 auto level() noexcept -> Level;
 
 // Applies ARCXEL_LOG_LEVEL if set: trace, debug, info, warn, error, fatal or off
-// It can only raise the threshold, never lower it past ARCXEL_LOG_MIN_LEVEL
+// It can only raise the threshold, never lower it past min_level
 auto set_level_from_env() -> void;
 
 // Redirect raylib's own TraceLog output through this logger. Call before
@@ -61,7 +67,7 @@ namespace detail {
 auto write(Level level, std::string_view message) -> void;
 
 template <Level L>
-inline constexpr bool compiled_in = static_cast<int>(L) >= ARCXEL_LOG_MIN_LEVEL;
+inline constexpr bool compiled_in = L >= min_level;
 
 } // namespace detail
 
