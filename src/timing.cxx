@@ -23,6 +23,7 @@
 
 #include <algorithm>
 #include <chrono>
+#include <cinttypes>
 #include <cstddef>
 #include <cstdint>
 #include <cstdio>
@@ -171,11 +172,13 @@ auto write_csv(std::string_view path) -> bool {
             std::chrono::duration_cast<std::chrono::nanoseconds>(sample.end - origin)
                 .count();
 
+        const auto label = label_name(sample.label);
+
         std::fprintf(
-            file, "%s,%u,%u,%lld,%lld,%lld\n",
-            std::string(label_name(sample.label)).c_str(), sample.depth, sample.thread,
-            static_cast<long long>(start_ns), static_cast<long long>(end_ns),
-            static_cast<long long>(end_ns - start_ns)
+            file, "%.*s,%" PRIu16 ",%" PRIu32 ",%" PRId64 ",%" PRId64 ",%" PRId64 "\n",
+            static_cast<int>(label.size()), label.data(), sample.depth, sample.thread,
+            static_cast<std::int64_t>(start_ns), static_cast<std::int64_t>(end_ns),
+            static_cast<std::int64_t>(end_ns - start_ns)
         );
     }
 
