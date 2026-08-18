@@ -19,9 +19,9 @@
 
 #pragma once
 
+#include "types.h"
+
 #include <chrono>
-#include <cstddef>
-#include <cstdint>
 #include <string>
 #include <string_view>
 #include <type_traits>
@@ -44,14 +44,14 @@ static_assert(Clock::is_steady, "measurement requires a monotonic clock");
 
 inline constexpr bool profiling_enabled = ARCXEL_PROFILING != 0;
 
-using LabelId = std::uint16_t;
+using LabelId = u16;
 
 struct Sample {
     TimePoint start;
     TimePoint end;
     LabelId label;
-    std::uint16_t depth;
-    std::uint32_t thread; // always 0 until the game loop is parallelised
+    u16 depth;
+    u32 thread; // always 0 until the game loop is parallelised
 };
 
 // ---- Set-up. Call during start-up, never inside a measured region. ----
@@ -59,11 +59,11 @@ struct Sample {
 // Registers a label, or returns the existing id if the name is already known.
 auto register_label(std::string_view name) -> LabelId;
 auto label_name(LabelId id) noexcept -> std::string_view;
-auto label_count() noexcept -> std::size_t;
+auto label_count() noexcept -> usize;
 
 // Sets sample capacity
 // recording never allocates -> samples past this are discarded and counted
-auto reserve(std::size_t count) -> void;
+auto reserve(usize count) -> void;
 
 // Creates <directory>/<yyyy-mm-dd>/
 auto begin_run(std::string_view directory = "results") -> std::string;
@@ -71,7 +71,7 @@ auto begin_run(std::string_view directory = "results") -> std::string;
 // ---- Results. Not on the hot path. ----
 
 auto samples() noexcept -> const std::vector<Sample>&;
-auto dropped() noexcept -> std::size_t;
+auto dropped() noexcept -> usize;
 auto clear() noexcept -> void;
 
 auto log_summary() -> void;
@@ -87,8 +87,8 @@ namespace detail {
 // Storage sits in the header so that record() can inline into the call site.
 // Not thread safe: sharding by thread comes with the parallel game loop.
 inline std::vector<Sample> store;
-inline std::size_t dropped_samples = 0;
-inline thread_local std::uint16_t depth = 0;
+inline usize dropped_samples = 0;
+inline thread_local u16 depth = 0;
 
 } // namespace detail
 
@@ -127,7 +127,7 @@ public:
 private:
     TimePoint start;
     LabelId label;
-    std::uint16_t depth;
+    u16 depth;
 
 }; // class MeasuredSpan
 

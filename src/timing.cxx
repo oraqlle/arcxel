@@ -24,8 +24,6 @@
 #include <algorithm>
 #include <chrono>
 #include <cinttypes>
-#include <cstddef>
-#include <cstdint>
 #include <cstdio>
 #include <ctime>
 #include <filesystem>
@@ -44,17 +42,17 @@ std::vector<std::string> label_names;
 // Shared by everything this run writes, so the log and the samples match.
 std::string run_stem;
 
-auto to_ms(Duration duration) noexcept -> double {
+auto to_ms(Duration duration) noexcept -> f64 {
     return std::chrono::duration<double, std::milli>(duration).count();
 }
 
 // Spans are routinely sub-microsecond, so milliseconds would print as 0.000.
-auto to_us(Duration duration) noexcept -> double {
+auto to_us(Duration duration) noexcept -> f64 {
     return std::chrono::duration<double, std::micro>(duration).count();
 }
 
 struct Totals {
-    std::size_t count = 0;
+    usize count = 0;
     Duration total = Duration::zero();
     Duration min = Duration::max();
     Duration max = Duration::zero();
@@ -81,13 +79,13 @@ auto label_name(LabelId id) noexcept -> std::string_view {
     return "<unknown>";
 }
 
-auto label_count() noexcept -> std::size_t { return label_names.size(); }
+auto label_count() noexcept -> usize { return label_names.size(); }
 
-auto reserve(std::size_t count) -> void { detail::store.reserve(count); }
+auto reserve(usize count) -> void { detail::store.reserve(count); }
 
 auto samples() noexcept -> const std::vector<Sample>& { return detail::store; }
 
-auto dropped() noexcept -> std::size_t { return detail::dropped_samples; }
+auto dropped() noexcept -> usize { return detail::dropped_samples; }
 
 auto clear() noexcept -> void {
     detail::store.clear();
@@ -125,7 +123,7 @@ auto log_summary() -> void {
         "total/ms", "mean/us", "min/us", "max/us"
     );
 
-    for (std::size_t id = 0; id < totals.size(); ++id) {
+    for (usize id = 0; id < totals.size(); ++id) {
         const auto& entry = totals[id];
 
         if (entry.count == 0) {
@@ -135,7 +133,7 @@ auto log_summary() -> void {
         log::info(
             "timing: {:<16} {:>8} {:>12.3f} {:>12.3f} {:>12.3f} {:>12.3f}",
             label_names[id], entry.count, to_ms(entry.total),
-            to_us(entry.total) / static_cast<double>(entry.count), to_us(entry.min),
+            to_us(entry.total) / static_cast<f64>(entry.count), to_us(entry.min),
             to_us(entry.max)
         );
     }
@@ -176,9 +174,9 @@ auto write_csv(std::string_view path) -> bool {
 
         std::fprintf(
             file, "%.*s,%" PRIu16 ",%" PRIu32 ",%" PRId64 ",%" PRId64 ",%" PRId64 "\n",
-            static_cast<int>(label.size()), label.data(), sample.depth, sample.thread,
-            static_cast<std::int64_t>(start_ns), static_cast<std::int64_t>(end_ns),
-            static_cast<std::int64_t>(end_ns - start_ns)
+            static_cast<i32>(label.size()), label.data(), sample.depth, sample.thread,
+            static_cast<i64>(start_ns), static_cast<i64>(end_ns),
+            static_cast<i64>(end_ns - start_ns)
         );
     }
 
