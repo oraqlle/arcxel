@@ -1,4 +1,4 @@
-// <window.h> -*- C++ -*-
+// <player.h> -*- C++ -*-
 
 //  Arcxel Test Bench
 //  Copyright (C) 2026  Tyler Swann, Georgia Kanellis
@@ -19,25 +19,39 @@
 
 #pragma once
 
-#include "window_info.h"
+#include "types.h"
+
+#include <raylib.h>
+#include <raymath.h>
+#include <rcamera.h>
 
 namespace arcxel {
 
-class Window {
+class Player {
 public:
-    // Throws if raylib fails to open the window. E1 replaces this with
-    // std::expected.
-    explicit Window(const WindowInfo& info);
+    Player() noexcept;
 
-    // raylib owns a single global window, so this guard is neither copyable
-    // nor movable.
-    Window(const Window&) = delete;
-    Window(Window&&) = delete;
-    auto operator=(const Window&) -> Window& = delete;
-    auto operator=(Window&&) -> Window& = delete;
+    ~Player() noexcept = default;
 
-    ~Window();
+    [[nodiscard]] auto get_camera() -> Camera3D;
 
-}; // class Window
+    auto handle_events() -> void;
+
+    auto update(f64 delta) -> void;
+
+    auto render(f64 delta) -> void;
+
+protected:
+    auto _movement_controls(f64 delta) -> void;
+
+    auto _look_controls(f64 delta) -> void;
+
+private:
+    Camera3D camera;
+
+    f32 speed;
+    f32 sprint_speed_scale;
+    f32 look_sensitivity;
+}; // class Player
 
 } // namespace arcxel

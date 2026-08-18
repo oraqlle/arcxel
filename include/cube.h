@@ -1,4 +1,4 @@
-// <triangle.cxx> -*- C++ -*-
+// <cube.h> -*- C++ -*-
 
 //  Arcxel Test Bench
 //  Copyright (C) 2026  Tyler Swann, Georgia Kanellis
@@ -17,18 +17,34 @@
 //  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 //  USA
 
-#include <triangle.h>
+#pragma once
+
+#include "game_object.h"
 
 #include <raylib.h>
 
 namespace arcxel {
 
-Triangle::Triangle(Vector2 v1, Vector2 v2, Vector2 v3, Color colour)
-    : v1(v1)
-    , v2(v2)
-    , v3(v3)
-    , colour(colour) {}
+class Cube : public GameObject {
+public:
+    Cube() noexcept;
 
-auto Triangle::draw() -> void { DrawTriangle(v1, v2, v3, colour); }
+    explicit Cube(Transform3D transform) noexcept;
+
+    ~Cube() noexcept = default;
+
+    auto update(f64 delta) -> void;
+
+    auto render(f64 delta) -> void;
+
+private:
+    f32 width;
+    f32 height;
+    f32 length;
+    Color colour;
+    Mesh mesh;
+    Model model;
+
+}; // class Cube
 
 } // namespace arcxel

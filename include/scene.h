@@ -1,4 +1,4 @@
-// <window.h> -*- C++ -*-
+// <scene.h> -*- C++ -*-
 
 //  Arcxel Test Bench
 //  Copyright (C) 2026  Tyler Swann, Georgia Kanellis
@@ -19,25 +19,32 @@
 
 #pragma once
 
-#include "window_info.h"
+#include "cube.h"
+#include "player.h"
+
+#include <raylib.h>
 
 namespace arcxel {
 
-class Window {
+class Scene {
 public:
-    // Throws if raylib fails to open the window. E1 replaces this with
-    // std::expected.
-    explicit Window(const WindowInfo& info);
+    Scene() noexcept;
 
-    // raylib owns a single global window, so this guard is neither copyable
-    // nor movable.
-    Window(const Window&) = delete;
-    Window(Window&&) = delete;
-    auto operator=(const Window&) -> Window& = delete;
-    auto operator=(Window&&) -> Window& = delete;
+    auto handle_events() -> void;
 
-    ~Window();
+    auto update(f64 delta) -> void;
 
-}; // class Window
+    auto render(f64 delta) -> void;
+
+    [[nodiscard]] auto primary_camera() -> Camera3D;
+
+public: // Scene objects
+    Cube cube;
+    Player player;
+
+private:
+    Camera3D primary_cam;
+
+}; // class Scene
 
 } // namespace arcxel

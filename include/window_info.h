@@ -1,4 +1,4 @@
-// <window.h> -*- C++ -*-
+// <window_info.h> -*- C++ -*-
 
 //  Arcxel Test Bench
 //  Copyright (C) 2026  Tyler Swann, Georgia Kanellis
@@ -19,25 +19,19 @@
 
 #pragma once
 
-#include "window_info.h"
+#include "types.h"
+
+#include <raylib.h>
+
+#include <string>
 
 namespace arcxel {
 
-class Window {
-public:
-    // Throws if raylib fails to open the window. E1 replaces this with
-    // std::expected.
-    explicit Window(const WindowInfo& info);
-
-    // raylib owns a single global window, so this guard is neither copyable
-    // nor movable.
-    Window(const Window&) = delete;
-    Window(Window&&) = delete;
-    auto operator=(const Window&) -> Window& = delete;
-    auto operator=(Window&&) -> Window& = delete;
-
-    ~Window();
-
-}; // class Window
+struct WindowInfo {
+    i32 width;
+    i32 height;
+    i32 target_fps = 60;
+    std::string name = "Arcxel Window";
+}; // struct Window
 
 } // namespace arcxel

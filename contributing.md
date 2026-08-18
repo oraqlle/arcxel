@@ -45,8 +45,7 @@ outweighs it, this is reversible.
 //  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 //  USA
 
-#ifndef ARCXEL_<HEADER_NAME>_H
-#define ARCXEL_<HEADER_NAME>_H
+#pragma once
 
 #include <> // internal arcxel headers
 
@@ -59,8 +58,6 @@ namespace arcxel {
 // ... header content ...
 
 } // namespace arcxel
-
-#endif // ARCXEL_<HEADER_NAME>_H
 ```
 
 ## Source Files

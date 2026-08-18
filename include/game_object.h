@@ -1,4 +1,4 @@
-// <window.h> -*- C++ -*-
+// <game_object.h> -*- C++ -*-
 
 //  Arcxel Test Bench
 //  Copyright (C) 2026  Tyler Swann, Georgia Kanellis
@@ -19,25 +19,29 @@
 
 #pragma once
 
-#include "window_info.h"
+#include "transform.h"
+#include "types.h"
+
+#include <raylib.h>
 
 namespace arcxel {
 
-class Window {
+class GameObject {
 public:
-    // Throws if raylib fails to open the window. E1 replaces this with
-    // std::expected.
-    explicit Window(const WindowInfo& info);
+    GameObject() noexcept = default;
 
-    // raylib owns a single global window, so this guard is neither copyable
-    // nor movable.
-    Window(const Window&) = delete;
-    Window(Window&&) = delete;
-    auto operator=(const Window&) -> Window& = delete;
-    auto operator=(Window&&) -> Window& = delete;
+    virtual ~GameObject() noexcept = default;
 
-    ~Window();
+    explicit GameObject(Transform3D transform);
 
-}; // class Window
+    auto handle_events() -> void;
+
+    auto update(f64 delta) -> void;
+
+    auto render(f64 delta) -> void;
+
+public:
+    Transform3D transform;
+}; // class GameObject
 
 } // namespace arcxel

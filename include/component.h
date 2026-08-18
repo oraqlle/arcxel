@@ -1,4 +1,4 @@
-// <window.h> -*- C++ -*-
+// <component.h> -*- C++ -*-
 
 //  Arcxel Test Bench
 //  Copyright (C) 2026  Tyler Swann, Georgia Kanellis
@@ -19,25 +19,30 @@
 
 #pragma once
 
-#include "window_info.h"
+#include "object.h"
+
+#include <raylib.h>
+
+#include <memory>
 
 namespace arcxel {
 
-class Window {
+class Entity; //< Forward declaration
+
+class Component : public Object {
 public:
-    // Throws if raylib fails to open the window. E1 replaces this with
-    // std::expected.
-    explicit Window(const WindowInfo& info);
+    Component() noexcept
+        : entity() {}
 
-    // raylib owns a single global window, so this guard is neither copyable
-    // nor movable.
-    Window(const Window&) = delete;
-    Window(Window&&) = delete;
-    auto operator=(const Window&) -> Window& = delete;
-    auto operator=(Window&&) -> Window& = delete;
+    explicit Component(const std::shared_ptr<Entity>& ptr) noexcept
+        : entity(ptr) {}
 
-    ~Window();
+    explicit Component(const std::weak_ptr<Entity>& ptr) noexcept
+        : entity(ptr) {}
 
-}; // class Window
+    virtual ~Component() noexcept = default;
+
+    std::weak_ptr<Entity> entity;
+}; // class Object
 
 } // namespace arcxel

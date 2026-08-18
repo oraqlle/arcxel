@@ -17,18 +17,38 @@
 //  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 //  USA
 
-#include <log/logger.h>
-#include <timing/registry.h>
-#include <timing/span.h>
-#include <triangle.h>
-#include <window.h>
+#include "engine.h"
+#include "log/logger.h"
+#include "timing/registry.h"
+#include "timing/span.h"
+#include "types.h"
+#include "window.h"
+#include "window_info.h"
 
 #include <raylib.h>
 
 #include <exception>
 
-constexpr int WIDTH = 1920;
-constexpr int HEIGHT = 1080;
+// clang-format off
+using arcxel::i8;
+using arcxel::i16;
+using arcxel::i32;
+using arcxel::i64;
+
+using arcxel::u8;
+using arcxel::u16;
+using arcxel::u32;
+using arcxel::u64;
+
+using arcxel::isize;
+using arcxel::usize;
+
+using arcxel::f32;
+using arcxel::f64;
+// clang-format on
+
+constexpr i32 WIDTH = 1920;
+constexpr i32 HEIGHT = 1080;
 
 namespace {
 
@@ -36,47 +56,32 @@ auto run() -> void {
     // Before the window, so raylib's start-up messages reach the file too.
     arcxel::log::set_file(arcxel::timing::begin_run() + ".log");
 
-    auto window = arcxel::Window(WIDTH, HEIGHT, "Arcxel Window");
-    arcxel::log::info("window opened {}x{}", WIDTH, HEIGHT);
-    auto centre = Vector2{WIDTH / 2.0f, HEIGHT / 2.0f};
+    // Uncapped: a frame rate cap would show up as vsync wait in every span.
+    auto info = arcxel::WindowInfo{.width = WIDTH, .height = HEIGHT, .target_fps = 0};
+    auto window = arcxel::Window(info);
+    arcxel::log::info("window opened {}x{}", info.width, info.height);
 
-    auto v1 = Vector2{centre.x, centre.y - 175};
-    auto v2 = Vector2{centre.x - 200, centre.y + 175};
-    auto v3 = Vector2{centre.x + 200, centre.y + 175};
-    auto tri = arcxel::Triangle(v1, v2, v3, ORANGE);
+    DisableCursor();
+
+    auto engine = arcxel::Engine();
 
     // ~4M samples, about ten minutes of uncapped frames. Samples past this are
     // dropped, not reallocated.
     arcxel::timing::reserve(1U << 22U);
     const auto frame_span = arcxel::timing::register_label("frame");
-    const auto begin_span = arcxel::timing::register_label("begin");
-    const auto clear_span = arcxel::timing::register_label("clear");
-    const auto draw_span = arcxel::timing::register_label("draw");
-    const auto present_span = arcxel::timing::register_label("present");
 
-    while (!WindowShouldClose()) {
+    while (engine.is_running()) {
         ARCXEL_SPAN(frame_span);
 
-        {
-            ARCXEL_SPAN(begin_span);
-            BeginDrawing();
-        }
+        engine.handle_events();
 
-        {
-            ARCXEL_SPAN(clear_span);
-            ClearBackground(RAYWHITE);
-        }
+        const f64 delta = GetFrameTime();
 
-        {
-            ARCXEL_SPAN(draw_span);
-            tri.draw();
-        }
-
-        {
-            ARCXEL_SPAN(present_span);
-            EndDrawing();
-        }
+        engine.update(delta);
+        engine.render(delta);
     }
+
+    EnableCursor();
 
     arcxel::timing::log_summary();
     arcxel::timing::write_run_csv();

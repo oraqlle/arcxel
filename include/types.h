@@ -1,4 +1,4 @@
-// <window.h> -*- C++ -*-
+// <types.h> -*- C++ -*-
 
 //  Arcxel Test Bench
 //  Copyright (C) 2026  Tyler Swann, Georgia Kanellis
@@ -19,25 +19,25 @@
 
 #pragma once
 
-#include "window_info.h"
+#include <cstddef>
+#include <cstdint>
 
 namespace arcxel {
 
-class Window {
-public:
-    // Throws if raylib fails to open the window. E1 replaces this with
-    // std::expected.
-    explicit Window(const WindowInfo& info);
+using i8 = int8_t;
+using i16 = int16_t;
+using i32 = int32_t;
+using i64 = int64_t;
 
-    // raylib owns a single global window, so this guard is neither copyable
-    // nor movable.
-    Window(const Window&) = delete;
-    Window(Window&&) = delete;
-    auto operator=(const Window&) -> Window& = delete;
-    auto operator=(Window&&) -> Window& = delete;
+using u8 = uint8_t;
+using u16 = uint16_t;
+using u32 = uint32_t;
+using u64 = uint64_t;
 
-    ~Window();
+using usize = size_t;
+using isize = std::intmax_t;
 
-}; // class Window
+using f32 = float;
+using f64 = double;
 
 } // namespace arcxel

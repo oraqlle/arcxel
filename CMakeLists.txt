@@ -38,8 +38,9 @@ set(BUILD_EXAMPLES  OFF CACHE BOOL "" FORCE) # don't build the supplied examples
 set(BUILD_GAMES     OFF CACHE BOOL "" FORCE) # don't build the supplied example games
 set(WITH_PIC        ON  CACHE BOOL "" FORCE) # Process Independent Code
 
-# ---- Options ----
-
+# ---- Build Options ----
+option(ARXCEL_DEBUG_SANITIZERS "Build with sanitizers enabled" OFF)
+option(ARXCEL_LOGGING "Log traces through program" ON)
 
 # ---- Dependencies ----
 include(FetchContent)
@@ -57,23 +58,49 @@ FetchContent_MakeAvailable(raylib)
 #find_package(tinyobjloader 2.0.0 REQUIRED)
 
 # ---- Library ----
-# Static, not shared. The timing headers use inline variables that must resolve
-# to a single instance across the whole program
+# OBJECT, not shared. The timing headers use inline variables that must resolve
+# to a single instance across the whole program.
 add_library(
-    arcxel_core STATIC
+    arcxel_lib OBJECT
+    src/cube.cxx
+    src/engine.cxx
+    src/game_object.cxx
     src/log/logger.cxx
+    src/object.cxx
+    src/player.cxx
+    src/scene.cxx
     src/timing/registry.cxx
-    src/triangle.cxx
+    src/transform.cxx
     src/window.cxx
 )
-target_include_directories(arcxel_core PUBLIC ${CMAKE_SOURCE_DIR}/include)
-target_compile_features(arcxel_core PUBLIC cxx_std_23)
-target_link_libraries(arcxel_core PUBLIC raylib)
+
+target_include_directories(arcxel_lib PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
+target_compile_features(arcxel_lib PUBLIC cxx_std_23)
+target_link_libraries(arcxel_lib PUBLIC raylib)
 
 # ---- Entrypoint ----
 add_executable(arcxel src/main.cxx)
-target_compile_features(arcxel PRIVATE cxx_std_23)
-target_link_libraries(arcxel PRIVATE arcxel_core)
+target_link_libraries(arcxel PRIVATE arcxel_lib)
+
+# ----  Set Options ----
+# Exceptions are still in use: window init throws, and main catches. Re-enable
+# -fno-exceptions in E3, once std::expected has replaced both.
+#if(MSVC)
+#    target_compile_options(arcxel PRIVATE /EHs-c-)
+#else()
+#    target_compile_options(arcxel PRIVATE -fno-exceptions)
+#endif()
+
+# Sanitizers
+if(ARXCEL_DEBUG_SANITIZERS)
+    if(MSVC)
+        target_compile_options(arcxel PRIVATE /fsanitize=address)
+        target_link_options(arcxel PRIVATE /fsanitize=address)
+    else()
+        target_compile_options(arcxel PRIVATE -fsanitize=address)
+        target_link_options(arcxel PRIVATE -fsanitize=address)
+    endif()
+endif()
 
 # ---- Installation ----
 #install(TARGETS arcxel RUNTIME COMPONENT runtime)

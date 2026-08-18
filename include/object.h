@@ -1,4 +1,4 @@
-// <triangle.h> -*- C++ -*-
+// <object.h> -*- C++ -*-
 
 //  Arcxel Test Bench
 //  Copyright (C) 2026  Tyler Swann, Georgia Kanellis
@@ -17,26 +17,32 @@
 //  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 //  USA
 
-#ifndef ARCXEL_TRIANGLE_H
-#define ARCXEL_TRIANGLE_H
+#pragma once
+
+#include "types.h"
 
 #include <raylib.h>
 
+#include <string>
+
 namespace arcxel {
 
-class Triangle {
-private:
-    Vector2 v1;
-    Vector2 v2;
-    Vector2 v3;
-    Color colour;
-
+class Object {
 public:
-    explicit Triangle(Vector2 v1, Vector2 v2, Vector2 v3, Color colour);
+    struct Type {
+        std::string classname;
+        u32 classid;
+    }; // struct Type
 
-    auto draw() -> void;
-};
+    Object() noexcept;
+
+    virtual ~Object() = default;
+
+    Object::Type type();
+
+private:
+    Type classtype;
+
+}; // class Object
 
 } // namespace arcxel
-
-#endif // ARCXEL_TRIANGLE_H
