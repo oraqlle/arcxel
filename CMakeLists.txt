@@ -53,6 +53,10 @@ FetchContent_Declare(
 
 FetchContent_MakeAvailable(raylib)
 
+# raylib's headers trip -Wextra in ways we cannot fix, so consumers treat them
+# as system headers and stay quiet about them.
+set_target_properties(raylib PROPERTIES SYSTEM TRUE)
+
 # ---- Find Packages ----
 #find_package(glm 1.0.1 REQUIRED)
 #find_package(tinyobjloader 2.0.0 REQUIRED)
@@ -78,9 +82,19 @@ target_include_directories(arcxel_lib PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include
 target_compile_features(arcxel_lib PUBLIC cxx_std_23)
 target_link_libraries(arcxel_lib PUBLIC raylib)
 
+# ---- Warnings ----
+if (MSVC)
+    set(ARCXEL_WARNINGS /W4)
+else ()
+    set(ARCXEL_WARNINGS -Wall -Wextra -Wpedantic)
+endif ()
+
+target_compile_options(arcxel_lib PRIVATE ${ARCXEL_WARNINGS})
+
 # ---- Entrypoint ----
 add_executable(arcxel src/main.cxx)
 target_link_libraries(arcxel PRIVATE arcxel_lib)
+target_compile_options(arcxel PRIVATE ${ARCXEL_WARNINGS})
 
 # ----  Set Options ----
 # Exceptions are still in use: window init throws, and main catches. Re-enable
