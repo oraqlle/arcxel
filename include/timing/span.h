@@ -33,44 +33,60 @@
 
 namespace arcxel::timing {
 
-// Times the enclosing scope and records one sample when it ends. Defined inline
-// so the measurement does not pay for a call into the library.
-class Span {
+namespace detail {
+
+// times the enclosing scope and records one sample
+// defined inline so the measurement does call library
+class MeasuredSpan {
+public:
+    explicit MeasuredSpan(LabelId id) noexcept
+        : start(Clock::now())
+        , label(id)
+        , depth(detail::depth++) {}
+
+    MeasuredSpan(const MeasuredSpan&) = delete;
+    MeasuredSpan(MeasuredSpan&&) = delete;
+    auto operator=(const MeasuredSpan&) -> MeasuredSpan& = delete;
+    auto operator=(MeasuredSpan&&) -> MeasuredSpan& = delete;
+
+    ~MeasuredSpan() noexcept {
+        const auto end = Clock::now();
+        --detail::depth;
+        record(Sample{start, end, label, depth, 0});
+    }
+
 private:
     TimePoint start;
     LabelId label;
     std::uint16_t depth;
 
+}; // class MeasuredSpan
+
+// Same interface, no storage and no clock reads 
+// neither can rot while the other is selected
+class DisabledSpan {
 public:
-    explicit Span(LabelId label) noexcept
-        : start(Clock::now())
-        , label(label)
-        , depth(detail::depth++) {}
+    explicit DisabledSpan(LabelId) noexcept {}
 
-    Span(const Span&) = delete;
-    Span(Span&&) = delete;
-    auto operator=(const Span&) -> Span& = delete;
-    auto operator=(Span&&) -> Span& = delete;
+    DisabledSpan(const DisabledSpan&) = delete;
+    DisabledSpan(DisabledSpan&&) = delete;
+    auto operator=(const DisabledSpan&) -> DisabledSpan& = delete;
+    auto operator=(DisabledSpan&&) -> DisabledSpan& = delete;
 
-    ~Span() noexcept {
-        const auto end = Clock::now();
-        --detail::depth;
-        record(Sample{start, end, label, depth, 0});
-    }
-};
+    ~DisabledSpan() noexcept {}
+
+}; // class DisabledSpan
+
+} // namespace detail
+
+// Construct one to time the enclosing scope:
+//     const auto frame = timing::Span(frame_label);
+#if ARCXEL_PROFILING
+using Span = detail::MeasuredSpan;
+#else
+using Span = detail::DisabledSpan;
+#endif
 
 } // namespace arcxel::timing
-
-#define ARCXEL_TIMING_CAT_(a, b) a##b
-#define ARCXEL_TIMING_CAT(a, b) ARCXEL_TIMING_CAT_(a, b)
-
-#if ARCXEL_PROFILING
-#    define ARCXEL_SPAN(label_id)                                                    \
-        const ::arcxel::timing::Span ARCXEL_TIMING_CAT(arcxel_span_, __LINE__) {      \
-            label_id                                                                 \
-        }
-#else
-#    define ARCXEL_SPAN(label_id) ((void)0)
-#endif
 
 #endif // ARCXEL_TIMING_SPAN_H

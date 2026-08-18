@@ -68,10 +68,10 @@ auto run() -> void {
     // ~4M samples, about ten minutes of uncapped frames. Samples past this are
     // dropped, not reallocated.
     arcxel::timing::reserve(1U << 22U);
-    const auto frame_span = arcxel::timing::register_label("frame");
+    const auto frame_label = arcxel::timing::register_label("frame");
 
     while (engine.is_running()) {
-        ARCXEL_SPAN(frame_span);
+        const auto frame = arcxel::timing::Span(frame_label);
 
         engine.handle_events();
 
