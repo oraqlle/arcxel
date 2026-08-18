@@ -74,7 +74,7 @@ add_library(
     src/object.cxx
     src/player.cxx
     src/scene.cxx
-    src/timing/registry.cxx
+    src/timing.cxx
     src/transform.cxx
     src/window.cxx
 )

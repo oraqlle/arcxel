@@ -1,4 +1,4 @@
-// <timing/registry.h> -*- C++ -*-
+// <timing.h> -*- C++ -*-
 
 //  Arcxel Test Bench
 //  Copyright (C) 2026  Tyler Swann, Georgia Kanellis
@@ -17,18 +17,32 @@
 //  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 //  USA
 
-#ifndef ARCXEL_TIMING_REGISTRY_H
-#define ARCXEL_TIMING_REGISTRY_H
+#pragma once
 
-#include <timing/clock.h>
-
+#include <chrono>
 #include <cstddef>
 #include <cstdint>
 #include <string>
 #include <string_view>
+#include <type_traits>
 #include <vector>
 
+// The build system supplies this; the fallback is for compiling without CMake.
+#ifndef ARCXEL_PROFILING
+#    define ARCXEL_PROFILING 1
+#endif
+
 namespace arcxel::timing {
+
+// Monotonic and never adjusted, unlike system_clock which the logger uses
+// Measures durations only -> it cannot tell you the time of day
+using Clock = std::chrono::steady_clock;
+using TimePoint = Clock::time_point;
+using Duration = Clock::duration;
+
+static_assert(Clock::is_steady, "measurement requires a monotonic clock");
+
+inline constexpr bool profiling_enabled = ARCXEL_PROFILING != 0;
 
 using LabelId = std::uint16_t;
 
@@ -47,13 +61,11 @@ auto register_label(std::string_view name) -> LabelId;
 auto label_name(LabelId id) noexcept -> std::string_view;
 auto label_count() noexcept -> std::size_t;
 
-// Sets sample capacity. Recording never allocates, so samples past this are
-// discarded and counted instead.
+// Sets sample capacity
+// recording never allocates -> samples past this are discarded and counted
 auto reserve(std::size_t count) -> void;
 
-// Creates <directory>/<yyyy-mm-dd>/ and returns this run's path stem, e.g.
-// "results/2026-08-08/arcxel-timing-122241". Everything a run produces shares
-// it, so the log and the samples always carry the same timestamp.
+// Creates <directory>/<yyyy-mm-dd>/
 auto begin_run(std::string_view directory = "results") -> std::string;
 
 // ---- Results. Not on the hot path. ----
@@ -67,9 +79,7 @@ auto log_summary() -> void;
 // Writes to an explicit path, replacing anything already there.
 auto write_csv(std::string_view path) -> bool;
 
-// Writes to <directory>/<yyyy-mm-dd>/arcxel-timing-<hhmmss>.csv in local time,
-// creating the directories if needed, so runs never overwrite each other.
-// Returns the path written, or an empty string on failure.
+// Writes to <directory>/<yyyy-mm-dd>/arcxel-timing-<hhmmss>.csv in local time
 auto write_run_csv(std::string_view directory = "results") -> std::string;
 
 namespace detail {
@@ -92,6 +102,55 @@ inline auto record(const Sample& sample) noexcept -> void {
     ++detail::dropped_samples;
 }
 
-} // namespace arcxel::timing
+namespace detail {
 
-#endif // ARCXEL_TIMING_REGISTRY_H
+// Times the enclosing scope and records one sample when it ends. Defined inline
+// so the measurement does not pay for a call into the library.
+class MeasuredSpan {
+public:
+    explicit MeasuredSpan(LabelId id) noexcept
+        : start(Clock::now())
+        , label(id)
+        , depth(detail::depth++) {}
+
+    MeasuredSpan(const MeasuredSpan&) = delete;
+    MeasuredSpan(MeasuredSpan&&) = delete;
+    auto operator=(const MeasuredSpan&) -> MeasuredSpan& = delete;
+    auto operator=(MeasuredSpan&&) -> MeasuredSpan& = delete;
+
+    ~MeasuredSpan() noexcept {
+        const auto end = Clock::now();
+        --detail::depth;
+        record(Sample{start, end, label, depth, 0});
+    }
+
+private:
+    TimePoint start;
+    LabelId label;
+    std::uint16_t depth;
+
+}; // class MeasuredSpan
+
+// Same interface, no storage and no clock reads. Both classes are always
+// compiled, so neither can rot while the other is selected.
+class DisabledSpan {
+public:
+    explicit DisabledSpan(LabelId) noexcept {}
+
+    DisabledSpan(const DisabledSpan&) = delete;
+    DisabledSpan(DisabledSpan&&) = delete;
+    auto operator=(const DisabledSpan&) -> DisabledSpan& = delete;
+    auto operator=(DisabledSpan&&) -> DisabledSpan& = delete;
+
+    ~DisabledSpan() noexcept {}
+
+}; // class DisabledSpan
+
+} // namespace detail
+
+// Construct one to time the enclosing scope:
+//     const auto frame = timing::Span(frame_label);
+using Span =
+    std::conditional_t<profiling_enabled, detail::MeasuredSpan, detail::DisabledSpan>;
+
+} // namespace arcxel::timing

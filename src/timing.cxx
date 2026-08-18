@@ -1,4 +1,4 @@
-// <timing/registry.cxx> -*- C++ -*-
+// <timing.cxx> -*- C++ -*-
 
 //  Arcxel Test Bench
 //  Copyright (C) 2026  Tyler Swann, Georgia Kanellis
@@ -17,10 +17,9 @@
 //  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 //  USA
 
-#include <timing/registry.h>
+#include "timing.h"
 
 #include "log.h"
-#include <timing/clock.h>
 
 #include <algorithm>
 #include <chrono>

@@ -19,8 +19,7 @@
 
 #include "engine.h"
 #include "log.h"
-#include "timing/registry.h"
-#include "timing/span.h"
+#include "timing.h"
 #include "types.h"
 #include "window.h"
 #include "window_info.h"
