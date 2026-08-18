@@ -106,15 +106,21 @@ target_compile_options(arcxel PRIVATE ${ARCXEL_WARNINGS})
 #endif()
 
 # Sanitizers
-if(ARCXEL_DEBUG_SANITIZERS)
-    if(MSVC)
-        target_compile_options(arcxel PRIVATE /fsanitize=address)
-        target_link_options(arcxel PRIVATE /fsanitize=address)
-    else()
-        target_compile_options(arcxel PRIVATE -fsanitize=address)
-        target_link_options(arcxel PRIVATE -fsanitize=address)
-    endif()
-endif()
+# Both targets. arcxel_lib carries the logging and timing code, so instrumenting
+# only the executable leaves ten of eleven translation units unchecked.
+if (ARCXEL_DEBUG_SANITIZERS)
+    if (MSVC)
+        set(ARCXEL_SANITIZERS /fsanitize=address)
+    else ()
+        set(ARCXEL_SANITIZERS -fsanitize=address)
+    endif ()
+
+    target_compile_options(arcxel_lib PRIVATE ${ARCXEL_SANITIZERS})
+    target_compile_options(arcxel PRIVATE ${ARCXEL_SANITIZERS})
+
+    # Only the executable links, so only it needs the runtime.
+    target_link_options(arcxel PRIVATE ${ARCXEL_SANITIZERS})
+endif ()
 
 # ---- Installation ----
 #install(TARGETS arcxel RUNTIME COMPONENT runtime)
