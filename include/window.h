@@ -21,13 +21,19 @@
 
 #include "window_info.h"
 
+#include <expected>
+#include <string>
+
 namespace arcxel {
 
 class Window {
+private:
+    // Only Window can name this, so create() is the only way to obtain one. The
+    // constructor has to be public for std::expected to build in place.
+    struct Token {};
+
 public:
-    // Throws if raylib fails to open the window. E1 replaces this with
-    // std::expected.
-    explicit Window(const WindowInfo& info);
+    explicit Window(Token) noexcept;
 
     // raylib owns a single global window, so this guard is neither copyable
     // nor movable.
@@ -37,6 +43,11 @@ public:
     auto operator=(Window&&) -> Window& = delete;
 
     ~Window();
+
+    // Opens the window, or says why it could not be opened. Nothing is left
+    // open on failure.
+    [[nodiscard]] static auto create(const WindowInfo& info)
+        -> std::expected<Window, std::string>;
 
 }; // class Window
 

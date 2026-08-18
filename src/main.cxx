@@ -27,6 +27,8 @@
 #include <raylib.h>
 
 #include <exception>
+#include <expected>
+#include <string>
 
 // clang-format off
 using arcxel::i8;
@@ -51,13 +53,18 @@ constexpr i32 HEIGHT = 1080;
 
 namespace {
 
-auto run() -> void {
+auto run() -> std::expected<void, std::string> {
     // Before the window, so raylib's start-up messages reach the file too.
     arcxel::log::set_file(arcxel::timing::begin_run() + ".log");
 
     // Uncapped: a frame rate cap would show up as vsync wait in every span.
     auto info = arcxel::WindowInfo{.width = WIDTH, .height = HEIGHT, .target_fps = 0};
-    auto window = arcxel::Window(info);
+    const auto window = arcxel::Window::create(info);
+
+    if (!window) {
+        return std::unexpected(window.error());
+    }
+
     arcxel::log::info("window opened {}x{}", info.width, info.height);
 
     DisableCursor();
@@ -84,6 +91,8 @@ auto run() -> void {
 
     arcxel::timing::log_summary();
     arcxel::timing::write_run_csv();
+
+    return {};
 }
 
 } // namespace
@@ -93,7 +102,11 @@ auto main() -> int {
     arcxel::log::adopt_raylib();
 
     try {
-        run();
+        if (const auto result = run(); !result) {
+            arcxel::log::fatal("{}", result.error());
+            arcxel::log::close_file();
+            return 1;
+        }
     } catch (const std::exception& error) {
         arcxel::log::fatal("{}", error.what());
         arcxel::log::close_file();
