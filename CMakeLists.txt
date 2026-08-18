@@ -41,6 +41,7 @@ set(WITH_PIC        ON  CACHE BOOL "" FORCE) # Position Independent Code
 # ---- Build Options ----
 option(ARCXEL_DEBUG_SANITIZERS "Build with sanitizers enabled" OFF)
 option(ARCXEL_LOGGING "Log traces through program" ON)
+option(ARCXEL_PROFILING "Record timing spans" ON)
 
 # ---- Dependencies ----
 include(FetchContent)
@@ -80,6 +81,11 @@ add_library(
 
 target_include_directories(arcxel_lib PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 target_compile_features(arcxel_lib PUBLIC cxx_std_23)
+
+# PUBLIC: main.cxx includes span.h, so the executable needs the same value
+target_compile_definitions(
+    arcxel_lib PUBLIC ARCXEL_PROFILING=$<BOOL:${ARCXEL_PROFILING}>
+)
 target_link_libraries(arcxel_lib PUBLIC raylib)
 
 # ---- Warnings ----

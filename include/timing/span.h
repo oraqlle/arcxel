@@ -24,14 +24,15 @@
 #include <timing/registry.h>
 
 #include <cstdint>
+#include <type_traits>
 
-// Set to 0 to compile every span away. Building both ways is how the
-// profiler's own cost is measured.
 #ifndef ARCXEL_PROFILING
 #    define ARCXEL_PROFILING 1
 #endif
 
 namespace arcxel::timing {
+
+inline constexpr bool profiling_enabled = ARCXEL_PROFILING != 0;
 
 namespace detail {
 
@@ -81,11 +82,8 @@ public:
 
 // Construct one to time the enclosing scope:
 //     const auto frame = timing::Span(frame_label);
-#if ARCXEL_PROFILING
-using Span = detail::MeasuredSpan;
-#else
-using Span = detail::DisabledSpan;
-#endif
+using Span =
+    std::conditional_t<profiling_enabled, detail::MeasuredSpan, detail::DisabledSpan>;
 
 } // namespace arcxel::timing
 
