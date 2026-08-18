@@ -71,20 +71,33 @@ auto run() -> std::expected<void, std::string> {
 
     auto engine = arcxel::Engine();
 
-    // ~4M samples, about ten minutes of uncapped frames. Samples past this are
-    // dropped, not reallocated.
+    // ~4M samples, about ten minutes of uncapped frames 
+    // Samples past this are dropped, not reallocated
     arcxel::timing::reserve(1U << 22U);
     const auto frame_label = arcxel::timing::register_label("frame");
+    const auto events_label = arcxel::timing::register_label("events");
+    const auto update_label = arcxel::timing::register_label("update");
+    const auto render_label = arcxel::timing::register_label("render");
 
     while (engine.is_running()) {
         const auto frame = arcxel::timing::Span(frame_label);
 
-        engine.handle_events();
+        {
+            const auto span = arcxel::timing::Span(events_label);
+            engine.handle_events();
+        }
 
         const f64 delta = GetFrameTime();
 
-        engine.update(delta);
-        engine.render(delta);
+        {
+            const auto span = arcxel::timing::Span(update_label);
+            engine.update(delta);
+        }
+
+        {
+            const auto span = arcxel::timing::Span(render_label);
+            engine.render(delta);
+        }
     }
 
     EnableCursor();

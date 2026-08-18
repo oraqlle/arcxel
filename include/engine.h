@@ -20,6 +20,7 @@
 #pragma once
 
 #include "scene.h"
+#include "timing.h"
 #include "types.h"
 
 #include <raylib.h>
@@ -28,7 +29,7 @@ namespace arcxel {
 
 class Engine {
 public:
-    Engine() noexcept;
+    Engine();
 
     ~Engine() noexcept = default;
 
@@ -47,6 +48,12 @@ public:
 private:
     bool running;
     Scene scene;
+
+    // registered once at construction
+    timing::LabelId begin_label;
+    timing::LabelId clear_label;
+    timing::LabelId draw_label;
+    timing::LabelId present_label;
 
 }; // class Engine
 
