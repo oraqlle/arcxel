@@ -1,4 +1,4 @@
-// <log/logger.cxx> -*- C++ -*-
+// <log.cxx> -*- C++ -*-
 
 //  Arcxel Test Bench
 //  Copyright (C) 2026  Tyler Swann, Georgia Kanellis
@@ -17,9 +17,7 @@
 //  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 //  USA
 
-#include <log/logger.h>
-
-#include <log/level.h>
+#include "log.h"
 
 #include <raylib.h>
 

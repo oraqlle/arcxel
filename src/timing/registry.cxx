@@ -19,7 +19,7 @@
 
 #include <timing/registry.h>
 
-#include <log/logger.h>
+#include "log.h"
 #include <timing/clock.h>
 
 #include <algorithm>

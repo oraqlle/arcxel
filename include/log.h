@@ -1,4 +1,4 @@
-// <log/logger.h> -*- C++ -*-
+// <log.h> -*- C++ -*-
 
 //  Arcxel Test Bench
 //  Copyright (C) 2026  Tyler Swann, Georgia Kanellis
@@ -17,10 +17,7 @@
 //  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 //  USA
 
-#ifndef ARCXEL_LOG_LOGGER_H
-#define ARCXEL_LOG_LOGGER_H
-
-#include <log/level.h>
+#pragma once
 
 #include <format>
 #include <string_view>
@@ -32,6 +29,17 @@
 #endif
 
 namespace arcxel::log {
+
+// Ordered by increasing severity; comparisons rely on that order.
+enum class Level {
+    trace,
+    debug,
+    info,
+    warn,
+    error,
+    fatal,
+    off,
+};
 
 inline constexpr bool logging_enabled = ARCXEL_LOGGING != 0;
 
@@ -126,5 +134,3 @@ auto fatal(std::format_string<Args...> fmt, Args&&... args) -> void {
 }
 
 } // namespace arcxel::log
-
-#endif // ARCXEL_LOG_LOGGER_H

@@ -18,7 +18,7 @@
 //  USA
 
 #include "engine.h"
-#include "log/logger.h"
+#include "log.h"
 #include "timing/registry.h"
 #include "timing/span.h"
 #include "types.h"

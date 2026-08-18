@@ -70,7 +70,7 @@ add_library(
     src/cube.cxx
     src/engine.cxx
     src/game_object.cxx
-    src/log/logger.cxx
+    src/log.cxx
     src/object.cxx
     src/player.cxx
     src/scene.cxx
