@@ -9,7 +9,7 @@ project(
 
 # ---- Global Defines ----
 set(CMAKE_EXPORT_COMPILE_COMMANDS   ON  CACHE BOOL "" FORCE)
-set(BUILD_SHARED_LIBS               ON  CACHE BOOL "" FORCE)
+set(BUILD_SHARED_LIBS               OFF CACHE BOOL "" FORCE) # OFF so raylib links statically.
 set(CMAKE_CXX_STANDARD_REQUIRED     ON  CACHE BOOL "" FORCE)
 set(CMAKE_CXX_EXTENSIONS            OFF CACHE BOOL "" FORCE)
 
