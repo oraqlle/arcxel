@@ -54,7 +54,16 @@ namespace {
 
 auto run() -> std::expected<void, std::string> {
     // Before the window, so raylib's start-up messages reach the file too.
-    arcxel::log::set_file(arcxel::timing::begin_run() + ".log");
+    const auto stem = arcxel::timing::begin_run();
+
+    if (stem.empty()) {
+        return std::unexpected("timing: could not create this run's directory");
+    }
+
+    // A missing log file is not fatal; stderr still carries everything.
+    if (!arcxel::log::set_file(stem + ".log")) {
+        arcxel::log::warn("log: continuing with stderr only");
+    }
 
     // Uncapped: a frame rate cap would show up as vsync wait in every span.
     auto info = arcxel::WindowInfo{.width = WIDTH, .height = HEIGHT, .target_fps = 0};
@@ -102,7 +111,10 @@ auto run() -> std::expected<void, std::string> {
     EnableCursor();
 
     arcxel::timing::log_summary();
-    arcxel::timing::write_run_csv();
+
+    if (arcxel::timing::write_run_csv().empty()) {
+        return std::unexpected("timing: could not write this run's samples");
+    }
 
     return {};
 }

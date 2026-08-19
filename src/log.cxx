@@ -113,7 +113,7 @@ auto from_raylib(int raylib_level) noexcept -> Level {
 
 } // namespace
 
-auto to_string(Level lvl) noexcept -> const char* {
+[[nodiscard]] auto to_string(Level lvl) noexcept -> const char* {
     switch (lvl) {
     case Level::trace: return "TRACE";
     case Level::debug: return "DEBUG";
@@ -131,7 +131,7 @@ auto set_level(Level lvl) noexcept -> void {
     current_level.store(lvl, std::memory_order_relaxed);
 }
 
-auto level() noexcept -> Level {
+[[nodiscard]] auto level() noexcept -> Level {
     return current_level.load(std::memory_order_relaxed);
 }
 
@@ -163,7 +163,7 @@ auto set_level_from_env() -> void {
     set_level(*parsed);
 }
 
-auto set_file(std::string_view path) -> bool {
+[[nodiscard]] auto set_file(std::string_view path) -> bool {
     close_file();
 
     const auto name = std::string(path);

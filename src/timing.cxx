@@ -60,7 +60,7 @@ struct Totals {
 
 } // namespace
 
-auto register_label(std::string_view name) -> LabelId {
+[[nodiscard]] auto register_label(std::string_view name) -> LabelId {
     const auto existing = std::ranges::find(label_names, name);
 
     if (existing != label_names.end()) {
@@ -71,7 +71,7 @@ auto register_label(std::string_view name) -> LabelId {
     return static_cast<LabelId>(label_names.size() - 1);
 }
 
-auto label_name(LabelId id) noexcept -> std::string_view {
+[[nodiscard]] auto label_name(LabelId id) noexcept -> std::string_view {
     if (id < label_names.size()) {
         return label_names[id];
     }
@@ -79,13 +79,13 @@ auto label_name(LabelId id) noexcept -> std::string_view {
     return "<unknown>";
 }
 
-auto label_count() noexcept -> usize { return label_names.size(); }
+[[nodiscard]] auto label_count() noexcept -> usize { return label_names.size(); }
 
 auto reserve(usize count) -> void { detail::store.reserve(count); }
 
-auto samples() noexcept -> const std::vector<Sample>& { return detail::store; }
+[[nodiscard]] auto samples() noexcept -> const std::vector<Sample>& { return detail::store; }
 
-auto dropped() noexcept -> usize { return detail::dropped_samples; }
+[[nodiscard]] auto dropped() noexcept -> usize { return detail::dropped_samples; }
 
 auto clear() noexcept -> void {
     detail::store.clear();
@@ -139,7 +139,7 @@ auto log_summary() -> void {
     }
 }
 
-auto write_csv(std::string_view path) -> bool {
+[[nodiscard]] auto write_csv(std::string_view path) -> bool {
     if (detail::store.empty()) {
         log::warn("timing: nothing to write to {}", path);
         return false;
@@ -186,7 +186,7 @@ auto write_csv(std::string_view path) -> bool {
     return true;
 }
 
-auto begin_run(std::string_view directory) -> std::string {
+[[nodiscard]] auto begin_run(std::string_view directory) -> std::string {
     // Local time, so the date folder matches the day the run happened. libc++
     // has no chrono time zone support yet, hence the C API.
     const auto stamp =
@@ -221,7 +221,7 @@ auto begin_run(std::string_view directory) -> std::string {
     return run_stem;
 }
 
-auto write_run_csv(std::string_view directory) -> std::string {
+[[nodiscard]] auto write_run_csv(std::string_view directory) -> std::string {
     if (run_stem.empty() && begin_run(directory).empty()) {
         return {};
     }

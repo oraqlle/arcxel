@@ -57,30 +57,30 @@ struct Sample {
 // ---- Set-up. Call during start-up, never inside a measured region. ----
 
 // Registers a label, or returns the existing id if the name is already known.
-auto register_label(std::string_view name) -> LabelId;
-auto label_name(LabelId id) noexcept -> std::string_view;
-auto label_count() noexcept -> usize;
+[[nodiscard]] auto register_label(std::string_view name) -> LabelId;
+[[nodiscard]] auto label_name(LabelId id) noexcept -> std::string_view;
+[[nodiscard]] auto label_count() noexcept -> usize;
 
 // Sets sample capacity
 // recording never allocates -> samples past this are discarded and counted
 auto reserve(usize count) -> void;
 
 // Creates <directory>/<yyyy-mm-dd>/
-auto begin_run(std::string_view directory = "results") -> std::string;
+[[nodiscard]] auto begin_run(std::string_view directory = "results") -> std::string;
 
 // ---- Results. Not on the hot path. ----
 
-auto samples() noexcept -> const std::vector<Sample>&;
-auto dropped() noexcept -> usize;
+[[nodiscard]] auto samples() noexcept -> const std::vector<Sample>&;
+[[nodiscard]] auto dropped() noexcept -> usize;
 auto clear() noexcept -> void;
 
 auto log_summary() -> void;
 
 // Writes to an explicit path, replacing anything already there.
-auto write_csv(std::string_view path) -> bool;
+[[nodiscard]] auto write_csv(std::string_view path) -> bool;
 
 // Writes to <directory>/<yyyy-mm-dd>/arcxel-timing-<hhmmss>.csv in local time
-auto write_run_csv(std::string_view directory = "results") -> std::string;
+[[nodiscard]] auto write_run_csv(std::string_view directory = "results") -> std::string;
 
 namespace detail {
 

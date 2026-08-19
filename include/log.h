@@ -52,10 +52,10 @@ inline constexpr bool debug_build = true;
 inline constexpr Level min_level =
     !logging_enabled ? Level::off : (debug_build ? Level::trace : Level::info);
 
-auto to_string(Level level) noexcept -> const char*;
+[[nodiscard]] auto to_string(Level level) noexcept -> const char*;
 
 auto set_level(Level level) noexcept -> void;
-auto level() noexcept -> Level;
+[[nodiscard]] auto level() noexcept -> Level;
 
 // Applies ARCXEL_LOG_LEVEL if set: trace, debug, info, warn, error, fatal or off
 // It can only raise the threshold, never lower it past min_level
@@ -67,7 +67,7 @@ auto adopt_raylib() noexcept -> void;
 
 // Mirror output to a file as well as stderr, replacing any file already open.
 // Lines are flushed as they are written so a crash still leaves a usable log.
-auto set_file(std::string_view path) -> bool;
+[[nodiscard]] auto set_file(std::string_view path) -> bool;
 auto close_file() noexcept -> void;
 
 namespace detail {
