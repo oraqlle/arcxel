@@ -1,4 +1,4 @@
-// <engine.h> -*- C++ -*-
+// <window.cxx> -*- C++ -*-
 
 //  Arcxel Test Bench
 //  Copyright (C) 2026  Tyler Swann, Georgia Kanellis
@@ -17,44 +17,34 @@
 //  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 //  USA
 
-#pragma once
+#include "window.h"
 
-#include "scene.h"
-#include "timing.h"
-#include "types.h"
+#include "window_info.h"
 
 #include <raylib.h>
 
+#include <expected>
+#include <string>
+#include <utility>
+
 namespace arcxel {
 
-class Engine {
-public:
-    Engine();
+Window::Window(Token) noexcept {}
 
-    ~Engine() noexcept = default;
+Window::~Window() { CloseWindow(); }
 
-    // make singleton
+auto Window::create(const WindowInfo& info) -> std::expected<Window, std::string> {
+    InitWindow(info.width, info.height, info.name.c_str());
 
-    [[nodiscard]] auto is_running() -> bool;
+    if (!IsWindowReady()) {
+        // InitWindow may have got part way, so close before reporting.
+        CloseWindow();
+        return std::unexpected("arcxel: window failed to initialise");
+    }
 
-    auto stop() -> void;
+    SetTargetFPS(info.target_fps); // 0 leaves the frame rate uncapped
 
-    auto handle_events() -> void;
-
-    auto update(f64 delta) -> void;
-
-    auto render(f64 delta) -> void;
-
-private:
-    bool running;
-    Scene scene;
-
-    // registered once at construction
-    timing::LabelId begin_label;
-    timing::LabelId clear_label;
-    timing::LabelId draw_label;
-    timing::LabelId present_label;
-
-}; // class Engine
+    return std::expected<Window, std::string>(std::in_place, Token{});
+}
 
 } // namespace arcxel

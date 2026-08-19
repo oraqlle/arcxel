@@ -42,11 +42,17 @@
 .cache
 
 # Log and Debugging
-log/
-logs/
+# Anchored to the root so they do not match source dirs like include/log/.
+/log/
+/logs/
 *.log
 vgcore.*
+
+# Measurement output
+/results/
 
 # Misc.
 .DS_Store
 
+# Scratchpads
+.notes/
