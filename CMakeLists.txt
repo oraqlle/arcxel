@@ -91,6 +91,14 @@ target_compile_definitions(
 )
 target_link_libraries(arcxel_lib PUBLIC raylib)
 
+# ---- Exceptions ----
+# Off. Failures are reported with std::expected instead
+if (MSVC)
+    set(ARCXEL_NO_EXCEPTIONS /EHs-c-)
+else ()
+    set(ARCXEL_NO_EXCEPTIONS -fno-exceptions)
+endif ()
+
 # ---- Warnings ----
 if (MSVC)
     set(ARCXEL_WARNINGS /W4)
@@ -98,22 +106,14 @@ else ()
     set(ARCXEL_WARNINGS -Wall -Wextra -Wpedantic)
 endif ()
 
-target_compile_options(arcxel_lib PRIVATE ${ARCXEL_WARNINGS})
+target_compile_options(arcxel_lib PRIVATE ${ARCXEL_WARNINGS} ${ARCXEL_NO_EXCEPTIONS})
 
 # ---- Entrypoint ----
 add_executable(arcxel src/main.cxx)
 target_link_libraries(arcxel PRIVATE arcxel_lib)
-target_compile_options(arcxel PRIVATE ${ARCXEL_WARNINGS})
+target_compile_options(arcxel PRIVATE ${ARCXEL_WARNINGS} ${ARCXEL_NO_EXCEPTIONS})
 
 # ----  Set Options ----
-# Exceptions are still in use: window init throws, and main catches. Re-enable
-# -fno-exceptions in E3, once std::expected has replaced both.
-#if(MSVC)
-#    target_compile_options(arcxel PRIVATE /EHs-c-)
-#else()
-#    target_compile_options(arcxel PRIVATE -fno-exceptions)
-#endif()
-
 # Sanitizers
 # Both targets. arcxel_lib carries the logging and timing code, so instrumenting
 # only the executable leaves ten of eleven translation units unchecked.

@@ -98,19 +98,16 @@ auto from_raylib(int raylib_level) noexcept -> Level {
 [[maybe_unused]] auto raylib_callback(
     int raylib_level, const char* text, va_list args
 ) noexcept -> void {
-    try {
-        char buffer[1024];
+    char buffer[1024];
 
-        if (std::vsnprintf(buffer, sizeof(buffer), text, args) < 0) {
-            return;
-        }
+    if (std::vsnprintf(buffer, sizeof(buffer), text, args) < 0) {
+        return;
+    }
 
-        const auto lvl = from_raylib(raylib_level);
+    const auto lvl = from_raylib(raylib_level);
 
-        if (lvl >= level()) {
-            detail::write(lvl, std::string_view(buffer));
-        }
-    } catch (...) {
+    if (lvl >= level()) {
+        detail::write(lvl, std::string_view(buffer));
     }
 }
 

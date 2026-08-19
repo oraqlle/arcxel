@@ -26,7 +26,6 @@
 
 #include <raylib.h>
 
-#include <exception>
 #include <expected>
 #include <string>
 
@@ -114,18 +113,8 @@ auto main() -> int {
     arcxel::log::set_level_from_env();
     arcxel::log::adopt_raylib();
 
-    try {
-        if (const auto result = run(); !result) {
-            arcxel::log::fatal("{}", result.error());
-            arcxel::log::close_file();
-            return 1;
-        }
-    } catch (const std::exception& error) {
-        arcxel::log::fatal("{}", error.what());
-        arcxel::log::close_file();
-        return 1;
-    } catch (...) {
-        arcxel::log::fatal("terminated by an unknown exception");
+    if (const auto result = run(); !result) {
+        arcxel::log::fatal("{}", result.error());
         arcxel::log::close_file();
         return 1;
     }
