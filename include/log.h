@@ -49,8 +49,12 @@ inline constexpr bool debug_build = false;
 inline constexpr bool debug_build = true;
 #endif
 
-inline constexpr Level min_level =
-    !logging_enabled ? Level::off : (debug_build ? Level::trace : Level::info);
+// Release drops trace and debug, so they cost nothing in a measured build.
+inline constexpr Level build_level = debug_build ? Level::trace : Level::info;
+
+// The lowest level this build keeps. Calls below it are discarded at compile
+// time, and ARCXEL_LOGGING set OFF discards every level.
+inline constexpr Level min_level = logging_enabled ? build_level : Level::off;
 
 [[nodiscard]] auto to_string(Level level) noexcept -> const char*;
 
@@ -77,60 +81,48 @@ auto write(Level level, std::string_view message) -> void;
 template <Level L>
 inline constexpr bool compiled_in = L >= min_level;
 
+// The gate every level goes through. The compile-time check comes first, so a
+// level this build discards generates nothing at all. Named dispatch rather than
+// emit: log.cxx already has an emit() that writes a finished line to the sinks.
+template <Level L, typename... Args>
+auto dispatch(std::format_string<Args...> fmt, Args&&... args) -> void {
+    if constexpr (compiled_in<L>) {
+        if (L >= level()) {
+            write(L, std::format(fmt, std::forward<Args>(args)...));
+        }
+    }
+}
+
 } // namespace detail
 
 template <typename... Args>
 auto trace(std::format_string<Args...> fmt, Args&&... args) -> void {
-    if constexpr (detail::compiled_in<Level::trace>) {
-        if (Level::trace >= level()) {
-            detail::write(Level::trace, std::format(fmt, std::forward<Args>(args)...));
-        }
-    }
+    detail::dispatch<Level::trace>(fmt, std::forward<Args>(args)...);
 }
 
 template <typename... Args>
 auto debug(std::format_string<Args...> fmt, Args&&... args) -> void {
-    if constexpr (detail::compiled_in<Level::debug>) {
-        if (Level::debug >= level()) {
-            detail::write(Level::debug, std::format(fmt, std::forward<Args>(args)...));
-        }
-    }
+    detail::dispatch<Level::debug>(fmt, std::forward<Args>(args)...);
 }
 
 template <typename... Args>
 auto info(std::format_string<Args...> fmt, Args&&... args) -> void {
-    if constexpr (detail::compiled_in<Level::info>) {
-        if (Level::info >= level()) {
-            detail::write(Level::info, std::format(fmt, std::forward<Args>(args)...));
-        }
-    }
+    detail::dispatch<Level::info>(fmt, std::forward<Args>(args)...);
 }
 
 template <typename... Args>
 auto warn(std::format_string<Args...> fmt, Args&&... args) -> void {
-    if constexpr (detail::compiled_in<Level::warn>) {
-        if (Level::warn >= level()) {
-            detail::write(Level::warn, std::format(fmt, std::forward<Args>(args)...));
-        }
-    }
+    detail::dispatch<Level::warn>(fmt, std::forward<Args>(args)...);
 }
 
 template <typename... Args>
 auto error(std::format_string<Args...> fmt, Args&&... args) -> void {
-    if constexpr (detail::compiled_in<Level::error>) {
-        if (Level::error >= level()) {
-            detail::write(Level::error, std::format(fmt, std::forward<Args>(args)...));
-        }
-    }
+    detail::dispatch<Level::error>(fmt, std::forward<Args>(args)...);
 }
 
 template <typename... Args>
 auto fatal(std::format_string<Args...> fmt, Args&&... args) -> void {
-    if constexpr (detail::compiled_in<Level::fatal>) {
-        if (Level::fatal >= level()) {
-            detail::write(Level::fatal, std::format(fmt, std::forward<Args>(args)...));
-        }
-    }
+    detail::dispatch<Level::fatal>(fmt, std::forward<Args>(args)...);
 }
 
 } // namespace arcxel::log

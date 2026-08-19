@@ -24,7 +24,6 @@
 #include <chrono>
 #include <string>
 #include <string_view>
-#include <type_traits>
 #include <vector>
 
 // The build system supplies this; the fallback is for compiling without CMake.
@@ -102,55 +101,35 @@ inline auto record(const Sample& sample) noexcept -> void {
     ++detail::dropped_samples;
 }
 
-namespace detail {
-
-// Times the enclosing scope and records one sample when it ends. Defined inline
-// so the measurement does not pay for a call into the library.
-class MeasuredSpan {
+// Times the enclosing scope and records one sample when it ends
+class Span {
 public:
-    explicit MeasuredSpan(LabelId id) noexcept
-        : start(Clock::now())
-        , label(id)
-        , depth(detail::depth++) {}
+    explicit Span(LabelId id) noexcept {
+        if constexpr (profiling_enabled) {
+            start = Clock::now();
+            label = id;
+            depth = detail::depth++;
+        }
+    }
 
-    MeasuredSpan(const MeasuredSpan&) = delete;
-    MeasuredSpan(MeasuredSpan&&) = delete;
-    auto operator=(const MeasuredSpan&) -> MeasuredSpan& = delete;
-    auto operator=(MeasuredSpan&&) -> MeasuredSpan& = delete;
+    Span(const Span&) = delete;
+    Span(Span&&) = delete;
+    auto operator=(const Span&) -> Span& = delete;
+    auto operator=(Span&&) -> Span& = delete;
 
-    ~MeasuredSpan() noexcept {
-        const auto end = Clock::now();
-        --detail::depth;
-        record(Sample{start, end, label, depth, 0});
+    ~Span() noexcept {
+        if constexpr (profiling_enabled) {
+            const auto end = Clock::now();
+            --detail::depth;
+            record(Sample{start, end, label, depth, 0});
+        }
     }
 
 private:
-    TimePoint start;
-    LabelId label;
-    u16 depth;
+    TimePoint start{};
+    LabelId label{};
+    u16 depth{};
 
-}; // class MeasuredSpan
-
-// Same interface, no storage and no clock reads. Both classes are always
-// compiled, so neither can rot while the other is selected.
-class DisabledSpan {
-public:
-    explicit DisabledSpan(LabelId) noexcept {}
-
-    DisabledSpan(const DisabledSpan&) = delete;
-    DisabledSpan(DisabledSpan&&) = delete;
-    auto operator=(const DisabledSpan&) -> DisabledSpan& = delete;
-    auto operator=(DisabledSpan&&) -> DisabledSpan& = delete;
-
-    ~DisabledSpan() noexcept {}
-
-}; // class DisabledSpan
-
-} // namespace detail
-
-// Construct one to time the enclosing scope:
-//     const auto frame = timing::Span(frame_label);
-using Span =
-    std::conditional_t<profiling_enabled, detail::MeasuredSpan, detail::DisabledSpan>;
+}; // class Span
 
 } // namespace arcxel::timing
