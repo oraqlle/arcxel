@@ -56,9 +56,7 @@ inline constexpr Level build_level = debug_build ? Level::trace : Level::info;
 // time, and ARCXEL_LOGGING set OFF discards every level.
 inline constexpr Level min_level = logging_enabled ? build_level : Level::off;
 
-[[nodiscard]] auto to_string(Level level) noexcept -> const char*;
-
-auto set_level(Level level) noexcept -> void;
+// Read by dispatch below, so it stays in the header.
 [[nodiscard]] auto level() noexcept -> Level;
 
 // Applies ARCXEL_LOG_LEVEL if set: trace, debug, info, warn, error, fatal or off
@@ -94,16 +92,6 @@ auto dispatch(std::format_string<Args...> fmt, Args&&... args) -> void {
 }
 
 } // namespace detail
-
-template <typename... Args>
-auto trace(std::format_string<Args...> fmt, Args&&... args) -> void {
-    detail::dispatch<Level::trace>(fmt, std::forward<Args>(args)...);
-}
-
-template <typename... Args>
-auto debug(std::format_string<Args...> fmt, Args&&... args) -> void {
-    detail::dispatch<Level::debug>(fmt, std::forward<Args>(args)...);
-}
 
 template <typename... Args>
 auto info(std::format_string<Args...> fmt, Args&&... args) -> void {

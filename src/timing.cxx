@@ -51,6 +51,15 @@ auto to_us(Duration duration) noexcept -> f64 {
     return std::chrono::duration<double, std::micro>(duration).count();
 }
 
+// Bounds checked: a bad id must not take the results path down with it.
+auto label_name(LabelId id) noexcept -> std::string_view {
+    if (id < label_names.size()) {
+        return label_names[id];
+    }
+
+    return "<unknown>";
+}
+
 struct Totals {
     usize count = 0;
     Duration total = Duration::zero();
@@ -71,26 +80,7 @@ struct Totals {
     return static_cast<LabelId>(label_names.size() - 1);
 }
 
-[[nodiscard]] auto label_name(LabelId id) noexcept -> std::string_view {
-    if (id < label_names.size()) {
-        return label_names[id];
-    }
-
-    return "<unknown>";
-}
-
-[[nodiscard]] auto label_count() noexcept -> usize { return label_names.size(); }
-
 auto reserve(usize count) -> void { detail::store.reserve(count); }
-
-[[nodiscard]] auto samples() noexcept -> const std::vector<Sample>& { return detail::store; }
-
-[[nodiscard]] auto dropped() noexcept -> usize { return detail::dropped_samples; }
-
-auto clear() noexcept -> void {
-    detail::store.clear();
-    detail::dropped_samples = 0;
-}
 
 auto log_summary() -> void {
     if (detail::store.empty()) {
@@ -115,7 +105,8 @@ auto log_summary() -> void {
     }
 
     log::info(
-        "timing: {} samples, {} dropped, {} labels", detail::store.size(), dropped(),
+        "timing: {} samples, {} dropped, {} labels", detail::store.size(),
+        detail::dropped_samples,
         label_names.size()
     );
     log::info(
@@ -139,7 +130,9 @@ auto log_summary() -> void {
     }
 }
 
-[[nodiscard]] auto write_csv(std::string_view path) -> bool {
+namespace {
+
+auto write_csv(std::string_view path) -> bool {
     if (detail::store.empty()) {
         log::warn("timing: nothing to write to {}", path);
         return false;
@@ -186,6 +179,8 @@ auto log_summary() -> void {
     return true;
 }
 
+} // namespace
+
 [[nodiscard]] auto begin_run(std::string_view directory) -> std::string {
     // Local time, so the date folder matches the day the run happened. libc++
     // has no chrono time zone support yet, hence the C API.
@@ -221,8 +216,9 @@ auto log_summary() -> void {
     return run_stem;
 }
 
-[[nodiscard]] auto write_run_csv(std::string_view directory) -> std::string {
-    if (run_stem.empty() && begin_run(directory).empty()) {
+[[nodiscard]] auto write_run_csv() -> std::string {
+    if (run_stem.empty()) {
+        log::error("timing: no run open");
         return {};
     }
 

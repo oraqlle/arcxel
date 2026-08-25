@@ -40,6 +40,20 @@ std::atomic<Level> current_level{Level::info};
 
 std::FILE* sink = nullptr;
 
+auto to_string(Level lvl) noexcept -> const char* {
+    switch (lvl) {
+    case Level::trace: return "TRACE";
+    case Level::debug: return "DEBUG";
+    case Level::info: return "INFO";
+    case Level::warn: return "WARN";
+    case Level::error: return "ERROR";
+    case Level::fatal: return "FATAL";
+    case Level::off: return "OFF";
+    }
+
+    return "?";
+}
+
 auto level_from_name(std::string_view name) noexcept -> std::optional<Level> {
     if (name == "trace") { return Level::trace; }
     if (name == "debug") { return Level::debug; }
@@ -111,25 +125,11 @@ auto from_raylib(int raylib_level) noexcept -> Level {
     }
 }
 
-} // namespace
-
-[[nodiscard]] auto to_string(Level lvl) noexcept -> const char* {
-    switch (lvl) {
-    case Level::trace: return "TRACE";
-    case Level::debug: return "DEBUG";
-    case Level::info: return "INFO";
-    case Level::warn: return "WARN";
-    case Level::error: return "ERROR";
-    case Level::fatal: return "FATAL";
-    case Level::off: return "OFF";
-    }
-
-    return "?";
-}
-
 auto set_level(Level lvl) noexcept -> void {
     current_level.store(lvl, std::memory_order_relaxed);
 }
+
+} // namespace
 
 [[nodiscard]] auto level() noexcept -> Level {
     return current_level.load(std::memory_order_relaxed);
