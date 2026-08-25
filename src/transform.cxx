@@ -1,5 +1,7 @@
 #include "transform.h"
 
+#include <cmath>
+
 namespace arcxel {
 
 [[nodiscard]] auto Vector3Sqrt(Vector3 v) -> Vector3 {

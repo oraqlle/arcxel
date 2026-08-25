@@ -1,8 +1,33 @@
+// <main.cxx> -*- C++ -*-
+
+//  Arcxel Test Bench
+//  Copyright (C) 2026  Tyler Swann, Georgia Kanellis
+//
+//  This library is free software; you can redistribute it and/or
+//  modify it under the terms of the GNU Lesser General Public
+//  License v2.1 as published by the Free Software Foundation.
+//
+//  This library is distributed in the hope that it will be useful,
+//  but WITHOUT ANY WARRANTY; without even the implied warranty of
+//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+//  Lesser General Public License for more details.
+//
+//  You should have received a copy of the GNU Lesser General Public
+//  License along with this library; if not, write to the Free Software
+//  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
+//  USA
+
 #include "engine.h"
+#include "log.h"
+#include "timing.h"
 #include "types.h"
+#include "window.h"
 #include "window_info.h"
 
 #include <raylib.h>
+
+#include <expected>
+#include <string>
 
 // clang-format off
 using arcxel::i8;
@@ -25,27 +50,87 @@ using arcxel::f64;
 constexpr i32 WIDTH = 1920;
 constexpr i32 HEIGHT = 1080;
 
-auto main() -> int {
-    auto winfo = arcxel::WindowInfo{.width = WIDTH, .height = HEIGHT};
-    InitWindow(winfo.width, winfo.height, winfo.name.c_str());
-    SetTargetFPS(winfo.target_fps);
+namespace {
+
+auto run() -> std::expected<void, std::string> {
+    // Before the window, so raylib's start-up messages reach the file too.
+    const auto stem = arcxel::timing::begin_run();
+
+    if (stem.empty()) {
+        return std::unexpected("timing: could not create this run's directory");
+    }
+
+    // A missing log file is not fatal; stderr still carries everything.
+    if (!arcxel::log::set_file(stem + ".log")) {
+        arcxel::log::warn("log: continuing with stderr only");
+    }
+
+    // Uncapped: a frame rate cap would show up as vsync wait in every span.
+    auto info = arcxel::WindowInfo{.width = WIDTH, .height = HEIGHT, .target_fps = 0};
+    const auto window = arcxel::Window::create(info);
+
+    if (!window) {
+        return std::unexpected(window.error());
+    }
+
+    arcxel::log::info("window opened {}x{}", info.width, info.height);
+
     DisableCursor();
 
     auto engine = arcxel::Engine();
 
+    // ~4M samples, about ten minutes of uncapped frames 
+    // Samples past this are dropped, not reallocated
+    arcxel::timing::reserve(1U << 22U);
+    const auto frame_label = arcxel::timing::register_label("frame");
+    const auto events_label = arcxel::timing::register_label("events");
+    const auto update_label = arcxel::timing::register_label("update");
+    const auto render_label = arcxel::timing::register_label("render");
+
     while (engine.is_running()) {
-        engine.handle_events();
+        const auto frame = arcxel::timing::Span(frame_label);
 
-        // obtain delta
-        f64 delta = GetFrameTime();
+        {
+            const auto span = arcxel::timing::Span(events_label);
+            engine.handle_events();
+        }
 
-        engine.update(delta);
+        const f64 delta = GetFrameTime();
 
-        engine.render(delta);
+        {
+            const auto span = arcxel::timing::Span(update_label);
+            engine.update(delta);
+        }
+
+        {
+            const auto span = arcxel::timing::Span(render_label);
+            engine.render(delta);
+        }
     }
 
     EnableCursor();
-    CloseWindow();
 
+    arcxel::timing::log_summary();
+
+    if (arcxel::timing::write_run_csv().empty()) {
+        return std::unexpected("timing: could not write this run's samples");
+    }
+
+    return {};
+}
+
+} // namespace
+
+auto main() -> int {
+    arcxel::log::set_level_from_env();
+    arcxel::log::adopt_raylib();
+
+    if (const auto result = run(); !result) {
+        arcxel::log::fatal("{}", result.error());
+        arcxel::log::close_file();
+        return 1;
+    }
+
+    arcxel::log::close_file();
     return 0;
 }

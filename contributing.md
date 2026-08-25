@@ -4,6 +4,26 @@
 
 * Headers (`*.h`) should only contain interfaces unless they are templates
 * Source files (`*.cxx`) contain implementation
+* Code on a measured hot path may also be defined inline in a header
+
+### The hot path exception
+
+A function defined in a `.cxx` cannot be inlined into a call site in another
+translation unit, as the project does not build with link-time optimisation.
+For code that runs once per measurement, that call is recorded as part of
+whatever is being timed.
+
+`arcxel::timing::Span` and `record()` are the current cases, along with the
+sample storage they touch. Everything cold, meaning label registration, the
+summary and file output, stays in a `.cxx`.
+
+Measured at 1.84 ns per span, or 5% of the profiler's own cost: 36.73 ns
+inline against 38.57 ns out of line, medians of ten alternating runs of two
+million spans.
+
+Take the exception only where a measurement justifies it, and say why in the
+header. 1.84 ns is a small margin, so if the cost of header-only code ever 
+outweighs it, this is reversible.
 
 ```cxx
 // <[header_name].h> -*- C++ -*-
@@ -27,7 +47,7 @@
 
 #pragma once
 
-#include <> // internal arcxel headers
+#include "" // internal arcxel headers
 
 #include <> // third party headers
 
@@ -62,9 +82,9 @@ namespace arcxel {
 //  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 //  USA
 
-#include <> // matching header
+#include "" // matching header
 
-#include <> // internal arcxel header
+#include "" // internal arcxel header
 
 #include <> // third party headers
 
