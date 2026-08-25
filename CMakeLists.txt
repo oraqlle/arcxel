@@ -9,29 +9,9 @@ project(
 
 # ---- Global Defines ----
 set(CMAKE_EXPORT_COMPILE_COMMANDS   ON  CACHE BOOL "" FORCE)
-set(BUILD_SHARED_LIBS               OFF CACHE BOOL "" FORCE) # OFF so raylib links statically.
+set(BUILD_SHARED_LIBS               ON  CACHE BOOL "" FORCE)
 set(CMAKE_CXX_STANDARD_REQUIRED     ON  CACHE BOOL "" FORCE)
 set(CMAKE_CXX_EXTENSIONS            OFF CACHE BOOL "" FORCE)
-
-# ---- Build Type ----
-# Single-config generators leave this empty, which emits no optimisation flags.
-# An explicit -DCMAKE_BUILD_TYPE still wins.
-get_property(ARCXEL_MULTI_CONFIG GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
-
-if (NOT ARCXEL_MULTI_CONFIG)
-    if (NOT CMAKE_BUILD_TYPE)
-        set(CMAKE_BUILD_TYPE Release CACHE STRING "Build type" FORCE)
-        message(STATUS "arcxel: CMAKE_BUILD_TYPE was unset, defaulting to Release")
-    endif ()
-
-    set_property(
-        CACHE CMAKE_BUILD_TYPE
-        PROPERTY STRINGS Debug Release RelWithDebInfo MinSizeRel
-    )
-else ()
-    # Multi-config generators choose at build time, so there is no default here.
-    message(STATUS "arcxel: multi-config generator, build with --config Release")
-endif ()
 
 # ---- raylib Defines ----
 set(BUILD_EXAMPLES  OFF CACHE BOOL "" FORCE) # don't build the supplied examples
@@ -62,9 +42,16 @@ set_target_properties(raylib PROPERTIES SYSTEM TRUE)
 #find_package(glm 1.0.1 REQUIRED)
 #find_package(tinyobjloader 2.0.0 REQUIRED)
 
+# ---- Exceptions and Warnings ----
+if (MSVC)
+    set(ARCXEL_NO_EXCEPTIONS /EHs-c-)
+    set(ARCXEL_WARNINGS /W4)
+else ()
+    set(ARCXEL_NO_EXCEPTIONS -fno-exceptions)
+    set(ARCXEL_WARNINGS -Wall -Wextra -Wpedantic)
+endif ()
+
 # ---- Library ----
-# OBJECT, not shared. The timing headers use inline variables that must resolve
-# to a single instance across the whole program.
 add_library(
     arcxel_lib OBJECT
     src/cube.cxx
@@ -81,42 +68,24 @@ add_library(
 
 target_include_directories(arcxel_lib PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 target_compile_features(arcxel_lib PUBLIC cxx_std_23)
-
-# PUBLIC: main.cxx includes span.h, so the executable needs the same value
+target_compile_options(arcxel_lib PRIVATE ${ARCXEL_WARNINGS} ${ARCXEL_NO_EXCEPTIONS})
 target_compile_definitions(
     arcxel_lib
     PUBLIC
         ARCXEL_LOGGING=$<BOOL:${ARCXEL_LOGGING}>
         ARCXEL_PROFILING=$<BOOL:${ARCXEL_PROFILING}>
 )
+
 target_link_libraries(arcxel_lib PUBLIC raylib)
-
-# ---- Exceptions ----
-# Off. Failures are reported with std::expected instead
-if (MSVC)
-    set(ARCXEL_NO_EXCEPTIONS /EHs-c-)
-else ()
-    set(ARCXEL_NO_EXCEPTIONS -fno-exceptions)
-endif ()
-
-# ---- Warnings ----
-if (MSVC)
-    set(ARCXEL_WARNINGS /W4)
-else ()
-    set(ARCXEL_WARNINGS -Wall -Wextra -Wpedantic)
-endif ()
-
-target_compile_options(arcxel_lib PRIVATE ${ARCXEL_WARNINGS} ${ARCXEL_NO_EXCEPTIONS})
 
 # ---- Entrypoint ----
 add_executable(arcxel src/main.cxx)
-target_link_libraries(arcxel PRIVATE arcxel_lib)
+target_compile_features(arcxel PUBLIC cxx_std_23)
 target_compile_options(arcxel PRIVATE ${ARCXEL_WARNINGS} ${ARCXEL_NO_EXCEPTIONS})
+target_link_libraries(arcxel PRIVATE arcxel_lib)
 
 # ----  Set Options ----
 # Sanitizers
-# Both targets. arcxel_lib carries the logging and timing code, so instrumenting
-# only the executable leaves ten of eleven translation units unchecked.
 if (ARCXEL_DEBUG_SANITIZERS)
     if (MSVC)
         set(ARCXEL_SANITIZERS /fsanitize=address)
@@ -127,7 +96,6 @@ if (ARCXEL_DEBUG_SANITIZERS)
     target_compile_options(arcxel_lib PRIVATE ${ARCXEL_SANITIZERS})
     target_compile_options(arcxel PRIVATE ${ARCXEL_SANITIZERS})
 
-    # Only the executable links, so only it needs the runtime.
     target_link_options(arcxel PRIVATE ${ARCXEL_SANITIZERS})
 endif ()
 
