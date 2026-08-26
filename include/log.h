@@ -20,6 +20,8 @@
 #pragma once
 
 #include <conf.h>
+#include <ostream>
+#include <ranges>
 #include <types.h>
 
 #include <chrono>
@@ -80,19 +82,9 @@ public:
             const auto second = std::chrono::floor<std::chrono::seconds>(now);
             const auto millis = std::chrono::duration_cast<std::chrono::milliseconds>(now - second).count();
 
-            auto local = std::tm{};
-
-            //if (!to_local(std::chrono::system_clock::to_time_t(second), local)) {
-            //    os << std::format("[--:--:--.---] {:<5} {}\n", to_string(lvl), message);
-            //    return;
-            //}
-
-            //os << std::format(
-            //    "[{:02}:{:02}:{:02}.{:03}] {:<5} {}\n", local.tm_hour, local.tm_min,
-            //    local.tm_sec, millis, to_string(lvl), message
-            //);
-
-            std::print(os, fmt, std::forward<Args...>(args)...);
+            print(os, "[{:%H:%M:%S}{:03}] {:<5} ", now, millis, to_string(level));
+            println(os, fmt, std::forward<Args...>(args)...);
+            std::flush(os);
         }
     }
 
