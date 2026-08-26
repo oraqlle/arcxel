@@ -19,9 +19,17 @@ set(BUILD_GAMES     OFF CACHE BOOL "" FORCE) # don't build the supplied example 
 set(WITH_PIC        ON  CACHE BOOL "" FORCE) # Position Independent Code
 
 # ---- Build Options ----
-option(ARCXEL_DEBUG_SANITIZERS "Build with sanitizers enabled" OFF)
-option(ARCXEL_LOGGING "Log traces through program" ON)
-option(ARCXEL_PROFILING "Record timing spans" ON)
+cmake_dependent_option(ARCXEL_DEBUG      "Enable debug options" ON  [[CMAKE_BUILD_TYPE STREQUAL "Debug"]] OFF)
+cmake_dependent_option(ARCXEL_SANITIZERS "Enable sanitizers"    OFF [[CMAKE_BUILD_TYPE STREQUAL "Debug"]] OFF)
+
+option(ARCXEL_LOGGING    "Log program traces"    ON)
+option(ARCXEL_PROFILING  "Record profile traces" ON)
+
+# Build options log
+message(STATUS "ARXCEL_DEBUG: ${ARCXEL_DEBUG}")
+message(STATUS "ARXCEL_SANITIZERS: ${ARCXEL_SANITIZERS}")
+message(STATUS "ARXCEL_LOGGING: ${ARCXEL_LOGGING}")
+message(STATUS "ARXCEL_PROFILING: ${ARCXEL_PROFILING}")
 
 # ---- Dependencies ----
 include(FetchContent)
@@ -72,6 +80,7 @@ target_compile_options(arcxel_lib PRIVATE ${ARCXEL_WARNINGS} ${ARCXEL_NO_EXCEPTI
 target_compile_definitions(
     arcxel_lib
     PUBLIC
+        ARCXEL_DEBUG=$<BOOL:${ARCXEL_DEBUG}>
         ARCXEL_LOGGING=$<BOOL:${ARCXEL_LOGGING}>
         ARCXEL_PROFILING=$<BOOL:${ARCXEL_PROFILING}>
 )
@@ -84,20 +93,19 @@ target_compile_features(arcxel PUBLIC cxx_std_23)
 target_compile_options(arcxel PRIVATE ${ARCXEL_WARNINGS} ${ARCXEL_NO_EXCEPTIONS})
 target_link_libraries(arcxel PRIVATE arcxel_lib)
 
-# ----  Set Options ----
-# Sanitizers
-if (ARCXEL_DEBUG_SANITIZERS)
-    if (MSVC)
-        set(ARCXEL_SANITIZERS /fsanitize=address)
-    else ()
-        set(ARCXEL_SANITIZERS -fsanitize=address)
-    endif ()
+# ----  Enable Sanitizers ----
+if(ARCXEL_SANITIZERS)
+    if(MSVC)
+        set(ARCXEL_SANITIZERS_FLAGS /fsanitize=address)
+    else()
+        set(ARCXEL_SANITIZERS_FLAGS -fsanitize=address)
+    endif()
 
-    target_compile_options(arcxel_lib PRIVATE ${ARCXEL_SANITIZERS})
-    target_compile_options(arcxel PRIVATE ${ARCXEL_SANITIZERS})
+    target_compile_options(arcxel_lib PRIVATE ${ARCXEL_SANITIZERS_FLAGS})
+    target_compile_options(arcxel PRIVATE ${ARCXEL_SANITIZERS_FLAGS})
 
-    target_link_options(arcxel PRIVATE ${ARCXEL_SANITIZERS})
-endif ()
+    target_link_options(arcxel PRIVATE ${ARCXEL_SANITIZERS_FLAGS})
+endif()
 
 # ---- Installation ----
 #install(TARGETS arcxel RUNTIME COMPONENT runtime)
