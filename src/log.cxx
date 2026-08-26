@@ -19,14 +19,19 @@
 
 #include "log.h"
 
+#include <chrono>
+#include <print>
 #include <raylib.h>
 
 #include <cstdarg>
 #include <cstdio>
+#include <ios>
 #include <optional>
+#include <filesystem>
 #include <format>
 #include <string>
 #include <string_view>
+#include <syncstream>
 
 namespace arcxel::log {
 
@@ -92,6 +97,38 @@ auto capture_raylib_logs() -> void {
         SetTraceLogLevel(LOG_NONE);
         SetTraceLogCallback(raylib_log_callback);
     }
+}
+
+Logger::Logger() noexcept
+    : file(_M_log_file_path(), std::ios::out)
+    , os(file) {}
+
+auto Logger::instance() -> Logger& {
+    static auto logger = Logger();
+    return logger;
+}
+
+auto Logger::_M_log_file_path() -> std::filesystem::path {
+    namespace fs = std::filesystem;
+    auto current = fs::current_path();
+    auto path = current / "logs";
+    
+    if (!fs::is_directory(path)) {
+        std::println("Directory \"{}\" does not exist. Creating...", path.string());
+        fs::create_directories(path);
+    }
+
+    const auto now = std::chrono::system_clock::now();
+    const auto datetime = std::chrono::floor<std::chrono::days>(now);
+    const auto fname = std::format("{:%Y-%m-%d_%H:%M:%S}.csv", datetime);
+
+    const auto fpath = path / fname;
+
+    if (!fs::is_empty(fpath)) {
+        std::println("File \"{}\" exists, overwriting.", fpath.filename().string());
+    }
+
+    return fpath;
 }
 
 } // namespace arcxel::log

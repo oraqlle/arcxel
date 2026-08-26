@@ -20,11 +20,11 @@
 #pragma once
 
 #include <conf.h>
-#include <ostream>
-#include <ranges>
 #include <types.h>
 
 #include <chrono>
+#include <ostream>
+#include <filesystem>
 #include <format>
 #include <fstream>
 #include <syncstream>
@@ -69,11 +69,10 @@ class Logger {
 private:
     Logger() noexcept;
 
+    auto _M_log_file_path() -> std::filesystem::path;
+
 public:
-    static auto instance() -> Logger& {
-        static auto logger = Logger();
-        return logger;
-    }
+    static auto instance() -> Logger&;
 
     template <typename... Args>
     auto log(const LogLevel level, std::format_string<Args...> fmt, Args&&... args) -> void {
