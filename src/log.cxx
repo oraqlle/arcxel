@@ -21,90 +21,57 @@
 
 #include <raylib.h>
 
-#include <atomic>
-#include <chrono>
 #include <cstdarg>
 #include <cstdio>
-#include <cstdlib>
 #include <optional>
-#include <ctime>
 #include <format>
-#include <functional>
 #include <string>
 #include <string_view>
 
 namespace arcxel::log {
 
-auto level_from_name(std::string_view name) noexcept -> std::optional<Level> {
-    if (name == "trace") { return Level::trace; }
-    if (name == "debug") { return Level::debug; }
-    if (name == "info") { return Level::info; }
-    if (name == "warn") { return Level::warn; }
-    if (name == "error") { return Level::error; }
-    if (name == "fatal") { return Level::fatal; }
-    if (name == "off") { return Level::off; }
+auto parse_level(std::string_view name) noexcept -> std::optional<LogLevel> {
+    if (name == "trace") { return LogLevel::Trace; }
+    if (name == "debug") { return LogLevel::Debug; }
+    if (name == "info") { return LogLevel::Info; }
+    if (name == "warn") { return LogLevel::Warning; }
+    if (name == "error") { return LogLevel::Error; }
+    if (name == "fatal") { return LogLevel::Fatal; }
+    if (name == "off") { return LogLevel::Off; }
 
     return std::nullopt;
 }
 
-[[nodiscard]] auto to_string(Level lvl) noexcept -> const char* {
+[[nodiscard]] auto to_string(LogLevel lvl) noexcept -> const char* {
     switch (lvl) {
-    case Level::Trace: return "TRACE";
-    case Level::Debug: return "DEBUG";
-    case Level::Info: return "INFO";
-    case Level::Warning: return "WARNING";
-    case Level::Error: return "ERROR";
-    case Level::Fatal: return "FATAL";
-    case Level::Off: return "OFF";
+    case LogLevel::Trace: return "TRACE";
+    case LogLevel::Debug: return "DEBUG";
+    case LogLevel::Info: return "INFO";
+    case LogLevel::Warning: return "WARNING";
+    case LogLevel::Error: return "ERROR";
+    case LogLevel::Fatal: return "FATAL";
+    case LogLevel::Off: return "OFF";
     default: return "<unknown>";
     }
 }
 
-auto capture_raylib_logs() noexcept -> void {
-    if constexpr (logging_enabled) {
-        SetTraceLogLevel(LOG_ALL);
-        SetTraceLogCallback(raylib_log_callback);
-    } else {
-        SetTraceLogLevel(LOG_NONE);
-        SetTraceLogCallback(raylib_log_callback);
-    }
-}
-
-auto to_local(std::time_t stamp, std::tm& out) noexcept -> bool {
-#if defined(_MSC_VER)
-    return ::localtime_s(&out, &stamp) == 0;
-#elif defined(_WIN32)
-    // MinGW defines _WIN32 but not the MSVC localtime_s. The Windows CRT keeps
-    // localtime's result in thread-local storage, so copying it out is safe.
-    const auto* result = std::localtime(&stamp);
-
-    if (result == nullptr) {
-        return false;
-    }
-
-    out = *result;
-    return true;
-#else
-    return ::localtime_r(&stamp, &out) != nullptr;
-#endif
-}
-
-auto from_raylib(int raylib_level) noexcept -> Level {
+/**
+ * Intnernal function to convert raylib log enum to Arcxel's
+ */
+static auto from_raylib_log_level(int raylib_level) noexcept -> LogLevel {
     switch (raylib_level) {
-    case LOG_TRACE: return Level::Trace;
-    case LOG_DEBUG: return Level::Debug;
-    case LOG_INFO: return Level::Info;
-    case LOG_WARNING: return Level::Warning;
-    case LOG_ERROR: return Level::Error;
-    case LOG_FATAL: return Level::Fatal;
-    default: return Level::Info;
+    case LOG_TRACE: return LogLevel::Trace;
+    case LOG_DEBUG: return LogLevel::Debug;
+    case LOG_INFO: return LogLevel::Info;
+    case LOG_WARNING: return LogLevel::Warning;
+    case LOG_ERROR: return LogLevel::Error;
+    case LOG_FATAL: return LogLevel::Fatal;
+    default: return LogLevel::Info;
     }
 }
 
 auto raylib_log_callback(int raylib_level, const char* text, va_list args) -> void {
-    char buffer[1024];
-
-    const auto size = std::vsnprintf(buffer, 0, text, args);
+    const auto size = std::vsnprintf(nullptr, 0, text, args);
 
     if (size < 0) {
         return;
@@ -113,9 +80,18 @@ auto raylib_log_callback(int raylib_level, const char* text, va_list args) -> vo
     auto buf = std::string(size, '\0');
     vsnprintf(buf.data(), size, text, args);
 
-    const auto level = from_raylib(raylib_level);
-    logger.log<level>(buf);
+    const auto level = from_raylib_log_level(raylib_level);
+    Logger::instance().log(level, "{}", buf);
 }
 
+auto capture_raylib_logs() -> void {
+    if constexpr (logging_enabled) {
+        SetTraceLogLevel(LOG_ALL);
+        SetTraceLogCallback(raylib_log_callback);
+    } else {
+        SetTraceLogLevel(LOG_NONE);
+        SetTraceLogCallback(raylib_log_callback);
+    }
+}
 
 } // namespace arcxel::log

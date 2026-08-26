@@ -25,12 +25,12 @@
 #include <chrono>
 #include <format>
 #include <fstream>
-#include <string_view>
+#include <syncstream>
 #include <utility>
 
 namespace arcxel::log {
 
-enum class Level : u8 {
+enum class LogLevel : u8 {
     Trace = 0,
     Debug,
     Info,
@@ -41,15 +41,20 @@ enum class Level : u8 {
 }; // enum class Level
 
 // turn into std::formatter()
-[[nodiscard]] auto to_string(Level level) noexcept -> const char*;
+[[nodiscard]] auto to_string(LogLevel level) noexcept -> const char*;
 
 #ifdef ARCXEL_LOGGING
     static constexpr bool logging_enabled = true;
-    static constexpr Level min_log_level = debug_enabled ? Level::Trace : Level::Info;
+    static constexpr LogLevel min_log_level = debug_enabled ? LogLevel::Trace : LogLevel::Info;
 #else
     static constexpr bool logging_enabled = false
     static constexpr Level min_log_level = Level::Off
 #endif
+
+/**
+ * @brief Callback for raylibs internal logs
+ */
+auto raylib_log_callback(int raylib_level, const char* text, va_list args) -> void;
 
 /**
  * @brief Capture and redirect raylib's trace logs to our own logger.
@@ -57,36 +62,43 @@ enum class Level : u8 {
  */
 auto capture_raylib_logs() -> void;
 
+
 class Logger {
-public:
+private:
     Logger() noexcept;
 
-    template <Level L, typename... Args>
-    auto log(std::format_string<Args...> fmt, Args&&... args) -> void {
-        if constexpr (L >= min_log_level) {
+public:
+    static auto instance() -> Logger& {
+        static auto logger = Logger();
+        return logger;
+    }
 
+    template <typename... Args>
+    auto log(const LogLevel level, std::format_string<Args...> fmt, Args&&... args) -> void {
+        if (level >= min_log_level) {
             const auto now = std::chrono::system_clock::now();
             const auto second = std::chrono::floor<std::chrono::seconds>(now);
             const auto millis = std::chrono::duration_cast<std::chrono::milliseconds>(now - second).count();
 
             auto local = std::tm{};
 
-            if (!to_local(std::chrono::system_clock::to_time_t(second), local)) {
-                file << std::format("[--:--:--.---] {:<5} {}\n", to_string(lvl), message);
-                return;
-            }
+            //if (!to_local(std::chrono::system_clock::to_time_t(second), local)) {
+            //    os << std::format("[--:--:--.---] {:<5} {}\n", to_string(lvl), message);
+            //    return;
+            //}
 
-            file << std::format(
-                "[{:02}:{:02}:{:02}.{:03}] {:<5} {}\n", local.tm_hour, local.tm_min,
-                local.tm_sec, millis, to_string(lvl), message
-            );
+            //os << std::format(
+            //    "[{:02}:{:02}:{:02}.{:03}] {:<5} {}\n", local.tm_hour, local.tm_min,
+            //    local.tm_sec, millis, to_string(lvl), message
+            //);
 
-            std::print(file, fmt, std::forward(args)...);
+            std::print(os, fmt, std::forward<Args...>(args)...);
         }
     }
 
 private:
     std::fstream file;
+    std::osyncstream os;
 }; // class Logger
 
 } // namespace arcxel::log
