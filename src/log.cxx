@@ -20,6 +20,8 @@
 #include "log.h"
 
 #include <chrono>
+#include <cstdlib>
+#include <iostream>
 #include <print>
 #include <raylib.h>
 
@@ -29,6 +31,7 @@
 #include <optional>
 #include <filesystem>
 #include <format>
+#include <sstream>
 #include <string>
 #include <string_view>
 #include <syncstream>
@@ -100,32 +103,46 @@ auto capture_raylib_logs() -> void {
 }
 
 Logger::Logger() noexcept
-    : file(_M_log_file_path(), std::ios::out)
-    , os(file) {}
+    : file{}
+    , os(file) {
+    auto ss = std::stringstream{};
+    const auto fpath = _M_log_file_path(ss);
+    
+    file.open(fpath, std::ios::out);
 
-auto Logger::instance() -> Logger& {
+    if (!file.is_open()) {
+        std::println(ss, "Could not open file '{}'.", fpath.string());
+        std::println(ss, "Associating logs to STDERR");
+
+        os = std::osyncstream(std::cerr);
+    }
+
+    std::print(os, "{}", ss.str());
+}
+
+[[nodiscard]] auto Logger::instance() -> Logger& {
     static auto logger = Logger();
     return logger;
 }
 
-auto Logger::_M_log_file_path() -> std::filesystem::path {
+auto Logger::_M_log_file_path(std::stringstream& ss) -> std::filesystem::path {
     namespace fs = std::filesystem;
     auto current = fs::current_path();
     auto path = current / "logs";
     
     if (!fs::is_directory(path)) {
-        std::println("Directory \"{}\" does not exist. Creating...", path.string());
+        std::println(ss, "Directory '{}' does not exist. Creating...", path.string());
         fs::create_directories(path);
     }
 
     const auto now = std::chrono::system_clock::now();
     const auto datetime = std::chrono::floor<std::chrono::days>(now);
-    const auto fname = std::format("{:%Y-%m-%d_%H:%M:%S}.csv", datetime);
+    const auto fname = std::format("{:%Y-%m-%d_%H:%M:%S}.log", datetime);
 
     const auto fpath = path / fname;
 
     if (!fs::is_empty(fpath)) {
-        std::println("File \"{}\" exists, overwriting.", fpath.filename().string());
+        std::println(ss, "File '{}' exists, overwriting.", fpath.filename().string());
     }
 
     return fpath;

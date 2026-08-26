@@ -45,12 +45,12 @@ using arcxel::usize;
 
 using arcxel::f32;
 using arcxel::f64;
+
+namespace log = arxcel::log;
 // clang-format on
 
 constexpr i32 WIDTH = 1920;
 constexpr i32 HEIGHT = 1080;
-
-namespace {
 
 auto run() -> std::expected<void, std::string> {
     // Before the window, so raylib's start-up messages reach the file too.
@@ -58,11 +58,6 @@ auto run() -> std::expected<void, std::string> {
 
     if (stem.empty()) {
         return std::unexpected("timing: could not create this run's directory");
-    }
-
-    // A missing log file is not fatal; stderr still carries everything.
-    if (!arcxel::log::set_file(stem + ".log")) {
-        arcxel::log::warn("log: continuing with stderr only");
     }
 
     // Uncapped: a frame rate cap would show up as vsync wait in every span.
@@ -73,7 +68,7 @@ auto run() -> std::expected<void, std::string> {
         return std::unexpected(window.error());
     }
 
-    arcxel::log::info("window opened {}x{}", info.width, info.height);
+    log::Logger::instance().log(log::LogLevel::Info, "window opened {}x{}", info.width, info.height);
 
     DisableCursor();
 
@@ -119,18 +114,13 @@ auto run() -> std::expected<void, std::string> {
     return {};
 }
 
-} // namespace
-
 auto main() -> int {
-    arcxel::log::set_level_from_env();
-    arcxel::log::adopt_raylib();
+    arcxel::log::capture_raylib_logs();
 
     if (const auto result = run(); !result) {
-        arcxel::log::fatal("{}", result.error());
-        arcxel::log::close_file();
-        return 1;
+        log::Logger::instance().log(log::LogLevel::Fatal, "{}", result.error());
+        std::exit(-1);
     }
 
-    arcxel::log::close_file();
-    return 0;
+    std::exit(0);
 }

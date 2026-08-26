@@ -40,7 +40,7 @@ enum class LogLevel : u8 {
     Error,
     Fatal,
     Off
-}; // enum class Level
+}; // enum class LogLevel
 
 // turn into std::formatter()
 [[nodiscard]] auto to_string(LogLevel level) noexcept -> const char*;
@@ -69,10 +69,10 @@ class Logger {
 private:
     Logger() noexcept;
 
-    auto _M_log_file_path() -> std::filesystem::path;
+    auto _M_log_file_path(std::stringstream& ss) -> std::filesystem::path;
 
 public:
-    static auto instance() -> Logger&;
+    [[nodiscard]] static auto instance() -> Logger&;
 
     template <typename... Args>
     auto log(const LogLevel level, std::format_string<Args...> fmt, Args&&... args) -> void {
