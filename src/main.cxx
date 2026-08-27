@@ -59,26 +59,6 @@ constexpr i32 HEIGHT = 1080;
 
 
 /**
- * @brief Clean up logging and profile tracing for engine. Flushes final traces and logs
- * remaining in memory and closes files.
- */
-[[nodiscard]] static auto deinitialise_tracing() -> arcxel::Fallible {
-    // ---- PROFILING ----
-    if constexpr (arcxel::profiling_enabled) {
-    }
-
-    // ---- LOGGING ---- <<< Reverse order as logging should be the last thing to close
-    if constexpr (arcxel::logging_enabled) {
-        if (const auto r = arcxel::close_log_file(); !r) {
-            return r;
-        }
-    }
-
-    return {};
-}
-
-
-/**
  * @brief Create raylib window instance, validating it opened correctly
  */
 [[nodiscard]] static auto create_window(const arcxel::WindowInfo& winfo)
@@ -97,7 +77,7 @@ constexpr i32 HEIGHT = 1080;
 }
 
 
-static inline auto game_loop(const arcxel::SampleRecord& store) -> void {
+static inline auto game_loop(arcxel::SampleRecord& store) -> void {
     auto engine = arcxel::Engine();
     while (engine.is_running()) {
         const auto span = arcxel::Timespan(arcxel::Sample::Label::Frame, store);
@@ -120,13 +100,13 @@ static inline auto game_loop(const arcxel::SampleRecord& store) -> void {
 
         {
             const auto span = arcxel::Timespan(arcxel::Sample::Label::Render, store);
-            engine.render(delta);
+            engine.render(delta, store);
         }
     }
 }
 
 
-[[nodiscard]] static auto run(const arcxel::SampleRecord& store) -> arcxel::Fallible {
+[[nodiscard]] static auto run(arcxel::SampleRecord& store) -> arcxel::Fallible {
 
     // ---- WINDOW CREATION ----
     const auto winfo =
