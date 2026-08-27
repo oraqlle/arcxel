@@ -32,7 +32,6 @@
 
 namespace arcxel::log {
 
-
 extern std::fstream logfile;
 extern std::iostream logstream;
 extern std::osyncstream syncederr;
@@ -48,10 +47,53 @@ enum class LogLevel : u8 {
     Off
 }; // enum class LogLevel
 
+} // namespace arcxel::log
 
-// turn into std::formatter()
-[[nodiscard]] auto to_string(LogLevel level) noexcept -> const char*;
 
+namespace std {
+
+template<>
+struct std::formatter<arcxel::log::LogLevel> {
+
+    inline constexpr auto _M_to_string(arcxel::log::LogLevel level) const
+        -> std::string_view {
+        switch (level) {
+            case arcxel::log::LogLevel::Trace:
+                return "TRACE";
+            case arcxel::log::LogLevel::Debug:
+                return "DEBUG";
+            case arcxel::log::LogLevel::Info:
+                return "INFO";
+            case arcxel::log::LogLevel::Warning:
+                return "WARNING";
+            case arcxel::log::LogLevel::Error:
+                return "ERROR";
+            case arcxel::log::LogLevel::Fatal:
+                return "FATAL";
+            case arcxel::log::LogLevel::Off:
+                return "OFF";
+            default:
+                return "UNKNOWN";
+        }
+    }
+
+
+    constexpr auto parse(std::format_parse_context& ctx) {
+        return ctx.begin();
+    }
+
+    
+    template <typename FormatContext>
+    auto format(arcxel::log::LogLevel level, FormatContext& ctx) {
+        return std::format_to(ctx.out(), "{:<5}", _M_to_string(level));
+    }
+
+}; // struct std::formatter<arcxel::log::LogLevel>
+
+} // namespace std
+
+
+namespace arcxel::log {
 
 #ifdef ARCXEL_LOGGING
     static inline constexpr bool logging_enabled = true;
@@ -105,7 +147,7 @@ auto log(const LogLevel level, std::format_string<Args...> fmt, Args&&... args) 
             const auto second = std::chrono::floor<std::chrono::seconds>(now);
             const auto millis = std::chrono::duration_cast<std::chrono::milliseconds>(now - second).count();
 
-            const auto log_details = format("[{:%H:%M:%S}{:03}] {:<5} ", now, millis, to_string(level));
+            const auto log_details = format("[{:%H:%M:%S}{:03}] {} ", now, millis, level);
             const auto msg = format(fmt, std::forward<Args...>(args)...);
 
             if (logfile.is_open()) {
@@ -124,3 +166,5 @@ auto log(const LogLevel level, std::format_string<Args...> fmt, Args&&... args) 
 }
 
 } // namespace arcxel::log
+
+
