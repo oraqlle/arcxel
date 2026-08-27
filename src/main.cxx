@@ -17,6 +17,7 @@
 //  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 //  USA
 
+#include "conf.h"
 #include "engine.h"
 #include "log.h"
 #include "timing.h"
@@ -24,10 +25,13 @@
 #include "window.h"
 #include "window_info.h"
 
+#include <iostream>
+#include <ostream>
 #include <raylib.h>
 
 #include <expected>
 #include <string>
+#include <syncstream>
 
 // clang-format off
 using arcxel::i8;
@@ -46,23 +50,37 @@ using arcxel::usize;
 using arcxel::f32;
 using arcxel::f64;
 
-namespace log = arxcel::log;
+namespace log = arcxel::log;
 // clang-format on
 
 constexpr i32 WIDTH = 1920;
 constexpr i32 HEIGHT = 1080;
 
-auto run() -> std::expected<void, std::string> {
+static auto create_window(const arcxel::WindowInfo& winfo) -> arcxel::Fallible {
+    InitWindow(winfo.width, winfo.height, winfo.name.c_str());
+
+    if (!IsWindowReady()) {
+        CloseWindow();
+        return std::unexpected("arcxel: window failed to initialise");
+    }
+
+    SetTargetFPS(info.target_fps); // 0 leaves the frame rate uncapped
+
+    return std::expected<Window, std::string>(std::in_place, Token{});
+}
+
+static auto run() -> arcxel::Fallible {
+
+    const auto winfo = arcxel::WindowInfo{.width = WIDTH, .height = HEIGHT, .target_fps = 0};
+
+    if (auto r = create_window(winfo); !r) {
+        return r;
+    }
+
+
     // Before the window, so raylib's start-up messages reach the file too.
     const auto stem = arcxel::timing::begin_run();
 
-    if (stem.empty()) {
-        return std::unexpected("timing: could not create this run's directory");
-    }
-
-    // Uncapped: a frame rate cap would show up as vsync wait in every span.
-    auto info = arcxel::WindowInfo{.width = WIDTH, .height = HEIGHT, .target_fps = 0};
-    const auto window = arcxel::Window::create(info);
 
     if (!window) {
         return std::unexpected(window.error());
@@ -77,10 +95,6 @@ auto run() -> std::expected<void, std::string> {
     // ~4M samples, about ten minutes of uncapped frames 
     // Samples past this are dropped, not reallocated
     arcxel::timing::reserve(1U << 22U);
-    const auto frame_label = arcxel::timing::register_label("frame");
-    const auto events_label = arcxel::timing::register_label("events");
-    const auto update_label = arcxel::timing::register_label("update");
-    const auto render_label = arcxel::timing::register_label("render");
 
     while (engine.is_running()) {
         const auto frame = arcxel::timing::Span(frame_label);
@@ -115,10 +129,32 @@ auto run() -> std::expected<void, std::string> {
 }
 
 auto main() -> int {
-    arcxel::log::capture_raylib_logs();
+    auto syncerr = std::osyncstream(std::cerr);
+
+    if constexpr (arcxel::log::logging_enabled) {
+
+        auto file = create_log_file(syncerr);
+
+        auto&& os = create_logging_stream(file, syncerr);
+
+        if 
+
+
+        arcxel::log::capture_raylib_logs();
+    } else {
+        SetTraceLogLevel(LOG_NONE);
+    }
+    
+    if constexpr (arcxel::timing::profiling_enabled) {
+    
+    }
+
+    if constexpr (arcxel::log::logging_enabled || arcxel::timing::profiling_enabled) {
+        create_output_dir() 
+    }
 
     if (const auto result = run(); !result) {
-        log::Logger::instance().log(log::LogLevel::Fatal, "{}", result.error());
+        arcxel::log::log(syncerr, log::LogLevel::Fatal, "{}", result.error());
         std::exit(-1);
     }
 
