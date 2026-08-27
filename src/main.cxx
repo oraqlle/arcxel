@@ -17,7 +17,6 @@
 //  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 //  USA
 
-#include "conf.h"
 #include "engine.h"
 #include "log.h"
 #include "timing.h"
@@ -47,7 +46,7 @@ using arcxel::usize;
 using arcxel::f32;
 using arcxel::f64;
 
-namespace log = arcxel::log;
+using arcxel::LogLevel;
 // clang-format on
 
 
@@ -60,10 +59,10 @@ constexpr i32 HEIGHT = 1080;
  */
 [[nodiscard]] static auto initialise_tracing() -> arcxel::Fallible {
     // ---- LOGGING ----
-    if constexpr (arcxel::log::logging_enabled) {
+    if constexpr (arcxel::logging_enabled) {
         const auto r = arcxel::create_dir("logs").and_then([](auto&& path) {
-            arcxel::log::capture_raylib_logs();
-            return arcxel::log::open_log_file(path);
+            arcxel::capture_raylib_logs();
+            return arcxel::open_log_file(path);
         });
 
         if (!r) {
@@ -78,10 +77,10 @@ constexpr i32 HEIGHT = 1080;
     // ---- PROFILING ----
     if constexpr (arcxel::timing::profiling_enabled) {
         const auto r = arcxel::create_dir("profs").and_then([](auto&& path) {
-            arcxel::log::capture_raylib_logs();
+            arcxel::capture_raylib_logs();
             // set up profiling
             return arcxel::Fallible{};
-            // return arcxel::log::open_log_file(path);
+            // return arcxel::open_log_file(path);
         });
 
         if (!r) {
@@ -102,7 +101,7 @@ constexpr i32 HEIGHT = 1080;
 [[nodiscard]] static auto deinitialise_tracing() -> arcxel::Fallible {
     // ---- PROFILING ----
     if constexpr (arcxel::timing::profiling_enabled) {
-        arcxel::timing::log_summary();
+        arcxel::log_timing_summary();
 
         if (arcxel::timing::write_run_csv().empty()) {
             return std::unexpected("timing: could not write this run's samples");
@@ -110,8 +109,8 @@ constexpr i32 HEIGHT = 1080;
     }
 
     // ---- LOGGING ---- <<< Reverse order as logging should be the last thing to close
-    if constexpr (arcxel::log::logging_enabled) {
-        if (const auto r = arcxel::log::close_log_file(); !r) {
+    if constexpr (arcxel::logging_enabled) {
+        if (const auto r = arcxel::close_log_file(); !r) {
             return r;
         }
     }
@@ -133,9 +132,7 @@ constexpr i32 HEIGHT = 1080;
     }
 
     SetTargetFPS(winfo.target_fps); // 0 leaves the frame rate uncapped
-    arcxel::log::log(
-        log::LogLevel::Info, "window opened {}x{}", winfo.width, winfo.height
-    );
+    arcxel::log(LogLevel::Info, "window opened {}x{}", winfo.width, winfo.height);
 
     return {};
 }
@@ -191,15 +188,15 @@ static inline auto game_loop() -> void {
 auto main() -> int {
 
     if (const auto r = initialise_tracing(); !r) {
-        log(log::LogLevel::Fatal, "{}", result.error());
+        log(LogLevel::Fatal, "{}", r.error());
     }
 
-    if (const auto result = run(); !result) {
-        log(log::LogLevel::Fatal, "{}", result.error());
+    if (const auto r = run(); !r) {
+        log(LogLevel::Fatal, "{}", r.error());
     }
 
     if (const auto r = deinitialise_tracing(); !r) {
-        log(log::LogLevel::Fatal, "{}", result.error());
+        log(LogLevel::Fatal, "{}", r.error());
     }
 
     return 0;

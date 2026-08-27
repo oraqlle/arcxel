@@ -37,7 +37,7 @@
 #include <string>
 #include <syncstream>
 
-namespace arcxel::log {
+namespace arcxel {
 
 // static bool file_logging_enabled = false;
 std::fstream logfile = std::fstream();
@@ -89,7 +89,7 @@ auto raylib_log_callback(int raylib_level, const char* text, va_list args) -> vo
     vsnprintf(buf.data(), size, text, args);
 
     const auto level = from_raylib_log_level(raylib_level);
-    log::log(level, "{}", buf);
+    log(level, "{}", buf);
 }
 
 
@@ -171,4 +171,4 @@ auto capture_raylib_logs() -> void {
     return {};
 }
 
-} // namespace arcxel::log
+} // namespace arcxel

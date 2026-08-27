@@ -30,7 +30,7 @@
 #include <format>
 #include <utility>
 
-namespace arcxel::log {
+namespace arcxel {
 
 extern std::fstream logfile;
 extern std::iostream logstream;
@@ -47,30 +47,30 @@ enum class LogLevel : u8 {
     Off
 }; // enum class LogLevel
 
-} // namespace arcxel::log
+} // namespace arcxel
 
 
 namespace std {
 
 template<>
-struct std::formatter<arcxel::log::LogLevel> {
+struct std::formatter<arcxel::LogLevel> {
 
-    inline constexpr auto _M_to_string(arcxel::log::LogLevel level) const
+    inline constexpr auto _M_to_string(arcxel::LogLevel level) const
         -> std::string_view {
         switch (level) {
-            case arcxel::log::LogLevel::Trace:
+            case arcxel::LogLevel::Trace:
                 return "TRACE";
-            case arcxel::log::LogLevel::Debug:
+            case arcxel::LogLevel::Debug:
                 return "DEBUG";
-            case arcxel::log::LogLevel::Info:
+            case arcxel::LogLevel::Info:
                 return "INFO";
-            case arcxel::log::LogLevel::Warning:
+            case arcxel::LogLevel::Warning:
                 return "WARNING";
-            case arcxel::log::LogLevel::Error:
+            case arcxel::LogLevel::Error:
                 return "ERROR";
-            case arcxel::log::LogLevel::Fatal:
+            case arcxel::LogLevel::Fatal:
                 return "FATAL";
-            case arcxel::log::LogLevel::Off:
+            case arcxel::LogLevel::Off:
                 return "OFF";
             default:
                 return "UNKNOWN";
@@ -84,16 +84,16 @@ struct std::formatter<arcxel::log::LogLevel> {
 
     
     template <typename FormatContext>
-    auto format(arcxel::log::LogLevel level, FormatContext& ctx) {
+    auto format(arcxel::LogLevel level, FormatContext& ctx) {
         return std::format_to(ctx.out(), "{:<5}", _M_to_string(level));
     }
 
-}; // struct std::formatter<arcxel::log::LogLevel>
+}; // struct std::formatter<arcxel::LogLevel>
 
 } // namespace std
 
 
-namespace arcxel::log {
+namespace arcxel {
 
 #ifdef ARCXEL_LOGGING
     static inline constexpr bool logging_enabled = true;
@@ -165,6 +165,5 @@ auto log(const LogLevel level, std::format_string<Args...> fmt, Args&&... args) 
     }
 }
 
-} // namespace arcxel::log
-
+} // namespace arcxel
 
