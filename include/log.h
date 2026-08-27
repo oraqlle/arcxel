@@ -20,6 +20,7 @@
 #pragma once
 
 #include <conf.h>
+#include <raylib.h>
 #include <types.h>
 
 #include <chrono>
@@ -48,50 +49,44 @@ enum class LogLevel : u8 {
     Off
 }; // enum class LogLevel
 
+
+inline constexpr auto loglevel_to_string(arcxel::LogLevel level) -> std::string_view {
+    switch (level) {
+        case arcxel::LogLevel::Trace:
+            return "TRACE";
+        case arcxel::LogLevel::Debug:
+            return "DEBUG";
+        case arcxel::LogLevel::Info:
+            return "INFO";
+        case arcxel::LogLevel::Warning:
+            return "WARNING";
+        case arcxel::LogLevel::Error:
+            return "ERROR";
+        case arcxel::LogLevel::Fatal:
+            return "FATAL";
+        case arcxel::LogLevel::Off:
+            return "OFF";
+        default:
+            return "UNKNOWN";
+    }
+}
+
 } // namespace arcxel
 
 
-namespace std {
+template <>
+struct std::formatter<arcxel::LogLevel, char>
+    : public std::formatter<std::string_view, char> {
 
-template<>
-struct formatter<arcxel::LogLevel> {
-
-    inline constexpr auto _M_to_string(arcxel::LogLevel level) const
-        -> std::string_view {
-        switch (level) {
-            case arcxel::LogLevel::Trace:
-                return "TRACE";
-            case arcxel::LogLevel::Debug:
-                return "DEBUG";
-            case arcxel::LogLevel::Info:
-                return "INFO";
-            case arcxel::LogLevel::Warning:
-                return "WARNING";
-            case arcxel::LogLevel::Error:
-                return "ERROR";
-            case arcxel::LogLevel::Fatal:
-                return "FATAL";
-            case arcxel::LogLevel::Off:
-                return "OFF";
-            default:
-                return "UNKNOWN";
-        }
-    }
+    using formatter_t = std::formatter<std::string_view, char>;
 
 
-    constexpr auto parse(std::format_parse_context& ctx) {
-        return ctx.begin();
-    }
-
-    
     template <typename FormatContext>
     auto format(arcxel::LogLevel level, FormatContext& ctx) {
-        return std::format_to(ctx.out(), "{:<5}", _M_to_string(level));
+        return formatter_t::format(loglevel_to_string(level), ctx);
     }
 
-}; // struct std::formatter<arcxel::LogLevel>
-
-} // namespace std
+}; // struct std::formatter<arcxel::LogLevel, char>
 
 
 namespace arcxel {
@@ -143,11 +138,11 @@ make_log_string(const LogLevel level, std::format_string<Args...> fmt, Args&&...
         std::chrono::duration_cast<std::chrono::milliseconds>(now - second).count();
 
     return std::format(
-        "[{:%H:%M:%S}{:03}] {} {}",
+        "[{:%H:%M:%S}{:03}] {:<5} {}",
         now,
         millis,
-        level,
-        std::format(fmt, std::forward<Args...>(args)...)
+        loglevel_to_string(level),
+        std::format(fmt, std::forward<Args>(args)...)
     );
 }
 
@@ -161,7 +156,7 @@ auto log_to(
 ) -> void {
     if constexpr (logging_enabled) {
         if (level >= min_log_level) {
-            auto msg = make_log_string(level, fmt, std::forward<Args...>(args)...);
+            auto msg = make_log_string(level, fmt, std::forward<Args>(args)...);
 
             std::println(stream, msg);
             std::flush(stream);
@@ -177,7 +172,7 @@ template <typename... Args>
 auto log(const LogLevel level, std::format_string<Args...> fmt, Args&&... args) -> void {
     if constexpr (logging_enabled) {
         if (level >= min_log_level) {
-            auto msg = make_log_string(level, fmt, std::forward<Args...>(args)...);
+            auto msg = make_log_string(level, fmt, std::forward<Args>(args)...);
 
             if (logfile.is_open()) {
                 auto synclog = std::osyncstream{logstream};
