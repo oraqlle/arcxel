@@ -18,95 +18,59 @@
 //  USA
 
 #include "timing.h"
-
 #include "log.h"
+#include "types.h"
 
 #include <algorithm>
 #include <chrono>
-#include <cinttypes>
-#include <cstdio>
-#include <ctime>
 #include <filesystem>
 #include <format>
-#include <string>
-#include <string_view>
-#include <system_error>
-#include <vector>
+#include <fstream>
+#include <ios>
+#include <print>
 
-namespace arcxel::timing {
+namespace arcxel {
 
-namespace {
-
-std::vector<std::string> label_names;
-
-// Shared by everything this run writes, so the log and the samples match.
-std::string run_stem;
-
-auto to_ms(Duration duration) noexcept -> f64 {
+static inline constexpr auto as_ms(Sample::Duration duration) -> f64 {
     return std::chrono::duration<double, std::milli>(duration).count();
 }
 
-// Spans are routinely sub-microsecond, so milliseconds would print as 0.000.
-auto to_us(Duration duration) noexcept -> f64 {
+
+static inline constexpr auto as_us(Sample::Duration duration) -> f64 {
     return std::chrono::duration<double, std::micro>(duration).count();
 }
 
+
 struct Totals {
+    Sample::Label label;
     usize count = 0;
-    Duration total = Duration::zero();
-    Duration min = Duration::max();
-    Duration max = Duration::zero();
+    Sample::Duration total = Sample::Duration::zero();
+    Sample::Duration min = Sample::Duration::max();
+    Sample::Duration max = Sample::Duration::zero();
 };
 
-} // namespace
 
-[[nodiscard]] auto register_label(std::string_view name) -> LabelId {
-    const auto existing = std::ranges::find(label_names, name);
+static inline auto totals = std::array<Totals, num_labels>{
+    Totals{.label = Sample::Label::Frame },
+    Totals{.label = Sample::Label::Events },
+    Totals{.label = Sample::Label::Update },
+    Totals{.label = Sample::Label::Render },
+    Totals{.label = Sample::Label::Construct },
+    Totals{.label = Sample::Label::Draw  },
+    Totals{.label = Sample::Label::Present }
+};
 
-    if (existing != label_names.end()) {
-        return static_cast<LabelId>(existing - label_names.begin());
-    }
 
-    label_names.emplace_back(name);
-    return static_cast<LabelId>(label_names.size() - 1);
-}
-
-[[nodiscard]] auto label_name(LabelId id) noexcept -> std::string_view {
-    if (id < label_names.size()) {
-        return label_names[id];
-    }
-
-    return "<unknown>";
-}
-
-[[nodiscard]] auto label_count() noexcept -> usize { return label_names.size(); }
-
-auto reserve(usize count) -> void { detail::store.reserve(count); }
-
-[[nodiscard]] auto samples() noexcept -> const std::vector<Sample>& { return detail::store; }
-
-[[nodiscard]] auto dropped() noexcept -> usize { return detail::dropped_samples; }
-
-auto clear() noexcept -> void {
-    detail::store.clear();
-    detail::dropped_samples = 0;
-}
-
-auto log_summary() -> void {
-    if (detail::store.empty()) {
-        log::warn("timing: no samples recorded");
+auto log_trace_summary(const SampleRecord& store) -> void {
+    if (store.samples().empty()) {
+        log(LogLevel::Warning, "timing: no samples recorded");
         return;
     }
 
-    auto totals = std::vector<Totals>(label_names.size());
-
-    for (const auto& sample : detail::store) {
-        if (sample.label >= totals.size()) {
-            continue;
-        }
-
+    for (const auto& sample : store.samples()) {
         const auto elapsed = sample.end - sample.start;
-        auto& entry = totals[sample.label];
+        const auto idx = static_cast<u8>(sample.label);
+        auto& entry = totals[idx];
 
         entry.count += 1;
         entry.total += elapsed;
@@ -114,125 +78,77 @@ auto log_summary() -> void {
         entry.max = std::max(entry.max, elapsed);
     }
 
-    log::info(
-        "timing: {} samples, {} dropped, {} labels", detail::store.size(), dropped(),
-        label_names.size()
-    );
-    log::info(
-        "timing: {:<16} {:>8} {:>12} {:>12} {:>12} {:>12}", "label", "count",
-        "total/ms", "mean/us", "min/us", "max/us"
-    );
+    log(LogLevel::Info, "timing: {} samples, {} dropped, {} labels", store.samples().size(), store.dropped(), num_labels);
+    log(LogLevel::Info, "timing: {:<16} {:>8} {:>12} {:>12} {:>12} {:>12}", "label", "count", "total/ms", "mean/us", "min/us", "max/us");
 
-    for (usize id = 0; id < totals.size(); ++id) {
-        const auto& entry = totals[id];
-
+    for (const auto& entry : totals) {
         if (entry.count == 0) {
             continue;
         }
 
-        log::info(
+        log(LogLevel::Info,
             "timing: {:<16} {:>8} {:>12.3f} {:>12.3f} {:>12.3f} {:>12.3f}",
-            label_names[id], entry.count, to_ms(entry.total),
-            to_us(entry.total) / static_cast<f64>(entry.count), to_us(entry.min),
-            to_us(entry.max)
+            static_cast<u8>(entry.label),
+            entry.count,
+            as_ms(entry.total),
+            as_us(entry.total) / static_cast<f64>(entry.count),
+            as_us(entry.min),
+            as_us(entry.max));
+    }
+}
+
+
+[[nodiscard]] auto
+write_timings_to_csv(const SampleRecord& store, const std::filesystem::path& path)
+    -> Fallible {
+    if (store.samples().empty()) {
+        return std::unexpected{make_log_string(
+            LogLevel::Warning, "timing: nothing to write to '{}'", path.string()
+        )};
+    }
+
+    const auto now = std::chrono::system_clock::now();
+    const auto second = std::chrono::floor<std::chrono::seconds>(now);
+    const auto millis =
+        std::chrono::duration_cast<std::chrono::milliseconds>(now - second).count();
+
+    const auto fname = std::format("arcxel-{:%Y-%m-%d_%H:%M:%S}.{:03}", now, millis);
+    const auto fpath = path / fname;
+
+    // overwrite warning
+    auto file = std::fstream(fpath, std::ios::trunc | std::ios::out);
+
+
+    if (!file.is_open()) {
+        return std::unexpected(make_log_string(
+            LogLevel::Error, "timing: could not open {} for writing", fname
+        ));
+    }
+
+    // CSV headings
+    std::println(file, "label,depth,thread,start_ns,end_ns,duration_ns");
+
+    // TODO: Sort samples first then save to CSV
+    for (const auto& sample : store.samples()) {
+        const auto start = sample.start.time_since_epoch();
+        const auto end = sample.end.time_since_epoch();
+        const auto diff = sample.end - sample.start;
+
+        std::println(
+            file,
+            "{},{},{},{},{},{}",
+            static_cast<u8>(sample.label),
+            sample_label_to_depth(sample.label),
+            sample.tid,
+            as_us(start),
+            as_us(end),
+            as_us(diff)
         );
     }
+
+    log(LogLevel::Info, "timing: wrote {} samples to {}", store.samples().size(), fname);
+
+    return {};
 }
 
-[[nodiscard]] auto write_csv(std::string_view path) -> bool {
-    if (detail::store.empty()) {
-        log::warn("timing: nothing to write to {}", path);
-        return false;
-    }
-
-    const auto name = std::string(path);
-    auto* file = std::fopen(name.c_str(), "w");
-
-    if (file == nullptr) {
-        log::error("timing: could not open {} for writing", name);
-        return false;
-    }
-
-    // Times are nanoseconds relative to the earliest start, so the file carries
-    // no dependence on the clock's arbitrary epoch. Samples are recorded when a
-    // span ends, so the first row is not the earliest one.
-    const auto origin = std::ranges::min(
-        detail::store, {}, [](const Sample& sample) { return sample.start; }
-    ).start;
-
-    std::fputs("label,depth,thread,start_ns,end_ns,duration_ns\n", file);
-
-    for (const auto& sample : detail::store) {
-        const auto start_ns =
-            std::chrono::duration_cast<std::chrono::nanoseconds>(sample.start - origin)
-                .count();
-        const auto end_ns =
-            std::chrono::duration_cast<std::chrono::nanoseconds>(sample.end - origin)
-                .count();
-
-        const auto label = label_name(sample.label);
-
-        std::fprintf(
-            file, "%.*s,%" PRIu16 ",%" PRIu32 ",%" PRId64 ",%" PRId64 ",%" PRId64 "\n",
-            static_cast<i32>(label.size()), label.data(), sample.depth, sample.thread,
-            static_cast<i64>(start_ns), static_cast<i64>(end_ns),
-            static_cast<i64>(end_ns - start_ns)
-        );
-    }
-
-    std::fclose(file);
-
-    log::info("timing: wrote {} samples to {}", detail::store.size(), name);
-    return true;
-}
-
-[[nodiscard]] auto begin_run(std::string_view directory) -> std::string {
-    // Local time, so the date folder matches the day the run happened. libc++
-    // has no chrono time zone support yet, hence the C API.
-    const auto stamp =
-        std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
-    const auto* local = std::localtime(&stamp);
-
-    if (local == nullptr) {
-        log::error("timing: could not resolve local time");
-        return {};
-    }
-
-    const auto dir =
-        std::filesystem::path(directory)
-        / std::format(
-            "{:04}-{:02}-{:02}", local->tm_year + 1900, local->tm_mon + 1, local->tm_mday
-        );
-
-    auto ec = std::error_code{};
-
-    std::filesystem::create_directories(dir, ec);
-
-    if (ec) {
-        log::error("timing: could not create {}: {}", dir.string(), ec.message());
-        return {};
-    }
-
-    const auto name = std::format(
-        "arcxel-timing-{:02}{:02}{:02}", local->tm_hour, local->tm_min, local->tm_sec
-    );
-
-    run_stem = (dir / name).string();
-    return run_stem;
-}
-
-[[nodiscard]] auto write_run_csv(std::string_view directory) -> std::string {
-    if (run_stem.empty() && begin_run(directory).empty()) {
-        return {};
-    }
-
-    const auto path = run_stem + ".csv";
-
-    if (!write_csv(path)) {
-        return {};
-    }
-
-    return path;
-}
-
-} // namespace arcxel::timing
+} // namespace arcxel

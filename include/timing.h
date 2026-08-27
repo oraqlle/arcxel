@@ -22,114 +22,176 @@
 #include "types.h"
 
 #include <chrono>
-#include <string>
 #include <string_view>
+#include <filesystem>
+#include <thread>
 #include <vector>
 
-// The build system supplies this; the fallback is for compiling without CMake.
-#ifndef ARCXEL_PROFILING
-#    define ARCXEL_PROFILING 1
+namespace arcxel {
+
+#ifdef ARCXEL_PROFILING
+static constexpr bool profiling_enabled = true;
+#else
+static constexpr bool profiling_enabled = false;
 #endif
 
-namespace arcxel::timing {
-
-// Monotonic and never adjusted, unlike system_clock which the logger uses
-// Measures durations only -> it cannot tell you the time of day
-using Clock = std::chrono::steady_clock;
-using TimePoint = Clock::time_point;
-using Duration = Clock::duration;
-
-static_assert(Clock::is_steady, "measurement requires a monotonic clock");
-
-inline constexpr bool profiling_enabled = ARCXEL_PROFILING != 0;
-
-using LabelId = u16;
 
 struct Sample {
+
+    // Monotonic clock only measures durations ie. it cannot tell you the time of day
+    using Clock = std::chrono::steady_clock;
+    using TimePoint = Clock::time_point;
+    using Duration = Clock::duration;
+
+
+    enum class Label : u8 {
+        Frame = 0,
+        Events,
+        Update,
+        Render,
+        Construct,
+        Draw,
+        Present
+    }; // enum class Label
+
+
     TimePoint start;
     TimePoint end;
-    LabelId label;
-    u16 depth;
-    u32 thread; // always 0 until the game loop is parallelised
-};
+    std::thread::id tid;
+    Label label;
+}; // struct Sample
 
-// ---- Set-up. Call during start-up, never inside a measured region. ----
 
-// Registers a label, or returns the existing id if the name is already known.
-[[nodiscard]] auto register_label(std::string_view name) -> LabelId;
-[[nodiscard]] auto label_name(LabelId id) noexcept -> std::string_view;
-[[nodiscard]] auto label_count() noexcept -> usize;
+constexpr u8 num_labels = static_cast<u8>(Sample::Label::Present) + 1;
 
-// Sets sample capacity
-// recording never allocates -> samples past this are discarded and counted
-auto reserve(usize count) -> void;
 
-// Creates <directory>/<yyyy-mm-dd>/
-[[nodiscard]] auto begin_run(std::string_view directory = "results") -> std::string;
+static_assert(
+    Sample::Clock::is_steady, "Profiling measurements require a monotonic clock"
+);
 
-// ---- Results. Not on the hot path. ----
 
-[[nodiscard]] auto samples() noexcept -> const std::vector<Sample>&;
-[[nodiscard]] auto dropped() noexcept -> usize;
-auto clear() noexcept -> void;
+[[nodiscard]] inline constexpr auto sample_label_to_depth(Sample::Label label) -> u32 {
+    switch (label) {
+        case Sample::Label::Construct:
+        case Sample::Label::Draw:
+        case Sample::Label::Present:
+            return 2;
 
-auto log_summary() -> void;
+        case Sample::Label::Events:
+        case Sample::Label::Update:
+        case Sample::Label::Render:
+            return 1;
 
-// Writes to an explicit path, replacing anything already there.
-[[nodiscard]] auto write_csv(std::string_view path) -> bool;
-
-// Writes to <directory>/<yyyy-mm-dd>/arcxel-timing-<hhmmss>.csv in local time
-[[nodiscard]] auto write_run_csv(std::string_view directory = "results") -> std::string;
-
-namespace detail {
-
-// Storage sits in the header so that record() can inline into the call site.
-// Not thread safe: sharding by thread comes with the parallel game loop.
-inline std::vector<Sample> store;
-inline usize dropped_samples = 0;
-inline thread_local u16 depth = 0;
-
-} // namespace detail
-
-// Hot path: no allocation, no locking, no I/O.
-inline auto record(const Sample& sample) noexcept -> void {
-    if (detail::store.size() < detail::store.capacity()) {
-        detail::store.push_back(sample);
-        return;
+        case Sample::Label::Frame:
+        default:
+            return 0;
     }
-
-    ++detail::dropped_samples;
 }
 
-// Times the enclosing scope and records one sample when it ends
-class Span {
+
+struct SampleRecord {
 public:
-    explicit Span(LabelId id) noexcept {
-        if constexpr (profiling_enabled) {
-            start = Clock::now();
-            label = id;
-            depth = detail::depth++;
-        }
+    explicit SampleRecord(usize max_num_samples) noexcept
+        : max_samples(max_num_samples)
+        , num_dropped_samples(0) {
+        samples_store.reserve(max_num_samples);
     }
 
-    Span(const Span&) = delete;
-    Span(Span&&) = delete;
-    auto operator=(const Span&) -> Span& = delete;
-    auto operator=(Span&&) -> Span& = delete;
 
-    ~Span() noexcept {
-        if constexpr (profiling_enabled) {
-            const auto end = Clock::now();
-            --detail::depth;
-            record(Sample{start, end, label, depth, 0});
+    auto record(const Sample& sample) -> bool {
+        if (samples_store.size() <= max_samples) {
+            samples_store.emplace_back(sample);
+            return true;
         }
+
+        num_dropped_samples += 1;
+        return false;
     }
+
+
+    [[nodiscard]] auto samples() -> const std::vector<Sample>& {
+        return samples_store;
+    }
+
+
+    [[nodiscard]] auto samples() const -> const std::vector<Sample>& {
+        return samples_store;
+    }
+
+
+    [[nodiscard]] constexpr auto dropped() -> usize {
+        return num_dropped_samples;
+    }
+
+
+    [[nodiscard]] constexpr auto dropped() const -> usize {
+        return num_dropped_samples;
+    }
+
+
+    [[nodiscard]] constexpr auto max_num_samples() -> usize {
+        return max_samples;
+    }
+
+
+    [[nodiscard]] constexpr auto max_num_samples() const -> usize {
+        return max_samples;
+    }
+
+
+    [[nodiscard]] auto write_timings_to_csv(std::string_view path) -> Fallible {
+        return {};
+    }
+
 
 private:
-    TimePoint start{};
-    LabelId label{};
-    u16 depth{};
+    std::vector<Sample> samples_store;
+    usize max_samples;
+    usize num_dropped_samples;
+}; // class SampleRecord
 
-}; // class Span
 
-} // namespace arcxel::timing
+// Times the enclosing scope and records one sample when it ends
+class Timespan {
+public:
+    explicit Timespan(Sample::Label label, SampleRecord store) noexcept
+        : label(label)
+        , start(Sample::Clock::now())
+        , store(store) {}
+
+
+    ~Timespan() noexcept {
+        store.record(Sample{
+            .start = start,
+            .end = Sample::Clock::now(),
+            .tid = std::this_thread::get_id(),
+            .label = label
+        });
+    }
+
+    Timespan(const Timespan&) = delete;
+    Timespan(Timespan&&) = delete;
+
+    auto operator=(const Timespan&) -> Timespan& = delete;
+    auto operator=(Timespan&&) -> Timespan& = delete;
+
+
+private:
+    Sample::Label label;
+    Sample::TimePoint start;
+    SampleRecord store;
+}; // class Timespan
+
+
+/**
+ * @brief abc
+ */
+auto log_trace_summary(const SampleRecord& store) -> void;
+
+
+/**
+ *
+ */
+[[nodiscard]] auto write_timings_to_csv(const SampleRecord& store, const std::filesystem::path& path) -> Fallible;
+
+} // namespace arcxel
