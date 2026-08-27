@@ -22,7 +22,7 @@
 namespace arcxel {
 
 #ifdef ARCXEL_DEBUG
-    static constexpr bool debug_build = true;
+    static constexpr bool debug_enabled = true;
 #else
     static constexpr bool debug_enabled = false;
 #endif
