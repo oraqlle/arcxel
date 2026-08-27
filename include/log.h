@@ -53,7 +53,7 @@ enum class LogLevel : u8 {
 namespace std {
 
 template<>
-struct std::formatter<arcxel::LogLevel> {
+struct formatter<arcxel::LogLevel> {
 
     inline constexpr auto _M_to_string(arcxel::LogLevel level) const
         -> std::string_view {
