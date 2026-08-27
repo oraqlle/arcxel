@@ -24,6 +24,7 @@
 
 #include <chrono>
 #include <iostream>
+#include <fstream>
 #include <print>
 #include <syncstream>
 #include <filesystem>
@@ -180,11 +181,11 @@ auto log(const LogLevel level, std::format_string<Args...> fmt, Args&&... args) 
 
             if (logfile.is_open()) {
                 auto synclog = std::osyncstream{logstream};
-                std::println(synclog, msg);
+                std::println(synclog, "{}", msg);
                 std::flush(synclog);
             }
 
-            std::println(syncederr, msg);
+            std::println(syncederr, "{}", msg);
             std::flush(syncederr);
         }
     }
