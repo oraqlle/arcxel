@@ -50,48 +50,12 @@ using arcxel::LogLevel;
 // clang-format on
 
 
+
+// ~4M samples, about ten minutes of uncapped frames
+// Samples past this are dropped, not reallocated
+constexpr usize MAX_SAMPLES = 1U << 22U;
 constexpr i32 WIDTH = 1920;
 constexpr i32 HEIGHT = 1080;
-
-
-/**
- * @brief Set up logging and profile tracing for engine
- */
-[[nodiscard]] static auto initialise_tracing() -> arcxel::Fallible {
-    // ---- LOGGING ----
-    if constexpr (arcxel::logging_enabled) {
-        const auto r = arcxel::create_dir("logs").and_then([](auto&& path) {
-            arcxel::capture_raylib_logs();
-            return arcxel::open_log_file(path);
-        });
-
-        if (!r) {
-            return r;
-        }
-
-    } else {
-        SetTraceLogLevel(LOG_NONE);
-    }
-
-
-    // ---- PROFILING ----
-    if constexpr (arcxel::timing::profiling_enabled) {
-        const auto r = arcxel::create_dir("profs").and_then([](auto&& path) {
-            arcxel::capture_raylib_logs();
-            // set up profiling
-            return arcxel::Fallible{};
-            // return arcxel::open_log_file(path);
-        });
-
-        if (!r) {
-            return r;
-        }
-    }
-
-    // ~4M samples, about ten minutes of uncapped frames
-    // Samples past this are dropped, not reallocated
-    arcxel::timing::reserve(1U << 22U);
-}
 
 
 /**
@@ -100,12 +64,7 @@ constexpr i32 HEIGHT = 1080;
  */
 [[nodiscard]] static auto deinitialise_tracing() -> arcxel::Fallible {
     // ---- PROFILING ----
-    if constexpr (arcxel::timing::profiling_enabled) {
-        arcxel::log_timing_summary();
-
-        if (arcxel::timing::write_run_csv().empty()) {
-            return std::unexpected("timing: could not write this run's samples");
-        }
+    if constexpr (arcxel::profiling_enabled) {
     }
 
     // ---- LOGGING ---- <<< Reverse order as logging should be the last thing to close
@@ -138,14 +97,14 @@ constexpr i32 HEIGHT = 1080;
 }
 
 
-static inline auto game_loop() -> void {
+static inline auto game_loop(const arcxel::SampleRecord& store) -> void {
     auto engine = arcxel::Engine();
     while (engine.is_running()) {
-        const auto frame = arcxel::timing::Span(frame_label);
+        const auto span = arcxel::Timespan(arcxel::Sample::Label::Frame, store);
 
 
         {
-            const auto span = arcxel::timing::Span(events_label);
+            const auto span = arcxel::Timespan(arcxel::Sample::Label::Events, store);
             engine.handle_events();
         }
 
@@ -154,20 +113,20 @@ static inline auto game_loop() -> void {
 
 
         {
-            const auto span = arcxel::timing::Span(update_label);
+            const auto span = arcxel::Timespan(arcxel::Sample::Label::Update, store);
             engine.update(delta);
         }
 
 
         {
-            const auto span = arcxel::timing::Span(render_label);
+            const auto span = arcxel::Timespan(arcxel::Sample::Label::Render, store);
             engine.render(delta);
         }
     }
 }
 
 
-[[nodiscard]] static auto run() -> arcxel::Fallible {
+[[nodiscard]] static auto run(const arcxel::SampleRecord& store) -> arcxel::Fallible {
 
     // ---- WINDOW CREATION ----
     const auto winfo =
@@ -179,7 +138,7 @@ static inline auto game_loop() -> void {
 
     // ---- GAME LOOP ----
     DisableCursor();
-    game_loop();
+    game_loop(store);
     EnableCursor();
 
     return {};
@@ -187,16 +146,49 @@ static inline auto game_loop() -> void {
 
 auto main() -> int {
 
-    if (const auto r = initialise_tracing(); !r) {
+    // ---- OPEN LOGGING ----
+    if constexpr (arcxel::logging_enabled) {
+        const auto r = arcxel::create_dir("logs").and_then([](auto&& path) {
+            arcxel::capture_raylib_logs();
+            return arcxel::open_log_file(path);
+        });
+
+        if (!r) {
+            log(LogLevel::Fatal, "{}", r.error());
+        }
+
+    } else {
+        SetTraceLogLevel(LOG_NONE);
+    }
+
+    
+    auto store = arcxel::SampleRecord(MAX_SAMPLES);
+
+    // ---- CREATE PROFILE TRACE STORE ----
+    if constexpr (arcxel::profiling_enabled) {
+    
+    }
+
+
+    // ---- ENGINE ----
+    if (const auto r = run(store); !r) {
         log(LogLevel::Fatal, "{}", r.error());
     }
 
-    if (const auto r = run(); !r) {
-        log(LogLevel::Fatal, "{}", r.error());
+
+    // ---- WRITE PROFILE TRACE ----
+    if constexpr (arcxel::profiling_enabled) {
+        arcxel::log_trace_summary(store);
+
+        if (const auto r = arcxel::write_timings_to_csv(store, "tmp"); !r) {
+            arcxel::log(LogLevel::Error, "timing: could not write this run's samples");
+        }
     }
 
-    if (const auto r = deinitialise_tracing(); !r) {
-        log(LogLevel::Fatal, "{}", r.error());
+
+    // ---- CLOSE LOGGING ----
+    if (const auto r = arcxel::close_log_file(); !r) {
+        arcxel::log(LogLevel::Fatal, "{}", r.error());
     }
 
     return 0;

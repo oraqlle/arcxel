@@ -43,18 +43,11 @@ public:
 
     auto update(f64 delta) -> void;
 
-    auto render(f64 delta) -> void;
+    auto render(f64 delta, SampleRecord& store) -> void;
 
 private:
     bool running;
     Scene scene;
-
-    // registered once at construction
-    timing::LabelId begin_label;
-    timing::LabelId clear_label;
-    timing::LabelId draw_label;
-    timing::LabelId present_label;
-
 }; // class Engine
 
 } // namespace arcxel
