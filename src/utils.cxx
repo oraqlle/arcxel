@@ -10,9 +10,7 @@ namespace arcxel {
 
     // Check if filesystem object of the same name exists
     if (!std::filesystem::exists(path)) {
-        log::log(
-            log::LogLevel::Info, "Creating logs directory at path '{}'", path.string()
-        );
+        log(LogLevel::Info, "Creating logs directory at path '{}'", path.string());
         std::filesystem::create_directories(path);
     } else if (std::filesystem::status(path).type() !=
                std::filesystem::file_type::directory) {

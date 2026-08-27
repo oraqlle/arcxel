@@ -129,11 +129,44 @@ auto capture_raylib_logs() -> void;
 [[nodiscard]] auto close_log_file() -> Fallible;
 
 
-// TODO: make_log_msg() -> constructs log string
+/**
+ * @brief Constructs a log message from the given LogLevel and the format string
+ */
+template <typename... Args>
+constexpr auto
+make_log_string(const LogLevel level, std::format_string<Args...> fmt, Args&&... args)
+    -> std::string {
+    const auto now = std::chrono::system_clock::now();
+    const auto second = std::chrono::floor<std::chrono::seconds>(now);
+    const auto millis =
+        std::chrono::duration_cast<std::chrono::milliseconds>(now - second).count();
+
+    return std::format(
+        "[{:%H:%M:%S}{:03}] {} {}",
+        now,
+        millis,
+        level,
+        std::format(fmt, std::forward<Args...>(args)...)
+    );
+}
 
 
-// TODO: log_to() -> constructs log string
+/**
+ * @brief Logs a formatted string to the designated stream object
+ */
+template <typename Stream, typename... Args>
+auto log_to(
+    Stream& stream, const LogLevel level, std::format_string<Args...> fmt, Args&&... args
+) -> void {
+    if constexpr (logging_enabled) {
+        if (level >= min_log_level) {
+            auto msg = make_log_string(level, fmt, std::forward<Args...>(args)...);
 
+            std::println(stream, msg);
+            std::flush(stream);
+        }
+    }
+}
 
 /**
  * @brief Logs a formatted string message to stderr and optionally a file if
@@ -143,25 +176,17 @@ template <typename... Args>
 auto log(const LogLevel level, std::format_string<Args...> fmt, Args&&... args) -> void {
     if constexpr (logging_enabled) {
         if (level >= min_log_level) {
-            const auto now = std::chrono::system_clock::now();
-            const auto second = std::chrono::floor<std::chrono::seconds>(now);
-            const auto millis = std::chrono::duration_cast<std::chrono::milliseconds>(now - second).count();
-
-            const auto log_details = format("[{:%H:%M:%S}{:03}] {} ", now, millis, level);
-            const auto msg = format(fmt, std::forward<Args...>(args)...);
+            auto msg = make_log_string(level, fmt, std::forward<Args...>(args)...);
 
             if (logfile.is_open()) {
                 auto synclog = std::osyncstream{logstream};
-                std::print(synclog, log_details);
                 std::println(synclog, msg);
                 std::flush(synclog);
             }
 
-            std::print(syncederr, log_details);
             std::println(syncederr, msg);
             std::flush(syncederr);
         }
-
     }
 }
 

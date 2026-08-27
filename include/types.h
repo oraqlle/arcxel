@@ -21,6 +21,8 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <expected>
+#include <string>
 
 namespace arcxel {
 
@@ -39,5 +41,7 @@ using isize = std::intmax_t;
 
 using f32 = float;
 using f64 = double;
+
+using Fallible = std::expected<void, std::string>;
 
 } // namespace arcxel
