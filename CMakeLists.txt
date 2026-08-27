@@ -72,6 +72,7 @@ add_library(
     src/scene.cxx
     src/timing.cxx
     src/transform.cxx
+    src/utils.cxx
     src/window.cxx
 )
 
