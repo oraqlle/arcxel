@@ -23,14 +23,20 @@
 #include <types.h>
 
 #include <chrono>
-#include <ostream>
+#include <iostream>
+#include <print>
+#include <syncstream>
 #include <filesystem>
 #include <format>
-#include <fstream>
-#include <syncstream>
 #include <utility>
 
 namespace arcxel::log {
+
+
+extern std::fstream logfile;
+extern std::iostream logstream;
+extern std::osyncstream syncederr;
+
 
 enum class LogLevel : u8 {
     Trace = 0,
@@ -42,21 +48,25 @@ enum class LogLevel : u8 {
     Off
 }; // enum class LogLevel
 
+
 // turn into std::formatter()
 [[nodiscard]] auto to_string(LogLevel level) noexcept -> const char*;
 
+
 #ifdef ARCXEL_LOGGING
-    static constexpr bool logging_enabled = true;
-    static constexpr LogLevel min_log_level = debug_enabled ? LogLevel::Trace : LogLevel::Info;
+    static inline constexpr bool logging_enabled = true;
+    static inline constexpr LogLevel min_log_level = debug_enabled ? LogLevel::Trace : LogLevel::Info;
 #else
-    static constexpr bool logging_enabled = false
-    static constexpr Level min_log_level = Level::Off
+    static inline constexpr bool logging_enabled = false
+    static inline constexpr Level min_log_level = Level::Off
 #endif
+
 
 /**
  * @brief Callback for raylibs internal logs
  */
 auto raylib_log_callback(int raylib_level, const char* text, va_list args) -> void;
+
 
 /**
  * @brief Capture and redirect raylib's trace logs to our own logger.
@@ -65,31 +75,52 @@ auto raylib_log_callback(int raylib_level, const char* text, va_list args) -> vo
 auto capture_raylib_logs() -> void;
 
 
-class Logger {
-private:
-    Logger() noexcept;
+/**
+ * @brief Open file to be used for trace logging
+ */
+[[nodiscard]] auto open_log_file(const std::filesystem::path& outdir) -> Fallible;
 
-    auto _M_log_file_path(std::stringstream& ss) -> std::filesystem::path;
 
-public:
-    [[nodiscard]] static auto instance() -> Logger&;
+/**
+ * @brief Close file used for trace logging
+ */
+[[nodiscard]] auto close_log_file() -> Fallible;
 
-    template <typename... Args>
-    auto log(const LogLevel level, std::format_string<Args...> fmt, Args&&... args) -> void {
+
+// TODO: make_log_msg() -> constructs log string
+
+
+// TODO: log_to() -> constructs log string
+
+
+/**
+ * @brief Logs a formatted string message to stderr and optionally a file if
+ * setup_file_logging() been called.
+ */
+template <typename... Args>
+auto log(const LogLevel level, std::format_string<Args...> fmt, Args&&... args) -> void {
+    if constexpr (logging_enabled) {
         if (level >= min_log_level) {
             const auto now = std::chrono::system_clock::now();
             const auto second = std::chrono::floor<std::chrono::seconds>(now);
             const auto millis = std::chrono::duration_cast<std::chrono::milliseconds>(now - second).count();
 
-            print(os, "[{:%H:%M:%S}{:03}] {:<5} ", now, millis, to_string(level));
-            println(os, fmt, std::forward<Args...>(args)...);
-            std::flush(os);
-        }
-    }
+            const auto log_details = format("[{:%H:%M:%S}{:03}] {:<5} ", now, millis, to_string(level));
+            const auto msg = format(fmt, std::forward<Args...>(args)...);
 
-private:
-    std::fstream file;
-    std::osyncstream os;
-}; // class Logger
+            if (logfile.is_open()) {
+                auto synclog = std::osyncstream{logstream};
+                std::print(synclog, log_details);
+                std::println(synclog, msg);
+                std::flush(synclog);
+            }
+
+            std::print(syncederr, log_details);
+            std::println(syncederr, msg);
+            std::flush(syncederr);
+        }
+
+    }
+}
 
 } // namespace arcxel::log

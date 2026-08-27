@@ -41,18 +41,22 @@
 
 namespace arcxel::log {
 
-using namespace std::literals;
 
 //static bool file_logging_enabled = false;
-static std::fstream logfile = std::fstream();
-static std::iostream logstream = std::iostream(nullptr); //< /dev/null by default (no-op)
-static std::osyncstream syncerr = std::osyncstream(std::cerr);
+std::fstream logfile = std::fstream();
+std::iostream logstream = std::iostream(nullptr); //< /dev/null by default (no-op)
+std::osyncstream syncederr = std::osyncstream(std::cerr);
 
+
+/**
+ * @brief Helper to change buffer used by a std::iostream object
+ */
 static auto change_rdbuf_to(std::iostream& io, std::streambuf* rdbuf) -> std::streambuf* {
     auto* old = io.rdbuf(rdbuf);
     io.clear();
     return old;
 }
+
 
 auto parse_level(std::string_view name) noexcept -> std::optional<LogLevel> {
     if (name == "trace") { return LogLevel::Trace; }
@@ -65,6 +69,7 @@ auto parse_level(std::string_view name) noexcept -> std::optional<LogLevel> {
 
     return std::nullopt;
 }
+
 
 [[nodiscard]] auto to_string(LogLevel lvl) noexcept -> const char* {
     switch (lvl) {
@@ -79,34 +84,6 @@ auto parse_level(std::string_view name) noexcept -> std::optional<LogLevel> {
     }
 }
 
-// TODO: make_log_msg() -> constructs log string
-// TODO: log_to() -> constructs log string
-
-template <typename... Args>
-auto log(const LogLevel level, std::format_string<Args...> fmt, Args&&... args) -> void {
-    if constexpr (logging_enabled) {
-        if (level >= min_log_level) {
-            const auto now = std::chrono::system_clock::now();
-            const auto second = std::chrono::floor<std::chrono::seconds>(now);
-            const auto millis = std::chrono::duration_cast<std::chrono::milliseconds>(now - second).count();
-
-            const auto log_details = format("[{:%H:%M:%S}{:03}] {:<5} ", now, millis, to_string(level));
-            const auto msg = format(fmt, std::forward<Args...>(args)...);
-
-            if (logfile.is_open()) {
-                auto synclog = std::osyncstream{logstream};
-                std::print(synclog, log_details);
-                std::println(synclog, msg);
-                std::flush(synclog);
-            }
-
-            std::print(syncerr, log_details);
-            std::println(syncerr, msg);
-            std::flush(syncerr);
-        }
-
-    }
-}
 
 /**
  * Intnernal function to convert raylib log enum to Arcxel's
@@ -123,6 +100,7 @@ static auto from_raylib_log_level(int raylib_level) noexcept -> LogLevel {
     }
 }
 
+
 auto raylib_log_callback(int raylib_level, const char* text, va_list args) -> void {
     const auto size = std::vsnprintf(nullptr, 0, text, args);
 
@@ -137,12 +115,14 @@ auto raylib_log_callback(int raylib_level, const char* text, va_list args) -> vo
     log(level, "{}", buf);
 }
 
+
 auto capture_raylib_logs() -> void {
     SetTraceLogLevel(LOG_ALL);
     SetTraceLogCallback(raylib_log_callback);
 }
 
-auto setup_logging(const std::string_view outdir = "logs"sv) -> Fallible {
+
+auto open_log_file(const std::filesystem::path& outdir) -> Fallible {
     // Check if log file already open
     // close and set up new file.
     if (logfile.is_open()) {
@@ -157,26 +137,16 @@ auto setup_logging(const std::string_view outdir = "logs"sv) -> Fallible {
     auto ss = std::stringstream{};
     auto* old_rdbuf = change_rdbuf_to(logstream, ss.rdbuf());
 
-    const auto path = fs::weakly_canonical(outdir);
-    
-    // Check if filesystem object of the same name exists
-    if (!fs::exists(path)) {
-        log(LogLevel::Info, "Creating logs directory at path '{}'", path.string());
-        fs::create_directories(path);
-    } else if (fs::status(path).type() != fs::file_type::directory) {
-        return std::unexpected(std::format("Path '{}' exists but is not a directory", path.string()));
-    }
-
     // Construct filename from current date and time
     const auto now = std::chrono::system_clock::now();
     const auto datetime = std::chrono::floor<std::chrono::days>(now);
     const auto fname = std::format("{:%Y-%m-%d_%H:%M:%S}.log", datetime);
-    const auto fpath = path / fname;
+    const auto fpath = outdir / fname;
 
     // Check if filesystem object of the same name exists
     if (!fs::exists(fpath)) {
         log(LogLevel::Info, "Creating '{}' exists, overwriting.", fpath.filename().string());
-    } else if (fs::status(path).type() != fs::file_type::regular) {
+    } else if (fs::status(outdir).type() != fs::file_type::regular) {
         return std::unexpected(std::format("File '{}' exists, overwriting.", fpath.filename().string()));
     } else {
         log(LogLevel::Warning, "File '{}' exists, overwriting.", fpath.filename().string());
@@ -204,7 +174,7 @@ auto setup_logging(const std::string_view outdir = "logs"sv) -> Fallible {
     return {};
 }
 
-auto close_logging() -> Fallible {
+[[nodiscard]] auto close_log_file() -> Fallible {
     if (!logfile.is_open()) {
         return std::unexpected("Attempting to close file stream that is unopen");
     }
