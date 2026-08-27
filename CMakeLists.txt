@@ -19,6 +19,7 @@ set(BUILD_GAMES     OFF CACHE BOOL "" FORCE) # don't build the supplied example 
 set(WITH_PIC        ON  CACHE BOOL "" FORCE) # Position Independent Code
 
 # ---- Build Options ----
+include(CMakeDependentOption)
 cmake_dependent_option(ARCXEL_DEBUG      "Enable debug options" ON  [[CMAKE_BUILD_TYPE STREQUAL "Debug"]] OFF)
 cmake_dependent_option(ARCXEL_SANITIZERS "Enable sanitizers"    OFF [[CMAKE_BUILD_TYPE STREQUAL "Debug"]] OFF)
 
