@@ -19,11 +19,11 @@
 
 #include "log.h"
 #include "types.h"
+#include "utils.h"
 
 #include <istream>
 #include <raylib.h>
 
-#include <chrono>
 #include <cstdarg>
 #include <cstdio>
 #include <filesystem>
@@ -117,8 +117,7 @@ auto capture_raylib_logs() -> void {
     auto* old_rdbuf = change_rdbuf_to(logstream, ss.rdbuf());
 
     // Construct filename from current date and time
-    const auto now = std::chrono::system_clock::now();
-    const auto datetime = std::chrono::current_zone()->to_local(now);
+    const auto datetime = current_datetime();
     const auto fname = std::format("{:%Y-%m-%d_%H:%M:%S}.log", datetime);
     const auto fpath = outdir / fname;
 

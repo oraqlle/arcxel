@@ -1,6 +1,8 @@
 #include "utils.h"
 #include "log.h"
 
+#include <chrono>
+
 namespace arcxel {
 
 [[nodiscard]] auto create_dir(const std::string_view dirname)
@@ -20,6 +22,12 @@ namespace arcxel {
     }
 
     return {path};
+}
+
+
+[[nodiscard]] auto current_datetime()
+    -> std::chrono::local_time<std::chrono::system_clock::duration> {
+    return std::chrono::current_zone()->to_local(std::chrono::system_clock::now());
 }
 
 } // namespace arcxel

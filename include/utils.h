@@ -19,6 +19,7 @@
 
 #pragma once
 
+#include <chrono>
 #include <raylib.h>
 
 #include <expected>
@@ -32,5 +33,12 @@ namespace arcxel {
  */
 [[nodiscard]] auto create_dir(const std::string_view dirname)
     -> std::expected<std::filesystem::path, std::string>;
+
+
+/**
+ * @brief Obtain the current localised date and time as a time_point<>
+ */
+[[nodiscard]] auto current_datetime()
+    -> std::chrono::local_time<std::chrono::steady_clock::duration>;
 
 } // namespace arcxel
