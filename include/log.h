@@ -36,7 +36,6 @@ namespace arcxel {
 
 extern std::fstream logfile;
 extern std::iostream logstream;
-extern std::osyncstream syncederr;
 
 
 enum class LogLevel : u8 {
@@ -175,13 +174,12 @@ auto log(const LogLevel level, std::format_string<Args...> fmt, Args&&... args) 
             auto msg = make_log_string(level, fmt, std::forward<Args>(args)...);
 
             if (logfile.is_open()) {
-                auto synclog = std::osyncstream{logstream};
-                std::println(synclog, "{}", msg);
-                std::flush(synclog);
+                auto syncedlog = std::osyncstream{logstream};
+                std::println(syncedlog, "{}", msg);
             }
 
+            auto syncederr = std::osyncstream{std::cerr};
             std::println(syncederr, "{}", msg);
-            std::flush(syncederr);
         }
     }
 }

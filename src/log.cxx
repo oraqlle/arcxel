@@ -42,7 +42,6 @@ namespace arcxel {
 // static bool file_logging_enabled = false;
 std::fstream logfile = std::fstream();
 std::iostream logstream = std::iostream(nullptr); //< /dev/null by default (no-op)
-std::osyncstream syncederr = std::osyncstream(std::cerr);
 
 
 /**
