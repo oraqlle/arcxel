@@ -50,10 +50,12 @@ using arcxel::LogLevel;
 // clang-format on
 
 
-
-// ~4M samples, about ten minutes of uncapped frames
-// Samples past this are dropped, not reallocated
+// ~4M samples, ~10mins of uncapped frames. Further Samples are dropped, no reallocation
 constexpr usize MAX_SAMPLES = 1U << 22U;
+
+constexpr std::string_view DEFAULT_LOGS_DIR = "logs";
+constexpr std::string_view DEFAULT_TRACES_DIR = "traces";
+
 constexpr i32 WIDTH = 1920;
 constexpr i32 HEIGHT = 1080;
 
@@ -80,6 +82,7 @@ constexpr i32 HEIGHT = 1080;
 static inline auto game_loop(arcxel::SampleRecord& store) -> void {
     auto engine = arcxel::Engine();
     while (engine.is_running()) {
+
         const auto span = arcxel::Timespan(arcxel::Sample::Label::Frame, store);
 
 
@@ -128,31 +131,34 @@ auto main() -> int {
 
     // ---- OPEN LOGGING ----
     if constexpr (arcxel::logging_enabled) {
-        const auto r = arcxel::create_dir("logs").and_then([](auto&& path) {
+        const auto r = arcxel::create_dir(DEFAULT_LOGS_DIR).and_then([](auto&& path) {
             arcxel::capture_raylib_logs();
             return arcxel::open_log_file(path);
         });
 
         if (!r) {
-            log(LogLevel::Fatal, "{}", r.error());
+            arcxel::raw_log("{}", r.error());
         }
 
     } else {
         SetTraceLogLevel(LOG_NONE);
     }
-
     
-    auto store = arcxel::SampleRecord(MAX_SAMPLES);
 
     // ---- CREATE PROFILE TRACE STORE ----
+    auto store = arcxel::SampleRecord(0);
     if constexpr (arcxel::profiling_enabled) {
-    
+        store = arcxel::SampleRecord(MAX_SAMPLES);
+
+        if (const auto r = arcxel::create_dir(DEFAULT_TRACES_DIR); !r) {
+            arcxel::raw_log("{}", r.error());
+        };
     }
 
 
     // ---- ENGINE ----
     if (const auto r = run(store); !r) {
-        log(LogLevel::Fatal, "{}", r.error());
+        arcxel::raw_log("{}", r.error());
     }
 
 
@@ -160,15 +166,15 @@ auto main() -> int {
     if constexpr (arcxel::profiling_enabled) {
         arcxel::log_trace_summary(store);
 
-        if (const auto r = arcxel::write_timings_to_csv(store, "tmp"); !r) {
-            arcxel::log(LogLevel::Error, "timing: could not write this run's samples");
+        if (const auto r = store.write_timings_to_csv(DEFAULT_TRACES_DIR); !r) {
+            arcxel::raw_log("{}", r.error());
         }
     }
 
 
     // ---- CLOSE LOGGING ----
     if (const auto r = arcxel::close_log_file(); !r) {
-        arcxel::log(LogLevel::Fatal, "{}", r.error());
+        arcxel::raw_log("{}", r.error());
     }
 
     return 0;

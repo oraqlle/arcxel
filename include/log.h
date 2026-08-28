@@ -168,6 +168,26 @@ auto log_to(
  * setup_file_logging() been called.
  */
 template <typename... Args>
+auto raw_log(std::format_string<Args...> fmt, Args&&... args) -> void {
+    if constexpr (logging_enabled) {
+            auto msg = std::format(fmt, std::forward<Args>(args)...);
+
+            if (logfile.is_open()) {
+                auto syncedlog = std::osyncstream{logstream};
+                std::println(syncedlog, "{}", msg);
+            }
+
+            auto syncederr = std::osyncstream{std::cerr};
+            std::println(syncederr, "{}", msg);
+    }
+}
+
+
+/**
+ * @brief Logs a formatted string message with given LogLevel to stderr and optionally a
+ * file if setup_file_logging() been called.
+ */
+template <typename... Args>
 auto log(const LogLevel level, std::format_string<Args...> fmt, Args&&... args) -> void {
     if constexpr (logging_enabled) {
         if (level >= min_log_level) {

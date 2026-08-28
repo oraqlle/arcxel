@@ -50,6 +50,9 @@ vgcore.*
 
 # Measurement output
 /results/
+/traces/
+/profiles/
+/prof/
 
 # Misc.
 .DS_Store
