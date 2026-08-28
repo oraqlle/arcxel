@@ -88,30 +88,11 @@ auto raylib_log_callback(int raylib_level, const char* text, va_list args) -> vo
         return;
     }
 
-    auto buf = std::string(size + 1, '\0');
-    vsnprintf(buf.data(), size, text, args);
+    auto buf = std::string(size, '\0');
+    vsnprintf(buf.data(), buf.size() + 1, text, args);
+    const auto level = from_raylib_log_level(raylib_level);
 
-    switch (raylib_level) {
-        case LOG_TRACE:
-            log(LogLevel::Trace, "{}", buf);
-            break;
-        case LOG_DEBUG:
-            log(LogLevel::Debug, "{}", buf);
-            break;
-        case LOG_WARNING:
-            log(LogLevel::Warning, "{}", buf);
-            break;
-        case LOG_ERROR:
-            log(LogLevel::Error, "{}", buf);
-            break;
-        case LOG_FATAL:
-            log(LogLevel::Fatal, "{}", buf);
-            break;
-        case LOG_INFO:
-        default:
-            log(LogLevel::Info, "{}", buf);
-            break;
-    }
+    log(level, "{}", buf);
 }
 
 
