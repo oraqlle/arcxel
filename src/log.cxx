@@ -138,7 +138,7 @@ auto capture_raylib_logs() -> void {
 
     // Construct filename from current date and time
     const auto now = std::chrono::system_clock::now();
-    const auto datetime = std::chrono::floor<std::chrono::days>(now);
+    const auto datetime = std::chrono::current_zone()->to_local(now);
     const auto fname = std::format("{:%Y-%m-%d_%H:%M:%S}.log", datetime);
     const auto fpath = outdir / fname;
 
