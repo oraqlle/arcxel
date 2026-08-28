@@ -20,6 +20,7 @@
 #include "timing.h"
 #include "log.h"
 #include "types.h"
+#include "utils.h"
 
 #include <algorithm>
 #include <chrono>
@@ -51,19 +52,19 @@ struct Totals {
 
 
 static inline auto totals = std::array<Totals, num_labels>{
-    Totals{.label = Sample::Label::Frame },
-    Totals{.label = Sample::Label::Events },
-    Totals{.label = Sample::Label::Update },
-    Totals{.label = Sample::Label::Render },
-    Totals{.label = Sample::Label::Construct },
-    Totals{.label = Sample::Label::Draw  },
-    Totals{.label = Sample::Label::Present }
+    Totals{.label = Sample::Label::Frame},
+    Totals{.label = Sample::Label::Events},
+    Totals{.label = Sample::Label::Update},
+    Totals{.label = Sample::Label::Render},
+    Totals{.label = Sample::Label::Construct},
+    Totals{.label = Sample::Label::Draw},
+    Totals{.label = Sample::Label::Present}
 };
 
 
 auto log_trace_summary(const SampleRecord& store) -> void {
     if (store.samples().empty()) {
-        log(LogLevel::Warning, "timing: no samples recorded");
+        log(LogLevel::Warning, "profiler: no samples recorded");
         return;
     }
 
@@ -78,8 +79,20 @@ auto log_trace_summary(const SampleRecord& store) -> void {
         entry.max = std::max(entry.max, elapsed);
     }
 
-    log(LogLevel::Info, "timing: {} samples, {} dropped, {} labels", store.samples().size(), store.dropped(), num_labels);
-    log(LogLevel::Info, "timing: {:<16} {:>8} {:>12} {:>12} {:>12} {:>12}", "label", "count", "total/ms", "mean/us", "min/us", "max/us");
+    log(LogLevel::Info,
+        "profiler: {} samples, {} dropped, {} labels",
+        store.samples().size(),
+        store.dropped(),
+        num_labels);
+
+    log(LogLevel::Info,
+        "profiler: {:<16} {:>8} {:>12} {:>12} {:>12} {:>12}",
+        "label",
+        "count",
+        "total/ms",
+        "mean/us",
+        "min/us",
+        "max/us");
 
     for (const auto& entry : totals) {
         if (entry.count == 0) {
@@ -87,7 +100,7 @@ auto log_trace_summary(const SampleRecord& store) -> void {
         }
 
         log(LogLevel::Info,
-            "timing: {:<16} {:>8} {:>12.3f} {:>12.3f} {:>12.3f} {:>12.3f}",
+            "profiler: {:<16} {:>8} {:>12.3f} {:>12.3f} {:>12.3f} {:>12.3f}",
             static_cast<u8>(entry.label),
             entry.count,
             as_ms(entry.total),
@@ -98,30 +111,76 @@ auto log_trace_summary(const SampleRecord& store) -> void {
 }
 
 
-[[nodiscard]] auto
-write_timings_to_csv(const SampleRecord& store, const std::filesystem::path& path)
-    -> Fallible {
-    if (store.samples().empty()) {
-        return std::unexpected{make_log_string(
-            LogLevel::Warning, "timing: nothing to write to '{}'", path.string()
-        )};
+SampleRecord::SampleRecord(usize max_num_samples) noexcept
+    : max_samples(max_num_samples)
+    , num_dropped_samples(0) {
+    samples_store.reserve(max_num_samples);
+}
+
+
+auto SampleRecord::record(const Sample& sample) -> bool {
+    if (samples_store.size() <= max_samples) {
+        samples_store.emplace_back(sample);
+        return true;
     }
 
-    const auto now = std::chrono::system_clock::now();
+    num_dropped_samples += 1;
+    return false;
+}
+
+
+[[nodiscard]] auto SampleRecord::samples() -> const std::vector<Sample>& {
+    return samples_store;
+}
+
+
+[[nodiscard]] auto SampleRecord::samples() const -> const std::vector<Sample>& {
+    return samples_store;
+}
+
+
+[[nodiscard]] constexpr auto SampleRecord::dropped() -> usize {
+    return num_dropped_samples;
+}
+
+
+[[nodiscard]] constexpr auto SampleRecord::dropped() const -> usize {
+    return num_dropped_samples;
+}
+
+
+[[nodiscard]] constexpr auto SampleRecord::max_num_samples() -> usize {
+    return max_samples;
+}
+
+
+[[nodiscard]] constexpr auto SampleRecord::max_num_samples() const -> usize {
+    return max_samples;
+}
+
+
+[[nodiscard]] auto SampleRecord::write_timings_to_csv(const std::string_view path)
+    -> Fallible {
+    if (samples().empty()) {
+        return std::unexpected{
+            make_log_string(LogLevel::Warning, "profiler: nothing to write to '{}'", path)
+        };
+    }
+
+    const auto now = current_datetime();
     const auto second = std::chrono::floor<std::chrono::seconds>(now);
     const auto millis =
         std::chrono::duration_cast<std::chrono::milliseconds>(now - second).count();
 
-    const auto fname = std::format("arcxel-{:%Y-%m-%d_%H:%M:%S}.{:03}", now, millis);
-    const auto fpath = path / fname;
+    const auto fname = std::format("arcxel-{:%Y-%m-%d_%H:%M:%S}-{:03}.csv", now, millis);
+    const auto fpath = std::filesystem::path{path} / fname;
 
     // overwrite warning
     auto file = std::fstream(fpath, std::ios::trunc | std::ios::out);
 
-
     if (!file.is_open()) {
         return std::unexpected(make_log_string(
-            LogLevel::Error, "timing: could not open {} for writing", fname
+            LogLevel::Error, "profiler: could not open {} for writing", fname
         ));
     }
 
@@ -129,7 +188,7 @@ write_timings_to_csv(const SampleRecord& store, const std::filesystem::path& pat
     std::println(file, "label,depth,thread,start_ns,end_ns,duration_ns");
 
     // TODO: Sort samples first then save to CSV
-    for (const auto& sample : store.samples()) {
+    for (const auto& sample : samples()) {
         const auto start = sample.start.time_since_epoch();
         const auto end = sample.end.time_since_epoch();
         const auto diff = sample.end - sample.start;
@@ -146,7 +205,7 @@ write_timings_to_csv(const SampleRecord& store, const std::filesystem::path& pat
         );
     }
 
-    log(LogLevel::Info, "timing: wrote {} samples to {}", store.samples().size(), fname);
+    log(LogLevel::Info, "profiler: wrote {} samples to {}", samples().size(), fpath.string());
 
     return {};
 }

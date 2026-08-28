@@ -91,58 +91,23 @@ static_assert(
 
 struct SampleRecord {
 public:
-    explicit SampleRecord(usize max_num_samples) noexcept
-        : max_samples(max_num_samples)
-        , num_dropped_samples(0) {
-        samples_store.reserve(max_num_samples);
-    }
+    explicit SampleRecord(usize max_num_samples) noexcept;
 
+    auto record(const Sample& sample) -> bool;
 
-    auto record(const Sample& sample) -> bool {
-        if (samples_store.size() <= max_samples) {
-            samples_store.emplace_back(sample);
-            return true;
-        }
+    [[nodiscard]] auto samples() -> const std::vector<Sample>&;
 
-        num_dropped_samples += 1;
-        return false;
-    }
+    [[nodiscard]] auto samples() const -> const std::vector<Sample>&;
 
+    [[nodiscard]] constexpr auto dropped() -> usize;
 
-    [[nodiscard]] auto samples() -> const std::vector<Sample>& {
-        return samples_store;
-    }
+    [[nodiscard]] constexpr auto dropped() const -> usize;
 
+    [[nodiscard]] constexpr auto max_num_samples() -> usize;
 
-    [[nodiscard]] auto samples() const -> const std::vector<Sample>& {
-        return samples_store;
-    }
+    [[nodiscard]] constexpr auto max_num_samples() const -> usize;
 
-
-    [[nodiscard]] constexpr auto dropped() -> usize {
-        return num_dropped_samples;
-    }
-
-
-    [[nodiscard]] constexpr auto dropped() const -> usize {
-        return num_dropped_samples;
-    }
-
-
-    [[nodiscard]] constexpr auto max_num_samples() -> usize {
-        return max_samples;
-    }
-
-
-    [[nodiscard]] constexpr auto max_num_samples() const -> usize {
-        return max_samples;
-    }
-
-
-    [[nodiscard]] auto write_timings_to_csv(std::string_view path) -> Fallible {
-        return {};
-    }
-
+    [[nodiscard]] auto write_timings_to_csv(std::string_view pathstr) -> Fallible;
 
 private:
     std::vector<Sample> samples_store;
@@ -154,7 +119,7 @@ private:
 // Times the enclosing scope and records one sample when it ends
 class Timespan {
 public:
-    explicit Timespan(Sample::Label label, SampleRecord store) noexcept
+    explicit Timespan(Sample::Label label, SampleRecord& store) noexcept
         : label(label)
         , start(Sample::Clock::now())
         , store(store) {}
@@ -179,19 +144,14 @@ public:
 private:
     Sample::Label label;
     Sample::TimePoint start;
-    SampleRecord store;
+    SampleRecord& store;
 }; // class Timespan
 
 
 /**
- * @brief abc
+ * @brief Log summary of recorded samples
  */
 auto log_trace_summary(const SampleRecord& store) -> void;
 
-
-/**
- *
- */
-[[nodiscard]] auto write_timings_to_csv(const SampleRecord& store, const std::filesystem::path& path) -> Fallible;
 
 } // namespace arcxel
