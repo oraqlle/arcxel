@@ -168,11 +168,13 @@ auto SampleRecord::record(const Sample& sample) -> bool {
     }
 
     const auto now = current_datetime();
-    const auto second = std::chrono::floor<std::chrono::seconds>(now);
+    const auto seconds = std::chrono::floor<std::chrono::seconds>(now);
     const auto millis =
-        std::chrono::duration_cast<std::chrono::milliseconds>(now - second).count();
+        std::chrono::duration_cast<std::chrono::milliseconds>(now - seconds).count();
 
-    const auto fname = std::format("arcxel-{:%Y-%m-%d_%H:%M:%S}-{:03}.csv", now, millis);
+    const auto fname =
+        std::format("arcxel-{0:%F}_{0:%R}:{1:%S}-{2:03}.csv", now, seconds, millis);
+
     const auto fpath = std::filesystem::path{path} / fname;
 
     // overwrite warning
