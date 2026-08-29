@@ -19,17 +19,18 @@
 
 #pragma once
 
+#include "utils.h"
 #include <conf.h>
 #include <raylib.h>
 #include <types.h>
 
 #include <chrono>
-#include <iostream>
-#include <fstream>
-#include <print>
-#include <syncstream>
 #include <filesystem>
 #include <format>
+#include <fstream>
+#include <iostream>
+#include <print>
+#include <syncstream>
 #include <utility>
 
 namespace arcxel {
@@ -91,10 +92,11 @@ struct std::formatter<arcxel::LogLevel, char>
 namespace arcxel {
 
 #ifdef ARCXEL_LOGGING
-    static inline constexpr bool logging_enabled = true;
-    static inline constexpr LogLevel min_log_level = debug_enabled ? LogLevel::Trace : LogLevel::Info;
+static inline constexpr bool logging_enabled = true;
+static inline constexpr LogLevel min_log_level =
+    debug_enabled ? LogLevel::Trace : LogLevel::Info;
 #else
-    static inline constexpr bool logging_enabled = false
+static inline constexpr bool logging_enabled = false
     static inline constexpr Level min_log_level = Level::Off
 #endif
 
@@ -131,15 +133,16 @@ template <typename... Args>
 constexpr auto
 make_log_string(const LogLevel level, std::format_string<Args...> fmt, Args&&... args)
     -> std::string {
-    const auto now = std::chrono::system_clock::now();
-    const auto second = std::chrono::floor<std::chrono::seconds>(now);
-    const auto millis =
-        std::chrono::duration_cast<std::chrono::milliseconds>(now - second).count();
+    const auto now = current_datetime();
+    const auto seconds = std::chrono::floor<std::chrono::seconds>(now);
+    const auto ns =
+        std::chrono::duration_cast<std::chrono::nanoseconds>(now - seconds).count();
 
     return std::format(
-        "[{:%H:%M:%S}{:03}] {:<5} {}",
+        "[{:%R}:{:%S}.{:09}] {:<5} {}",
         now,
-        millis,
+        seconds,
+        ns,
         loglevel_to_string(level),
         std::format(fmt, std::forward<Args>(args)...)
     );
@@ -170,15 +173,15 @@ auto log_to(
 template <typename... Args>
 auto raw_log(std::format_string<Args...> fmt, Args&&... args) -> void {
     if constexpr (logging_enabled) {
-            auto msg = std::format(fmt, std::forward<Args>(args)...);
+        auto msg = std::format(fmt, std::forward<Args>(args)...);
 
-            if (logfile.is_open()) {
-                auto syncedlog = std::osyncstream{logstream};
-                std::println(syncedlog, "{}", msg);
-            }
+        if (logfile.is_open()) {
+            auto syncedlog = std::osyncstream{logstream};
+            std::println(syncedlog, "{}", msg);
+        }
 
-            auto syncederr = std::osyncstream{std::cerr};
-            std::println(syncederr, "{}", msg);
+        auto syncederr = std::osyncstream{std::cerr};
+        std::println(syncederr, "{}", msg);
     }
 }
 
@@ -205,4 +208,3 @@ auto log(const LogLevel level, std::format_string<Args...> fmt, Args&&... args) 
 }
 
 } // namespace arcxel
-
