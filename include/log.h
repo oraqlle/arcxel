@@ -177,7 +177,8 @@ struct formatter<arcxel::LogLevel, CharT>
 
     using fmttr_t = std::formatter<basic_string_view<CharT>, CharT>;
 
-    inline constexpr auto loglevel_to_string(arcxel::LogLevel level) -> std::string_view {
+    static inline constexpr auto loglevel_to_string(arcxel::LogLevel level)
+        -> std::string_view {
         switch (level) {
             case arcxel::LogLevel::Trace:
                 return "TRACE";
