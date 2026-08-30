@@ -50,47 +50,6 @@ enum class LogLevel : u8 {
 }; // enum class LogLevel
 
 
-inline constexpr auto loglevel_to_string(arcxel::LogLevel level) -> std::string_view {
-    switch (level) {
-        case arcxel::LogLevel::Trace:
-            return "TRACE";
-        case arcxel::LogLevel::Debug:
-            return "DEBUG";
-        case arcxel::LogLevel::Info:
-            return "INFO";
-        case arcxel::LogLevel::Warning:
-            return "WARNING";
-        case arcxel::LogLevel::Error:
-            return "ERROR";
-        case arcxel::LogLevel::Fatal:
-            return "FATAL";
-        case arcxel::LogLevel::Off:
-            return "OFF";
-        default:
-            return "UNKNOWN";
-    }
-}
-
-} // namespace arcxel
-
-
-template <>
-struct std::formatter<arcxel::LogLevel, char>
-    : public std::formatter<std::string_view, char> {
-
-    using formatter_t = std::formatter<std::string_view, char>;
-
-
-    template <typename FormatContext>
-    auto format(arcxel::LogLevel level, FormatContext& ctx) {
-        return formatter_t::format(loglevel_to_string(level), ctx);
-    }
-
-}; // struct std::formatter<arcxel::LogLevel, char>
-
-
-namespace arcxel {
-
 #ifdef ARCXEL_LOGGING
 static inline constexpr bool logging_enabled = true;
 static inline constexpr LogLevel min_log_level =
@@ -143,7 +102,7 @@ make_log_string(const LogLevel level, std::format_string<Args...> fmt, Args&&...
         now,
         seconds,
         ns,
-        loglevel_to_string(level),
+        level,
         std::format(fmt, std::forward<Args>(args)...)
     );
 }
@@ -208,3 +167,42 @@ auto log(const LogLevel level, std::format_string<Args...> fmt, Args&&... args) 
 }
 
 } // namespace arcxel
+
+
+namespace std {
+
+template <typename CharT>
+struct formatter<arcxel::LogLevel, CharT>
+    : public std::formatter<basic_string_view<CharT>, CharT> {
+
+    using fmttr_t = std::formatter<basic_string_view<CharT>, CharT>;
+
+    inline constexpr auto loglevel_to_string(arcxel::LogLevel level) -> std::string_view {
+        switch (level) {
+            case arcxel::LogLevel::Trace:
+                return "TRACE";
+            case arcxel::LogLevel::Debug:
+                return "DEBUG";
+            case arcxel::LogLevel::Info:
+                return "INFO";
+            case arcxel::LogLevel::Warning:
+                return "WARNING";
+            case arcxel::LogLevel::Error:
+                return "ERROR";
+            case arcxel::LogLevel::Fatal:
+                return "FATAL";
+            case arcxel::LogLevel::Off:
+                return "OFF";
+            default:
+                return "UNKNOWN";
+        }
+    }
+
+
+    template <typename FmtContext>
+    auto format(arcxel::LogLevel level, FmtContext& ctx) const -> FmtContext::iterator {
+        return fmttr_t::format(loglevel_to_string(level), ctx);
+    }
+}; // struct std::formatter<arcxel::LogLevel, CharT>
+
+} // namespace std

@@ -22,8 +22,8 @@
 #include "types.h"
 
 #include <chrono>
+#include <format>
 #include <string_view>
-#include <filesystem>
 #include <thread>
 #include <vector>
 
@@ -126,12 +126,14 @@ public:
 
 
     ~Timespan() noexcept {
-        store.record(Sample{
-            .start = start,
-            .end = Sample::Clock::now(),
-            .tid = std::this_thread::get_id(),
-            .label = label
-        });
+        store.record(
+            Sample{
+                .start = start,
+                .end = Sample::Clock::now(),
+                .tid = std::this_thread::get_id(),
+                .label = label
+            }
+        );
     }
 
     Timespan(const Timespan&) = delete;
@@ -155,3 +157,44 @@ auto log_trace_summary(const SampleRecord& store) -> void;
 
 
 } // namespace arcxel
+
+
+namespace std {
+
+template <typename CharT>
+struct formatter<arcxel::Sample::Label, CharT>
+    : public std::formatter<basic_string_view<CharT>, CharT> {
+
+    using fmttr_t = std::formatter<basic_string_view<CharT>, CharT>;
+
+    static inline constexpr auto label_as_string(const arcxel::Sample::Label label)
+        -> string_view {
+        switch (label) {
+            case arcxel::Sample::Label::Frame:
+                return "Frame";
+            case arcxel::Sample::Label::Events:
+                return "Events";
+            case arcxel::Sample::Label::Update:
+                return "Update";
+            case arcxel::Sample::Label::Render:
+                return "Render";
+            case arcxel::Sample::Label::Construct:
+                return "Construct";
+            case arcxel::Sample::Label::Draw:
+                return "Draw";
+            case arcxel::Sample::Label::Present:
+                return "Present";
+            default:
+                return "UNKNOWN";
+        }
+    }
+
+
+    template <typename FmtContext>
+    auto format(arcxel::Sample::Label label, FmtContext& ctx) const
+        -> FmtContext::iterator {
+        return fmttr_t::format(label_as_string(label), ctx);
+    }
+}; // struct formatter<arcxel::Sample::Label, CharT>
+
+} // namespace std

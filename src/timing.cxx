@@ -42,28 +42,6 @@ static inline constexpr auto as_us(Sample::Duration duration) -> f64 {
 }
 
 
-static inline constexpr auto label_as_string(const Sample::Label label)
-    -> std::string_view {
-    switch (label) {
-        case Sample::Label::Frame:
-            return "Frame";
-        case Sample::Label::Events:
-            return "Events";
-        case Sample::Label::Update:
-            return "Update";
-        case Sample::Label::Render:
-            return "Render";
-        case Sample::Label::Construct:
-            return "Construct";
-        case Sample::Label::Draw:
-            return "Draw";
-        case Sample::Label::Present:
-            return "Present";
-        default:
-            return "UNKNOWN";
-    }
-}
-
 struct Totals {
     Sample::Label label;
     usize count = 0;
@@ -123,7 +101,7 @@ auto log_trace_summary(const SampleRecord& store) -> void {
 
         log(LogLevel::Info,
             "profiler: {:<16} {:>8} {:>12.3f} {:>12.3f} {:>12.3f} {:>12.3f}",
-            label_as_string(entry.label),
+            entry.label,
             entry.count,
             as_ms(entry.total),
             as_us(entry.total) / static_cast<f64>(entry.count),
@@ -220,7 +198,7 @@ auto SampleRecord::record(const Sample& sample) -> bool {
         std::println(
             file,
             "{},{},{},{},{},{}",
-            label_as_string(sample.label),
+            sample.label,
             sample_label_to_depth(sample.label),
             sample.tid,
             as_us(start),
@@ -229,7 +207,10 @@ auto SampleRecord::record(const Sample& sample) -> bool {
         );
     }
 
-    log(LogLevel::Info, "profiler: wrote {} samples to {}", samples().size(), fpath.string());
+    log(LogLevel::Info,
+        "profiler: wrote {} samples to {}",
+        samples().size(),
+        fpath.string());
 
     return {};
 }
