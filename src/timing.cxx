@@ -89,10 +89,10 @@ auto log_trace_summary(const SampleRecord& store) -> void {
         "profiler: {:<16} {:>8} {:>12} {:>12} {:>12} {:>12}",
         "label",
         "count",
-        "total/ms",
-        "mean/us",
-        "min/us",
-        "max/us");
+        "total (ms)",
+        "mean (us)",
+        "min (us)",
+        "max (us)");
 
     for (const auto& entry : totals) {
         if (entry.count == 0) {
@@ -177,7 +177,7 @@ auto SampleRecord::record(const Sample& sample) -> bool {
 
     const auto fpath = std::filesystem::path{path} / fname;
 
-    // overwrite warning
+    // TODO: overwrite warning
     auto file = std::fstream(fpath, std::ios::trunc | std::ios::out);
 
     if (!file.is_open()) {
@@ -187,7 +187,7 @@ auto SampleRecord::record(const Sample& sample) -> bool {
     }
 
     // CSV headings
-    std::println(file, "label,depth,thread,start_ns,end_ns,duration_ns");
+    std::println(file, "label,depth,thread,start (ns),end (ns),duration (ns)");
 
     // TODO: Sort samples first then save to CSV
     for (const auto& sample : samples()) {
