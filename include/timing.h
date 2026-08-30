@@ -43,6 +43,7 @@ struct Sample {
     using TimePoint = Clock::time_point;
     using Duration = Clock::duration;
 
+    using ThreadId = std::thread::id;
 
     enum class Label : u8 {
         Frame = 0,
@@ -57,7 +58,7 @@ struct Sample {
 
     TimePoint start;
     TimePoint end;
-    std::thread::id tid;
+    ThreadId tid;
     Label label;
 }; // struct Sample
 
