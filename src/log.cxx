@@ -33,15 +33,30 @@
 #include <iostream>
 #include <print>
 #include <sstream>
+#include <mutex>
 #include <streambuf>
 #include <string>
-#include <syncstream>
+#include <string_view>
 
 namespace arcxel {
 
 // static bool file_logging_enabled = false;
 std::fstream logfile = std::fstream();
 std::iostream logstream = std::iostream(nullptr); //< /dev/null by default (no-op)
+
+
+// libc++ ships no <syncstream>, so a mutex stands in for osyncstream's
+// guarantee that one line cannot interleave with another.
+auto write_log_line(std::string_view msg) -> void {
+    static auto line_mutex = std::mutex();
+    const auto lock = std::lock_guard(line_mutex);
+
+    if (logfile.is_open()) {
+        std::println(logstream, "{}", msg);
+    }
+
+    std::println(std::cerr, "{}", msg);
+}
 
 
 /**

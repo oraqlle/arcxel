@@ -30,7 +30,7 @@
 #include <fstream>
 #include <iostream>
 #include <print>
-#include <syncstream>
+#include <string_view>
 #include <utility>
 
 namespace arcxel {
@@ -86,6 +86,13 @@ auto capture_raylib_logs() -> void;
 
 
 /**
+ * @brief Write one finished line to the log file and stderr.
+ * Serialised internally, so concurrent callers cannot interleave a line.
+ */
+auto write_log_line(std::string_view msg) -> void;
+
+
+/**
  * @brief Constructs a log message from the given LogLevel and the format string
  */
 template <typename... Args>
@@ -132,15 +139,7 @@ auto log_to(
 template <typename... Args>
 auto raw_log(std::format_string<Args...> fmt, Args&&... args) -> void {
     if constexpr (logging_enabled) {
-        auto msg = std::format(fmt, std::forward<Args>(args)...);
-
-        if (logfile.is_open()) {
-            auto syncedlog = std::osyncstream{logstream};
-            std::println(syncedlog, "{}", msg);
-        }
-
-        auto syncederr = std::osyncstream{std::cerr};
-        std::println(syncederr, "{}", msg);
+        write_log_line(std::format(fmt, std::forward<Args>(args)...));
     }
 }
 
@@ -153,15 +152,7 @@ template <typename... Args>
 auto log(const LogLevel level, std::format_string<Args...> fmt, Args&&... args) -> void {
     if constexpr (logging_enabled) {
         if (level >= min_log_level) {
-            auto msg = make_log_string(level, fmt, std::forward<Args>(args)...);
-
-            if (logfile.is_open()) {
-                auto syncedlog = std::osyncstream{logstream};
-                std::println(syncedlog, "{}", msg);
-            }
-
-            auto syncederr = std::osyncstream{std::cerr};
-            std::println(syncederr, "{}", msg);
+            write_log_line(make_log_string(level, fmt, std::forward<Args>(args)...));
         }
     }
 }
@@ -177,7 +168,8 @@ struct formatter<arcxel::LogLevel, CharT>
 
     using fmttr_t = std::formatter<basic_string_view<CharT>, CharT>;
 
-    inline constexpr auto loglevel_to_string(arcxel::LogLevel level) -> std::string_view {
+    static inline constexpr auto loglevel_to_string(arcxel::LogLevel level)
+        -> std::string_view {
         switch (level) {
             case arcxel::LogLevel::Trace:
                 return "TRACE";

@@ -2,6 +2,7 @@
 #include "log.h"
 
 #include <chrono>
+#include <ctime>
 
 namespace arcxel {
 
@@ -27,7 +28,21 @@ namespace arcxel {
 
 [[nodiscard]] auto current_datetime()
     -> std::chrono::local_time<std::chrono::system_clock::duration> {
-    return std::chrono::current_zone()->to_local(std::chrono::system_clock::now());
+    const auto now = std::chrono::system_clock::now();
+
+#if defined(__cpp_lib_chrono) && __cpp_lib_chrono >= 201907L
+    return std::chrono::current_zone()->to_local(now);
+#else
+    // libc++ ships no tzdb, so the UTC offset comes from the C library instead.
+    const auto secs = std::chrono::system_clock::to_time_t(now);
+
+    auto parts = std::tm{};
+    localtime_r(&secs, &parts);
+
+    return std::chrono::local_time<std::chrono::system_clock::duration>(
+        now.time_since_epoch() + std::chrono::seconds(parts.tm_gmtoff)
+    );
+#endif
 }
 
 } // namespace arcxel

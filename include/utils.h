@@ -39,6 +39,6 @@ namespace arcxel {
  * @brief Obtain the current localised date and time as a time_point<>
  */
 [[nodiscard]] auto current_datetime()
-    -> std::chrono::local_time<std::chrono::steady_clock::duration>;
+    -> std::chrono::local_time<std::chrono::system_clock::duration>;
 
 } // namespace arcxel
