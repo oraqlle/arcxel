@@ -53,6 +53,7 @@ vgcore.*
 /traces/
 /profiles/
 /prof/
+/charts/
 
 # Misc.
 .DS_Store
