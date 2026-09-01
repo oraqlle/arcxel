@@ -41,6 +41,14 @@ public:
 
     Scene() noexcept;
 
+    ~Scene() noexcept;
+
+    // Owns GPU resources, so copying it would free them twice.
+    Scene(const Scene&) = delete;
+    Scene(Scene&&) = delete;
+    auto operator=(const Scene&) -> Scene& = delete;
+    auto operator=(Scene&&) -> Scene& = delete;
+
     auto handle_events() -> void;
 
     auto update(f64 delta) -> void;
@@ -59,8 +67,15 @@ public: // Scene objects
 private:
     auto _render_container() -> void;
 
+    auto _render_sphere(f64 delta) -> void;
+
     Vector3 interior;    //< half-extents of the space objects live in
     f32 wall_thickness;
+
+    Mesh sphere_mesh;         //< one mesh, drawn once per sphere
+    Material sphere_material;
+    f32 sphere_radius;
+    f32 spin;                 //< step 02 scaffolding, replaced by rp3d's transform
 
 }; // class Scene
 
