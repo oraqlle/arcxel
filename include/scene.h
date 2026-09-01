@@ -21,13 +21,24 @@
 
 #include "cube.h"
 #include "player.h"
+#include "types.h"
 
 #include <raylib.h>
+
+#include <array>
 
 namespace arcxel {
 
 class Scene {
 public:
+    // One face of the container, in half-extents because that is what rp3d takes. 
+    struct Box {
+        Vector3 centre;
+        Vector3 half_extents;
+    }; // struct Box
+
+    static constexpr usize num_faces = 5; //< floor and four walls, no ceiling
+
     Scene() noexcept;
 
     auto handle_events() -> void;
@@ -38,12 +49,18 @@ public:
 
     [[nodiscard]] auto primary_camera() -> Camera3D;
 
+    // Floor first, then the four walls.
+    [[nodiscard]] auto container_faces() const -> std::array<Box, num_faces>;
+
 public: // Scene objects
     Cube cube;
     Player player;
 
 private:
-    Camera3D primary_cam;
+    auto _render_container() -> void;
+
+    Vector3 interior;    //< half-extents of the space objects live in
+    f32 wall_thickness;
 
 }; // class Scene
 

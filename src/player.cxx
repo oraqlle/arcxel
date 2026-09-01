@@ -10,8 +10,9 @@ Player::Player() noexcept
     : speed(5.0f)
     , sprint_speed_scale(1.75f)
     , look_sensitivity(0.0015f) {
-    camera.position = Vector3Zero();
-    camera.target = Vector3{0.0f, 0.0f, -1.0f};
+    // Outside the container looking in, so the whole volume is visible on start.
+    camera.position = Vector3{0.0f, 6.0f, 26.0f};
+    camera.target = Vector3{0.0f, 4.0f, 0.0f};
     camera.up = Vector3{0.0f, 1.0f, 0.0f};
     camera.fovy = 45.0;
     camera.projection = CameraProjection::CAMERA_PERSPECTIVE;
