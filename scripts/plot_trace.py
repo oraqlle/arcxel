@@ -15,7 +15,7 @@ LABEL_NAMES = [
 ]
 
 
-def plot_trace(df: pd.Dataframe, savefile: str) -> None:
+def plot_trace(df: pd.Dataframe, savefile: str, ftypes: list[str]) -> None:
 
     for label in LABEL_NAMES:
         samples = df[df["label"] == label]
@@ -34,8 +34,8 @@ def plot_trace(df: pd.Dataframe, savefile: str) -> None:
 
         ax.legend([label])
 
-        ax.figure.savefig(f"{savefile}-{label.lower()}.svg")
-        ax.figure.savefig(f"{savefile}-{label.lower()}.png")
+        for ftype in ftypes:
+            ax.figure.savefig(f"{savefile}-{label.lower()}.{ftype}")
 
 
 def csv_as_dataframe(path: str) -> pd.Dataframe:
@@ -55,13 +55,21 @@ if __name__ == '__main__':
     argparser.add_argument(
         '-o',
         '--outdir',
-        help='directory to store plot images',
+        help='Directory to store plot images',
         default=os.path.curdir)
+
+    argparser.add_argument(
+        '-t',
+        '--ftypes',
+        nargs='+',
+        help='File types to save charts as. Default: png',
+        default=['png'])
 
     args = argparser.parse_args()
 
     infiles: [str] = args.files
     outdir: str = args.outdir
+    ftypes: [str] = args.ftypes
 
     if not os.path.exists(outdir):
         print(f"Output directory '{outdir}' does not exit. Creating...")
@@ -72,5 +80,6 @@ if __name__ == '__main__':
     for idx, df in enumerate(csvs):
         ifname: str = infiles[idx]
         ofname: str = os.path.basename(ifname.split('.')[0])
+        ofile: str = os.path.join(outdir, ofname)
 
-        plot_trace(df, os.path.join(outdir, ofname))
+        plot_trace(df, ofile, ftypes)
