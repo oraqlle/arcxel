@@ -46,6 +46,19 @@ FetchContent_MakeAvailable(raylib)
 # as system headers and stay quiet about them.
 set_target_properties(raylib PROPERTIES SYSTEM TRUE)
 
+FetchContent_Declare(
+    reactphysics3d
+    GIT_REPOSITORY  https://github.com/DanielChappuis/reactphysics3d.git
+    GIT_TAG         v0.10.2
+    GIT_PROGRESS    true
+    GIT_SUBMODULES  "" # the only submodules are the testbed's, which we do not build
+)
+
+FetchContent_MakeAvailable(reactphysics3d)
+
+# Same treatment as raylib.
+set_target_properties(reactphysics3d PROPERTIES SYSTEM TRUE)
+
 # ---- Find Packages ----
 #find_package(glm 1.0.1 REQUIRED)
 #find_package(tinyobjloader 2.0.0 REQUIRED)
@@ -86,7 +99,7 @@ target_compile_definitions(
         ARCXEL_PROFILING=$<BOOL:${ARCXEL_PROFILING}>
 )
 
-target_link_libraries(arcxel_lib PUBLIC raylib)
+target_link_libraries(arcxel_lib PUBLIC raylib ReactPhysics3D::reactphysics3d)
 
 # ---- Entrypoint ----
 add_executable(arcxel src/main.cxx)
