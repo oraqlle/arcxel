@@ -17,26 +17,39 @@ LABEL_NAMES = [
 ]
 
 
+COLOURS = [
+    mcolours.TABLEAU_COLORS['tab:green'],
+    mcolours.TABLEAU_COLORS['tab:brown']
+]
+
+
 def plot_trace(df: pd.Dataframe, savefile: str, ftypes: list[str]) -> None:
 
     for label in LABEL_NAMES:
+
+        # Preprocessing
         samples = df[df["label"] == label]
         samples.sort_values('start (ns)', inplace=True)
-        samples['start (ns)'] = samples['start (ns)'] / 1_000_000
-        samples['duration (ns)'] = samples['duration (ns)'] / 1_000
+        samples['start (s)'] = samples['start (ns)'] / 1_000_000
+        samples['duration (ms)'] = samples['duration (ns)'] / 1_000
+        samples['duration moving average (ms)'] = (
+            samples["duration (ms)"]
+            .rolling(window=10, min_periods=1)
+            .mean()
+        )
 
         ax = samples.plot(
             title=f"Frametime (ms) - [{label.upper()}]",
             xlabel="Simulation time (s)",
             ylabel="Frametime (ms)",
-            x='start (ns)',
-            y='duration (ns)',
-            color=mcolours.TABLEAU_COLORS['tab:green'],
+            x='start (s)',
+            y=['duration (ms)', 'duration moving average (ms)'],
+            color=COLOURS,
             grid=True,
             figsize=(20, 8)
         )
 
-        ax.legend([label])
+        ax.legend(['Frametime', 'Moving Avg.'])
 
         for ftype in ftypes:
             fname: str = f"{savefile}-{label.lower()}.{ftype}"
