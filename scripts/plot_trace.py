@@ -1,4 +1,6 @@
 import argparse as ap
+import matplotlib.colors as mcolours
+import matplotlib.pyplot as plt
 import pandas as pd
 
 import os
@@ -29,13 +31,16 @@ def plot_trace(df: pd.Dataframe, savefile: str, ftypes: list[str]) -> None:
             ylabel="Frametime (ms)",
             x='start (ns)',
             y='duration (ns)',
-            figsize=(20, 5)
+            color=mcolours.TABLEAU_COLORS['tab:green'],
+            grid=True,
+            figsize=(20, 8)
         )
 
         ax.legend([label])
 
         for ftype in ftypes:
-            ax.figure.savefig(f"{savefile}-{label.lower()}.{ftype}")
+            fname: str = f"{savefile}-{label.lower()}.{ftype}"
+            ax.figure.savefig(fname, bbox_inches='tight')
 
 
 def csv_as_dataframe(path: str) -> pd.Dataframe:
