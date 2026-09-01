@@ -1,6 +1,5 @@
 import argparse as ap
 import matplotlib.colors as mcolours
-import matplotlib.pyplot as plt
 import pandas as pd
 
 import os
@@ -23,20 +22,41 @@ COLOURS = [
 ]
 
 
-def plot_trace(df: pd.Dataframe, savefile: str, ftypes: list[str]) -> None:
+def preprocess_trace(df: pd.Dataframe) -> pd.Dataframe:
+    # construct frame id
+    current_frame: int = 1
+    frame_ids: [int] = []
+
+    for label in df['label']:
+        frame_ids.append(current_frame)
+
+        if label.lower() == "present":
+            current_frame += 1
+
+    df.insert(0, "frame id", frame_ids)
+
+    # Time scaling
+    df['start (s)'] = df['start (ns)'] / 1_000_000
+    df['duration (ms)'] = df['duration (ns)'] / 1_000
+
+    # moving average
+    df['duration moving average (ms)'] = (
+        df["duration (ms)"]
+        .rolling(window=10, min_periods=1)
+        .mean()
+    )
+
+    return df
+
+
+def plot_frametime_heatmap(df: pd.Dataframe, savefile: str, ftypes: list[str]):
+    pass
+
+
+def plot_frametime_line(df: pd.Dataframe, savefile: str, ftypes: list[str]):
 
     for label in LABEL_NAMES:
-
-        # Preprocessing
         samples = df[df["label"] == label]
-        samples.sort_values('start (ns)', inplace=True)
-        samples['start (s)'] = samples['start (ns)'] / 1_000_000
-        samples['duration (ms)'] = samples['duration (ns)'] / 1_000
-        samples['duration moving average (ms)'] = (
-            samples["duration (ms)"]
-            .rolling(window=10, min_periods=1)
-            .mean()
-        )
 
         ax = samples.plot(
             title=f"Frametime (ms) - [{label.upper()}]",
@@ -56,13 +76,21 @@ def plot_trace(df: pd.Dataframe, savefile: str, ftypes: list[str]) -> None:
             ax.figure.savefig(fname, bbox_inches='tight')
 
 
+def plot_frametime_trace(df: pd.Dataframe, savefile: str, ftypes: list[str]):
+
+    df = preprocess_trace(df)
+
+    plot_frametime_line(df, savefile, ftypes)
+    plot_frametime_heatmap(df, savefile, ftypes)
+
+
 def csv_as_dataframe(path: str) -> pd.Dataframe:
     return pd.read_csv(path)
 
 
 if __name__ == '__main__':
     argparser = ap.ArgumentParser(
-        prog="trace plotter",
+        prog="arcxel trace plotter",
         description="Plot Arcxel trace files")
 
     argparser.add_argument(
@@ -100,4 +128,4 @@ if __name__ == '__main__':
         ofname: str = os.path.basename(ifname.split('.')[0])
         ofile: str = os.path.join(outdir, ofname)
 
-        plot_trace(df, ofile, ftypes)
+        plot_frametime_trace(df, ofile, ftypes)
