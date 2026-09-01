@@ -17,17 +17,22 @@ LABEL_NAMES = [
 
 def plot_trace(df: pd.Dataframe, savefile: str) -> None:
 
-    for label in LABEL_NAMES[0:1]:
+    for label in LABEL_NAMES:
         samples = df[df["label"] == label]
         samples.sort_values('start (ns)', inplace=True)
+        samples['start (ns)'] = samples['start (ns)'] / 1_000_000
+        samples['duration (ns)'] = samples['duration (ns)'] / 1_000
 
         ax = samples.plot(
-            title="Frametime (ms)",
+            title=f"Frametime (ms) - [{label.upper()}]",
             xlabel="Simulation time (s)",
             ylabel="Frametime (ms)",
             x='start (ns)',
-            y='duration (ns)'
+            y='duration (ns)',
+            figsize=(20, 5)
         )
+
+        ax.legend([label])
 
         ax.figure.savefig(f"{savefile}-{label.lower()}.svg")
         ax.figure.savefig(f"{savefile}-{label.lower()}.png")
@@ -58,7 +63,11 @@ if __name__ == '__main__':
     infiles: [str] = args.files
     outdir: str = args.outdir
 
-    csvs = list(map(csv_as_dataframe, infiles))[0:1]
+    if not os.path.exists(outdir):
+        print(f"Output directory '{outdir}' does not exit. Creating...")
+        os.mkdir(outdir)
+
+    csvs = list(map(csv_as_dataframe, infiles))
 
     for idx, df in enumerate(csvs):
         ifname: str = infiles[idx]
