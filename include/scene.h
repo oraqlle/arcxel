@@ -19,6 +19,8 @@
 
 #pragma once
 
+#include <reactphysics3d/reactphysics3d.h>
+
 #include "cube.h"
 #include "player.h"
 #include "types.h"
@@ -38,6 +40,7 @@ public:
     }; // struct Box
 
     static constexpr usize num_faces = 5; //< floor and four walls, no ceiling
+    static constexpr f64 fixed_dt = 1.0 / 60.0;
 
     Scene() noexcept;
 
@@ -65,9 +68,22 @@ public: // Scene objects
     Player player;
 
 private:
+    auto _build_container() -> void;
+
+    auto _reset_sphere() -> void;
+
     auto _render_container() -> void;
 
-    auto _render_sphere(f64 delta) -> void;
+    auto _render_sphere() -> void;
+
+    // Declared before anything it allocates. Members destruct in reverse order,
+    // so the factory has to outlive every world, shape and body it hands out.
+    rp3d::PhysicsCommon physics;
+
+    rp3d::PhysicsWorld* world;
+    rp3d::RigidBody* container;    //< one static body, a collider per face
+    rp3d::RigidBody* sphere;
+    rp3d::SphereShape* sphere_shape;
 
     Vector3 interior;    //< half-extents of the space objects live in
     f32 wall_thickness;
@@ -75,7 +91,6 @@ private:
     Mesh sphere_mesh;         //< one mesh, drawn once per sphere
     Material sphere_material;
     f32 sphere_radius;
-    f32 spin;                 //< step 02 scaffolding, replaced by rp3d's transform
 
 }; // class Scene
 
