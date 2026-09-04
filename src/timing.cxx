@@ -189,13 +189,15 @@ auto SampleRecord::record(const Sample& sample) -> bool {
     // CSV headings
     std::println(file, "label,depth,thread,start (ns),end (ns),duration (ns)");
 
-    // TODO: Sort samples first then save to CSV
-    const auto origin =
-        std::ranges::min(samples(), {}, [](const auto& s) { return s.start; }).start;
+    // Sort samples based on Sample::start, directly uses
+    // member as std::ranges::sort is in-place.
+    std::ranges::sort(samples_store, {}, [](const auto& s) { return s.start; });
+
+    const auto local_epoch = samples().front().start;
 
     for (const auto& sample : samples()) {
-        const auto start = sample.start - origin;
-        const auto end = sample.end - origin;
+        const auto start = sample.start - local_epoch;
+        const auto end = sample.end - local_epoch;
         const auto diff = sample.end - sample.start;
 
         std::println(
