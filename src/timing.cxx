@@ -55,6 +55,7 @@ static inline auto totals = std::array<Totals, num_labels>{
     Totals{.label = Sample::Label::Frame},
     Totals{.label = Sample::Label::Events},
     Totals{.label = Sample::Label::Update},
+    Totals{.label = Sample::Label::PhysicsUpdate},
     Totals{.label = Sample::Label::Render},
     Totals{.label = Sample::Label::Construct},
     Totals{.label = Sample::Label::Draw},

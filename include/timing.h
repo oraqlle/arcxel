@@ -49,10 +49,11 @@ struct Sample {
         Frame = 0,
         Events,
         Update,
+        PhysicsUpdate,
         Render,
         Construct,
         Draw,
-        Present
+        Present,
     }; // enum class Label
 
 
@@ -80,6 +81,7 @@ static_assert(
 
         case Sample::Label::Events:
         case Sample::Label::Update:
+        case Sample::Label::PhysicsUpdate:
         case Sample::Label::Render:
             return 1;
 
@@ -181,6 +183,8 @@ struct formatter<arcxel::Sample::Label, CharT>
                 return "Events";
             case arcxel::Sample::Label::Update:
                 return "Update";
+            case arcxel::Sample::Label::PhysicsUpdate:
+                return "PhysicsUpdate";
             case arcxel::Sample::Label::Render:
                 return "Render";
             case arcxel::Sample::Label::Construct:
