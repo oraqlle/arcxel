@@ -22,4 +22,16 @@ Physics::singleton(std::optional<rp3d::PhysicsWorld::WorldSettings> init) -> Phy
     return physics_sys;
 }
 
+
+auto Physics::update(f64 delta) -> void {
+    accumulator += delta;
+
+    // While there is enough accumulated time to take
+    // one or several physics steps
+    while (accumulator >= timestep) {
+        physics_world->update(timestep);
+        accumulator -= timestep;
+    }
+}
+
 } // namespace arcxel

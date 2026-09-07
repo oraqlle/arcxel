@@ -19,16 +19,19 @@
 
 #include "engine.h"
 #include "log.h"
+#include "physics.h"
 #include "scene.h"
 #include "timing.h"
 #include "types.h"
 #include "utils.h"
 #include "window_info.h"
 
-#include <optional>
+
 #include <raylib.h>
+#include "rp3d.h"
 
 #include <expected>
+#include <optional>
 #include <string>
 
 // clang-format off
@@ -95,6 +98,11 @@ static inline auto game_loop() -> void {
 
         const f64 delta = GetFrameTime();
 
+        {
+            const auto _ = arcxel::Timespan(Label::PhysicsUpdate, engine.sample_record);
+            arcxel::Physics::singleton().update(delta);
+        }
+
 
         {
             const auto _ = arcxel::Timespan(Label::Update, engine.sample_record);
@@ -119,6 +127,14 @@ static inline auto game_loop() -> void {
     if (auto r = create_window(winfo); !r) {
         return r;
     }
+
+    // ---- PHYSICS WORLD CREATION ----
+    auto physics_info = rp3d::PhysicsWorld::WorldSettings{};
+    physics_info.isSleepingEnabled = false;
+    physics_info.gravity = rp3d::Vector3(0, -9.81, 0);
+    auto& _ = arcxel::Physics::singleton(std::make_optional(std::move(physics_info)));
+    arcxel::log(LogLevel::Info, "physics world created");
+
 
     // ---- GAME LOOP ----
     DisableCursor();

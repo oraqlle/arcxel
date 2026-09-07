@@ -20,6 +20,7 @@
 #pragma once
 
 #include "rp3d.h"
+#include "types.h"
 
 #include <optional>
 
@@ -27,9 +28,14 @@ namespace arcxel {
 
 class Physics {
 public:
+
+    static constexpr f32 timestep = 1.0f / 60.0f;
+
     [[nodiscard]] static auto
     singleton(std::optional<rp3d::PhysicsWorld::WorldSettings> init = std::nullopt)
         -> Physics&;
+
+    auto update(f64 delta) -> void;
 
 private:
     explicit Physics(
@@ -41,6 +47,9 @@ private:
 public:
     rp3d::PhysicsCommon physics_common;    
     rp3d::PhysicsWorld* physics_world;    
+
+private:
+    f64 accumulator;
 };
 
 } // namespace arcxel
