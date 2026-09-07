@@ -117,8 +117,12 @@ auto capture_raylib_logs() -> void {
     auto* old_rdbuf = change_rdbuf_to(logstream, ss.rdbuf());
 
     // Construct filename from current date and time
-    const auto datetime = current_datetime();
-    const auto fname = std::format("{:%Y-%m-%d_%H:%M:%S}.log", datetime);
+    const auto now = current_datetime();
+    const auto seconds = std::chrono::floor<std::chrono::seconds>(now);
+    const auto millis =
+        std::chrono::duration_cast<std::chrono::milliseconds>(now - seconds).count();
+    const auto fname =
+        std::format("arcxel-{0:%F}_{0:%R}:{1:%S}-{2:03}.csv", now, seconds, millis);
     const auto fpath = outdir / fname;
 
     // Check if filesystem object of the same name exists
