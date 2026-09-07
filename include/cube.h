@@ -20,6 +20,7 @@
 #pragma once
 
 #include "game_object.h"
+#include "rp3d.h"
 
 #include <raylib.h>
 
@@ -39,6 +40,10 @@ public:
 
     auto render(f64 delta) -> void override;
 
+    auto set_gravity(bool on) -> void;
+
+    auto set_body_type(rp3d::BodyType type) -> void;
+
 private:
     f32 width;
     f32 height;
@@ -47,6 +52,9 @@ private:
     Mesh mesh;
     Model model;
 
+    rp3d::RigidBody* body;
+    rp3d::BoxShape* shape;
+    rp3d::Collider* collider;
 }; // class Cube
 
 } // namespace arcxel
