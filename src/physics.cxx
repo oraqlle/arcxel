@@ -4,11 +4,11 @@
 namespace arcxel {
 
 Physics::Physics(std::optional<rp3d::PhysicsWorld::WorldSettings> opt_settings) noexcept
-    : physics_common{} {
+    : common{} {
     if (opt_settings) {
-        physics_world = physics_common.createPhysicsWorld(*opt_settings);
+        world = common.createPhysicsWorld(*opt_settings);
     } else {
-        physics_world = physics_common.createPhysicsWorld();
+        world = common.createPhysicsWorld();
     }
 }
 
@@ -29,7 +29,7 @@ auto Physics::update(f64 delta) -> void {
     // While there is enough accumulated time to take
     // one or several physics steps
     while (accumulator >= timestep) {
-        physics_world->update(timestep);
+        world->update(timestep);
         accumulator -= timestep;
     }
 }
