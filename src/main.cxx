@@ -147,7 +147,6 @@ auto main() -> int {
     
 
     // ---- CREATE PROFILE TRACE STORE ----
-    auto store = arcxel::SampleRecord(0);
     if constexpr (arcxel::profiling_enabled) {
         if (const auto r = arcxel::create_dir(DEFAULT_TRACES_DIR); !r) {
             arcxel::raw_log("{}", r.error());
@@ -164,8 +163,9 @@ auto main() -> int {
     // ---- WRITE PROFILE TRACE ----
     if constexpr (arcxel::profiling_enabled) {
         arcxel::log_trace_summary(arcxel::Engine::singleton().sample_record);
+        auto& sample_records = arcxel::Engine::singleton().sample_record;
 
-        if (const auto r = store.write_timings_to_csv(DEFAULT_TRACES_DIR); !r) {
+        if (const auto r = sample_records.write_timings_to_csv(DEFAULT_TRACES_DIR); !r) {
             arcxel::raw_log("{}", r.error());
         }
     }
