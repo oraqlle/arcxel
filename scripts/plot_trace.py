@@ -41,9 +41,11 @@ def preprocess_trace(df: pd.Dataframe) -> pd.Dataframe:
 
     # moving average
     df['duration moving average (ms)'] = (
-        df["duration (ms)"]
-        .rolling(window=10, min_periods=1)
-        .mean()
+        df.groupby('label', sort=False)["duration (ms)"]
+          .transform(
+            lambda values: values
+            .rolling(window=10, min_periods=1)
+            .mean())
     )
 
     return df
@@ -56,9 +58,9 @@ def plot_frametime_heatmap(df: pd.Dataframe, savefile: str, ftypes: list[str]):
 def plot_frametime_line(df: pd.Dataframe, savefile: str, ftypes: list[str]):
 
     for label in LABEL_NAMES:
-        samples = df[df["label"] == label]
+        samples=df[df["label"] == label]
 
-        ax = samples.plot(
+        ax=samples.plot(
             title=f"Frametime (ms) - [{label.upper()}]",
             xlabel="Simulation time (s)",
             ylabel="Frametime (ms)",
@@ -72,13 +74,13 @@ def plot_frametime_line(df: pd.Dataframe, savefile: str, ftypes: list[str]):
         ax.legend(['Frametime', 'Moving Avg.'])
 
         for ftype in ftypes:
-            fname: str = f"{savefile}-{label.lower()}.{ftype}"
+            fname: str=f"{savefile}-{label.lower()}.{ftype}"
             ax.figure.savefig(fname, bbox_inches='tight')
 
 
 def plot_frametime_trace(df: pd.Dataframe, savefile: str, ftypes: list[str]):
 
-    df = preprocess_trace(df)
+    df=preprocess_trace(df)
 
     plot_frametime_line(df, savefile, ftypes)
     plot_frametime_heatmap(df, savefile, ftypes)
@@ -89,7 +91,7 @@ def csv_as_dataframe(path: str) -> pd.Dataframe:
 
 
 if __name__ == '__main__':
-    argparser = ap.ArgumentParser(
+    argparser=ap.ArgumentParser(
         prog="arcxel trace plotter",
         description="Plot Arcxel trace files")
 
@@ -111,21 +113,21 @@ if __name__ == '__main__':
         help='File types to save charts as. Default: png',
         default=['png'])
 
-    args = argparser.parse_args()
+    args=argparser.parse_args()
 
-    infiles: [str] = args.files
-    outdir: str = args.outdir
-    ftypes: [str] = args.ftypes
+    infiles: [str]=args.files
+    outdir: str=args.outdir
+    ftypes: [str]=args.ftypes
 
     if not os.path.exists(outdir):
         print(f"Output directory '{outdir}' does not exit. Creating...")
         os.mkdir(outdir)
 
-    csvs = list(map(csv_as_dataframe, infiles))
+    csvs=list(map(csv_as_dataframe, infiles))
 
     for idx, df in enumerate(csvs):
-        ifname: str = infiles[idx]
-        ofname: str = os.path.basename(ifname.split('.')[0])
-        ofile: str = os.path.join(outdir, ofname)
+        ifname: str=infiles[idx]
+        ofname: str=os.path.basename(ifname.split('.')[0])
+        ofile: str=os.path.join(outdir, ofname)
 
         plot_frametime_trace(df, ofile, ftypes)
