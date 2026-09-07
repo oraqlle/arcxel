@@ -19,7 +19,7 @@
 
 #pragma once
 
-#include "object.h"
+#include "types.h"
 
 #include <raylib.h>
 #include <raymath.h>
@@ -32,7 +32,8 @@ namespace arcxel {
 
 [[nodiscard]] auto QuaternionVector3Multiply(Quaternion q, Vector3 v) -> Vector3;
 
-struct Transform3D : public Object {
+
+struct Transform3D {
     Transform3D() noexcept;
 
     ~Transform3D() noexcept = default;
