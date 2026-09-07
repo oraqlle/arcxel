@@ -13,11 +13,20 @@ Engine::Engine()
     return running && !WindowShouldClose();
 }
 
+
+Engine::Engine(Scene&& scene)
+    : running(true)
+    , scene(std::move(scene)) {}
+
+
 auto Engine::stop() -> void { running = false; }
+
 
 auto Engine::handle_events() -> void { scene.handle_events(); }
 
+
 auto Engine::update(f64 delta) -> void { scene.update(delta); }
+
 
 auto Engine::render(f64 delta, SampleRecord& store) -> void {
     auto camera = scene.primary_camera();

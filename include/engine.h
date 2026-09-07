@@ -31,6 +31,8 @@ class Engine {
 public:
     Engine();
 
+    explicit Engine(Scene&& scene);
+
     ~Engine() noexcept = default;
 
     // make singleton

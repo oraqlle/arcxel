@@ -19,6 +19,7 @@
 
 #include "engine.h"
 #include "log.h"
+#include "scene.h"
 #include "timing.h"
 #include "types.h"
 #include "utils.h"
@@ -80,7 +81,9 @@ constexpr i32 HEIGHT = 1080;
 
 
 static inline auto game_loop(arcxel::SampleRecord& store) -> void {
-    auto engine = arcxel::Engine();
+    auto root_scene = arcxel::Scene(1000);
+    auto engine = arcxel::Engine(std::move(root_scene));
+
     while (engine.is_running()) {
 
         const auto span = arcxel::Timespan(arcxel::Sample::Label::Frame, store);
