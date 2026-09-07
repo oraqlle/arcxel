@@ -19,7 +19,6 @@
 
 #pragma once
 
-#include "transform.h"
 #include "types.h"
 
 #include <raylib.h>
@@ -32,7 +31,7 @@ public:
 
     virtual ~GameObject() noexcept = default;
 
-    explicit GameObject(Transform3D transform);
+    explicit GameObject(Transform transform);
 
     virtual auto handle_events() -> void = 0;
 
@@ -41,7 +40,7 @@ public:
     virtual auto render(f64 delta) -> void = 0;
 
 public:
-    Transform3D transform;
+    Transform transform;
 }; // class GameObject
 
 } // namespace arcxel

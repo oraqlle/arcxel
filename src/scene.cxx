@@ -62,8 +62,12 @@ auto Scene::render(f64 delta) -> void {
 
 
 auto Scene::_M_create_floor() -> void {
-    auto transform = Transform3D{};
-    transform.scale(Vector3{.x = 1000.0f, .y = 0.001f, .z = 1000.0f});
+    auto transform = Transform{
+        .translation = Vector3{0.0f, 0.0f, 0.0f},
+        .rotation = Quaternion{0.0f, 0.0f, 0.0f, 0.0f},
+        .scale = Vector3{.x = 1000.0f, .y = 0.001f, .z = 1000.0f}
+    };
+
     auto floor = std::make_unique<Cube>(transform);
     floor->set_gravity(false);
     floor->set_body_type(rp3d::BodyType::STATIC);
@@ -80,8 +84,11 @@ auto Scene::_M_generate_objects(usize num_objects) -> void {
     for (auto _ : std::views::iota(num_objects) | std::views::take(num_objects)) {
         auto translation = Vector3{.x = xdist(rand), .y = ydist(rand), .z = zdist(rand)};
 
-        auto transform = Transform3D{};
-        transform.translate(translation);
+        auto transform = Transform{
+            .translation = translation,
+            .rotation = Quaternion{0.0f, 0.0f, 0.0f, 0.0f},
+            .scale = Vector3{1.0f, 1.0f, 1.0f}
+        };
 
         auto cube = std::make_unique<Cube>(transform);
         objects.push_back(std::move(cube));

@@ -30,7 +30,7 @@ class Cube : public GameObject {
 public:
     Cube() noexcept;
 
-    explicit Cube(Transform3D transform) noexcept;
+    explicit Cube(Transform transform) noexcept;
 
     ~Cube() noexcept = default;
 

@@ -1,5 +1,6 @@
 #include "cube.h"
 #include "physics.h"
+#include "utils.h"
 
 #include <raylib.h>
 #include <raymath.h>
@@ -15,12 +16,7 @@ Cube::Cube() noexcept
     mesh = GenMeshCube(width, height, length);
     model = LoadModelFromMesh(mesh);
 
-    const auto physics_pos = rp3d::Vector3(
-        transform.position.x,
-        transform.position.y,
-        transform.position.z
-    );
-
+    const auto physics_pos = as(transform.translation);
     auto physics_transform = rp3d::Transform{physics_pos, rp3d::Quaternion::identity()};
 
     body = Physics::singleton().world->createRigidBody(physics_transform);
@@ -38,22 +34,17 @@ Cube::Cube() noexcept
 };
 
 
-Cube::Cube(Transform3D transform) noexcept
+Cube::Cube(Transform transform) noexcept
     : GameObject(transform)
-    , width(1.0f * transform.scaler.x)
-    , height(1.0f * transform.scaler.y)
-    , length(1.0f * transform.scaler.z)
+    , width(1.0f * transform.scale.x)
+    , height(1.0f * transform.scale.y)
+    , length(1.0f * transform.scale.z)
     , colour(RED) {
     this->transform = transform;
     mesh = GenMeshCube(width, height, length);
     model = LoadModelFromMesh(mesh);
 
-    const auto physics_pos = rp3d::Vector3(
-        transform.position.x,
-        transform.position.y,
-        transform.position.z
-    );
-
+    const auto physics_pos = as(transform.translation);
     auto physics_transform = rp3d::Transform{physics_pos, rp3d::Quaternion::identity()};
 
     body = Physics::singleton().world->createRigidBody(physics_transform);
@@ -75,20 +66,7 @@ auto Cube::handle_events() -> void {};
 
 
 auto Cube::update(f64 delta) -> void {
-    const auto& physics_transform = body->getTransform();
-
-    transform.position = Vector3{
-        .x = physics_transform.getPosition().x,
-        .y = physics_transform.getPosition().y,
-        .z = physics_transform.getPosition().z
-    };
-
-    transform.rotation = Quaternion{
-        .x = physics_transform.getOrientation().x,
-        .y = physics_transform.getOrientation().y,
-        .z = physics_transform.getOrientation().z,
-        .w = physics_transform.getOrientation().w
-    };
+    transform = as(body->getTransform());
 }
 
 
@@ -96,8 +74,7 @@ auto Cube::render(f64 delta) -> void {
     auto axis = Vector3{};
     auto angle = f32{};
     QuaternionToAxisAngle(transform.rotation, &axis, &angle);
-
-    DrawModelEx(model, transform.position, axis, angle, transform.scaler, colour);
+    DrawModelEx(model, transform.translation, axis, angle, transform.scale, colour);
 }
 
 
