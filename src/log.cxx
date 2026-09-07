@@ -122,7 +122,7 @@ auto capture_raylib_logs() -> void {
     const auto millis =
         std::chrono::duration_cast<std::chrono::milliseconds>(now - seconds).count();
     const auto fname =
-        std::format("arcxel-{0:%F}_{0:%R}:{1:%S}-{2:03}.csv", now, seconds, millis);
+        std::format("arcxel-{0:%F}_{0:%R}:{1:%S}-{2:03}.log", now, seconds, millis);
     const auto fpath = outdir / fname;
 
     // Check if filesystem object of the same name exists
