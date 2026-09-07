@@ -33,22 +33,32 @@ message(STATUS "ARXCEL_PROFILING: ${ARCXEL_PROFILING}")
 
 # ---- Dependencies ----
 include(FetchContent)
+
+# -- raylib --
 FetchContent_Declare(
     raylib
     GIT_REPOSITORY  https://github.com/raysan5/raylib.git
     GIT_TAG         6.0
-    GIT_PROGRESS    true
+    GIT_PROGRESS    TRUE
 )
 
 FetchContent_MakeAvailable(raylib)
 
-# raylib's headers trip -Wextra in ways we cannot fix, so consumers treat them
-# as system headers and stay quiet about them.
+# raylib's headers trip -Wextra in so consumers treat them as system headers
 set_target_properties(raylib PROPERTIES SYSTEM TRUE)
 
-# ---- Find Packages ----
-#find_package(glm 1.0.1 REQUIRED)
-#find_package(tinyobjloader 2.0.0 REQUIRED)
+# -- reactphysics3d --
+FetchContent_Declare(
+    reactphysics3d
+    GIT_REPOSITORY  https://github.com/DanielChappuis/reactphysics3d.git
+    GIT_TAG         master
+    GIT_PROGRESS    TRUE
+    GIT_SUBMODULES  ""
+)
+
+FetchContent_MakeAvailable(reactphysics3d)
+
+set_target_properties(reactphysics3d PROPERTIES SYSTEM TRUE)
 
 # ---- Exceptions and Warnings ----
 if (MSVC)
@@ -67,6 +77,7 @@ add_library(
     src/game_object.cxx
     src/log.cxx
     src/object.cxx
+    src/physics.cxx
     src/player.cxx
     src/scene.cxx
     src/timing.cxx
@@ -86,7 +97,7 @@ target_compile_definitions(
         ARCXEL_PROFILING=$<BOOL:${ARCXEL_PROFILING}>
 )
 
-target_link_libraries(arcxel_lib PUBLIC raylib)
+target_link_libraries(arcxel_lib PUBLIC raylib ReactPhysics3D::reactphysics3d)
 
 # ---- Entrypoint ----
 add_executable(arcxel src/main.cxx)
