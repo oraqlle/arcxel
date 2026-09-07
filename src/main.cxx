@@ -49,11 +49,9 @@ using arcxel::f32;
 using arcxel::f64;
 
 using arcxel::LogLevel;
+using Label = arcxel::Sample::Label;
 // clang-format on
 
-
-// ~4M samples, ~10mins of uncapped frames. Further Samples are dropped, no reallocation
-constexpr usize MAX_SAMPLES = 1U << 22U;
 
 constexpr std::string_view DEFAULT_LOGS_DIR = "logs";
 constexpr std::string_view DEFAULT_TRACES_DIR = "traces";
@@ -81,16 +79,16 @@ constexpr i32 HEIGHT = 1080;
 }
 
 
-static inline auto game_loop(arcxel::SampleRecord& store) -> void {
+static inline auto game_loop() -> void {
     auto& engine = arcxel::Engine::singleton(std::make_optional(arcxel::Scene(1000)));
 
     while (engine.is_running()) {
 
-        const auto span = arcxel::Timespan(arcxel::Sample::Label::Frame, store);
+        const auto frame_span = arcxel::Timespan(Label::Frame, engine.sample_record);
 
 
         {
-            const auto span = arcxel::Timespan(arcxel::Sample::Label::Events, store);
+            const auto _ = arcxel::Timespan(Label::Events, engine.sample_record);
             engine.handle_events();
         }
 
@@ -99,20 +97,20 @@ static inline auto game_loop(arcxel::SampleRecord& store) -> void {
 
 
         {
-            const auto span = arcxel::Timespan(arcxel::Sample::Label::Update, store);
+            const auto _ = arcxel::Timespan(Label::Update, engine.sample_record);
             engine.update(delta);
         }
 
 
         {
-            const auto span = arcxel::Timespan(arcxel::Sample::Label::Render, store);
-            engine.render(delta, store);
+            const auto _ = arcxel::Timespan(Label::Render, engine.sample_record);
+            engine.render(delta);
         }
     }
 }
 
 
-[[nodiscard]] static auto run(arcxel::SampleRecord& store) -> arcxel::Fallible {
+[[nodiscard]] static auto run() -> arcxel::Fallible {
 
     // ---- WINDOW CREATION ----
     const auto winfo =
@@ -124,7 +122,7 @@ static inline auto game_loop(arcxel::SampleRecord& store) -> void {
 
     // ---- GAME LOOP ----
     DisableCursor();
-    game_loop(store);
+    game_loop();
     EnableCursor();
 
     return {};
@@ -151,8 +149,6 @@ auto main() -> int {
     // ---- CREATE PROFILE TRACE STORE ----
     auto store = arcxel::SampleRecord(0);
     if constexpr (arcxel::profiling_enabled) {
-        store = arcxel::SampleRecord(MAX_SAMPLES);
-
         if (const auto r = arcxel::create_dir(DEFAULT_TRACES_DIR); !r) {
             arcxel::raw_log("{}", r.error());
         };
@@ -160,14 +156,14 @@ auto main() -> int {
 
 
     // ---- ENGINE ----
-    if (const auto r = run(store); !r) {
+    if (const auto r = run(); !r) {
         arcxel::raw_log("{}", r.error());
     }
 
 
     // ---- WRITE PROFILE TRACE ----
     if constexpr (arcxel::profiling_enabled) {
-        arcxel::log_trace_summary(store);
+        arcxel::log_trace_summary(arcxel::Engine::singleton().sample_record);
 
         if (const auto r = store.write_timings_to_csv(DEFAULT_TRACES_DIR); !r) {
             arcxel::raw_log("{}", r.error());

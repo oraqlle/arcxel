@@ -92,7 +92,11 @@ static_assert(
 
 struct SampleRecord {
 public:
-    explicit SampleRecord(usize max_num_samples) noexcept;
+
+    // ~4M samples, ~10mins of uncapped frames. Further Samples are dropped, no reallocation
+    static constexpr usize MAX_SAMPLES = 1U << 22U;
+
+    explicit SampleRecord(usize max_num_samples = MAX_SAMPLES) noexcept;
 
     auto record(const Sample& sample) -> bool;
 

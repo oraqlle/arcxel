@@ -41,12 +41,15 @@ public:
 
     auto update(f64 delta) -> void;
 
-    auto render(f64 delta, SampleRecord& store) -> void;
+    auto render(f64 delta) -> void;
 
 private:
     explicit Engine(std::optional<Scene> opt_scene);
 
     ~Engine() noexcept = default;
+
+public:
+    SampleRecord sample_record;
 
 private:
     bool running;

@@ -6,7 +6,8 @@
 namespace arcxel {
 
 Engine::Engine(std::optional<Scene> opt_scene)
-    : running(true)
+    : sample_record()
+    , running(true)
 {
     if (opt_scene) {
         scene = std::move(*opt_scene);
@@ -38,24 +39,24 @@ auto Engine::handle_events() -> void { scene.handle_events(); }
 auto Engine::update(f64 delta) -> void { scene.update(delta); }
 
 
-auto Engine::render(f64 delta, SampleRecord& store) -> void {
+auto Engine::render(f64 delta) -> void {
     auto camera = scene.primary_camera();
 
     {
-        const auto span = Timespan(Sample::Label::Construct, store);
+        const auto span = Timespan(Sample::Label::Construct, sample_record);
         BeginDrawing();
         ClearBackground(RAYWHITE);
     }
 
     {
-        const auto span = Timespan(Sample::Label::Draw, store);
+        const auto span = Timespan(Sample::Label::Draw, sample_record);
         BeginMode3D(camera);
         scene.render(delta);
         EndMode3D();
     }
 
     {
-        const auto span = Timespan(Sample::Label::Present, store);
+        const auto span = Timespan(Sample::Label::Present, sample_record);
         EndDrawing();
     }
 }
