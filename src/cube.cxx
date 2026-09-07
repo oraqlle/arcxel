@@ -14,6 +14,7 @@ Cube::Cube() noexcept
     model = LoadModelFromMesh(mesh);
 };
 
+
 Cube::Cube(Transform3D transform) noexcept
     : GameObject(transform)
     , width(1.0f)
@@ -25,7 +26,12 @@ Cube::Cube(Transform3D transform) noexcept
     model = LoadModelFromMesh(mesh);
 }
 
+
+auto Cube::handle_events() -> void {};
+
+
 auto Cube::update(f64 delta) -> void {}
+
 
 auto Cube::render(f64 delta) -> void {
     DrawModel(model, transform.position, 1.0f, colour);

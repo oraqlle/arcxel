@@ -33,9 +33,11 @@ public:
 
     ~Cube() noexcept = default;
 
-    auto update(f64 delta) -> void;
+    auto handle_events() -> void override;
 
-    auto render(f64 delta) -> void;
+    auto update(f64 delta) -> void override;
+
+    auto render(f64 delta) -> void override;
 
 private:
     f32 width;

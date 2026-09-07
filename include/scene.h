@@ -19,16 +19,21 @@
 
 #pragma once
 
-#include "cube.h"
+#include "game_object.h"
 #include "player.h"
+#include "types.h"
 
+#include <memory>
 #include <raylib.h>
+#include <vector>
 
 namespace arcxel {
 
 class Scene {
 public:
     Scene() noexcept;
+
+    explicit Scene(usize num_objects) noexcept;
 
     auto handle_events() -> void;
 
@@ -38,12 +43,16 @@ public:
 
     [[nodiscard]] auto primary_camera() -> Camera3D;
 
+private:
+    auto _M_create_player() -> void;
+
+    auto _M_generate_objects(usize num_objects) -> void;
+
 public: // Scene objects
-    Cube cube;
-    Player player;
+    std::vector<std::unique_ptr<GameObject>> objects;
 
 private:
-    Camera3D primary_cam;
+    Player player;
 
 }; // class Scene
 

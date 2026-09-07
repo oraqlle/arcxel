@@ -34,11 +34,11 @@ public:
 
     explicit GameObject(Transform3D transform);
 
-    auto handle_events() -> void;
+    virtual auto handle_events() -> void = 0;
 
-    auto update(f64 delta) -> void;
+    virtual auto update(f64 delta) -> void = 0;
 
-    auto render(f64 delta) -> void;
+    virtual auto render(f64 delta) -> void = 0;
 
 public:
     Transform3D transform;
