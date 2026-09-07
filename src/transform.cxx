@@ -23,9 +23,9 @@ namespace arcxel {
 }
 
 Transform3D::Transform3D() noexcept
-    : position{0.0f}
+    : position{0.0f, 0.0f, 0.0f}
     , rotation{1.0f, 0.0f, 0.0f, 0.0f}
-    , scaler{1.0f} {}
+    , scaler{1.0f, 1.0f, 1.0f} {}
 
 auto Transform3D::translate(Vector3 amount) -> void {
     position = Vector3Add(position, amount);
