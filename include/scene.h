@@ -44,7 +44,7 @@ public:
     [[nodiscard]] auto primary_camera() -> Camera3D;
 
 private:
-    auto _M_create_player() -> void;
+    auto _M_create_floor() -> void;
 
     auto _M_generate_objects(usize num_objects) -> void;
 
