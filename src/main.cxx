@@ -25,6 +25,7 @@
 #include "utils.h"
 #include "window_info.h"
 
+#include <optional>
 #include <raylib.h>
 
 #include <expected>
@@ -81,8 +82,7 @@ constexpr i32 HEIGHT = 1080;
 
 
 static inline auto game_loop(arcxel::SampleRecord& store) -> void {
-    auto root_scene = arcxel::Scene(1000);
-    auto engine = arcxel::Engine(std::move(root_scene));
+    auto& engine = arcxel::Engine::singleton(std::make_optional(arcxel::Scene(1000)));
 
     while (engine.is_running()) {
 

@@ -23,19 +23,15 @@
 #include "timing.h"
 #include "types.h"
 
+#include <optional>
 #include <raylib.h>
 
 namespace arcxel {
 
 class Engine {
 public:
-    Engine();
-
-    explicit Engine(Scene&& scene);
-
-    ~Engine() noexcept = default;
-
-    // make singleton
+    [[nodiscard]] static auto singleton(std::optional<Scene> init = std::nullopt)
+        -> Engine&;
 
     [[nodiscard]] auto is_running() -> bool;
 
@@ -48,7 +44,13 @@ public:
     auto render(f64 delta, SampleRecord& store) -> void;
 
 private:
+    explicit Engine(std::optional<Scene> opt_scene);
+
+    ~Engine() noexcept = default;
+
+private:
     bool running;
+    bool constructed;
     Scene scene;
 }; // class Engine
 

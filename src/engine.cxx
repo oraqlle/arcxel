@@ -1,22 +1,32 @@
 #include "engine.h"
-
 #include "timing.h"
 
 #include <raylib.h>
 
 namespace arcxel {
 
-Engine::Engine()
-    : running(true) {}
+Engine::Engine(std::optional<Scene> opt_scene)
+    : running(true)
+{
+    if (opt_scene) {
+        scene = std::move(*opt_scene);
+    } else {
+        scene = Scene();
+    }
+}
+
+
+[[nodiscard]] auto Engine::singleton(std::optional<Scene> init)
+    -> Engine& {
+
+    static auto engine = Engine(std::move(init));
+    return engine;
+}
+
 
 [[nodiscard]] auto Engine::is_running() -> bool {
     return running && !WindowShouldClose();
 }
-
-
-Engine::Engine(Scene&& scene)
-    : running(true)
-    , scene(std::move(scene)) {}
 
 
 auto Engine::stop() -> void { running = false; }
