@@ -19,6 +19,8 @@
 
 #pragma once
 
+#include "rp3d.h"
+
 #include <chrono>
 #include <raylib.h>
 
@@ -41,4 +43,37 @@ namespace arcxel {
 [[nodiscard]] auto current_datetime()
     -> std::chrono::local_time<std::chrono::steady_clock::duration>;
 
+
+[[nodiscard]] constexpr auto as(const rp3d::Vector3& vec) -> Vector3 {
+    return Vector3{vec.x, vec.y, vec.z};
+}
+
+
+[[nodiscard]] constexpr auto as(const Vector3& vec) -> rp3d::Vector3 {
+    return rp3d::Vector3{vec.x, vec.y, vec.z};
+}
+
+
+[[nodiscard]] constexpr auto as(const rp3d::Quaternion& quat) -> Quaternion {
+    return Quaternion{quat.x, quat.y, quat.z, quat.w};
+}
+
+
+[[nodiscard]] constexpr auto as(const Quaternion& quat) -> rp3d::Quaternion {
+    return rp3d::Quaternion{quat.x, quat.y, quat.z, quat.w};
+}
+
+
+[[nodiscard]] constexpr auto as(const rp3d::Transform& transform) -> Transform {
+    return Transform{
+        .translation = as(transform.getPosition()),
+        .rotation = as(transform.getOrientation()),
+        .scale = Vector3{1.0f, 1.0f, 1.0f}
+    };
+}
+
+
+[[nodiscard]] constexpr auto as(const Transform& transform) -> rp3d::Transform {
+    return rp3d::Transform(as(transform.translation), as(transform.rotation));
+}
 } // namespace arcxel
