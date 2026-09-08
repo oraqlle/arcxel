@@ -40,10 +40,6 @@ public:
 
     auto render(f64 delta) -> void override;
 
-    auto set_gravity(bool on) -> void;
-
-    auto set_body_type(rp3d::BodyType type) -> void;
-
 private:
     f32 width;
     f32 height;

@@ -40,7 +40,6 @@ Cube::Cube(Transform transform) noexcept
     , height(1.0f * transform.scale.y)
     , length(1.0f * transform.scale.z)
     , colour(RED) {
-    this->transform = transform;
     mesh = GenMeshCube(width, height, length);
     model = LoadModelFromMesh(mesh);
 
@@ -75,16 +74,6 @@ auto Cube::render(f64 delta) -> void {
     auto angle = f32{};
     QuaternionToAxisAngle(transform.rotation, &axis, &angle);
     DrawModelEx(model, transform.translation, axis, angle, transform.scale, colour);
-}
-
-
-auto Cube::set_gravity(bool on) -> void {
-    body->enableGravity(on);
-}
-
-
-auto Cube::set_body_type(rp3d::BodyType type) -> void {
-    body->setType(type);
 }
 
 } // namespace arcxel
