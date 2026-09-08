@@ -27,7 +27,7 @@ namespace arcxel {
 
 class GameObject {
 public:
-    GameObject() noexcept = default;
+    GameObject() noexcept;
 
     virtual ~GameObject() noexcept = default;
 
