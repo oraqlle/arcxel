@@ -10,7 +10,8 @@ Player::Player() noexcept
     : speed(5.0f)
     , sprint_speed_scale(1.75f)
     , look_sensitivity(0.0015f) {
-    camera.position = Vector3Zero();
+    //camera.position = Vector3Zero();
+    camera.position = Vector3{100.0f, 80.0f, 0.0f};
     camera.target = Vector3{0.0f, 0.0f, -1.0f};
     camera.up = Vector3{0.0f, 1.0f, 0.0f};
     camera.fovy = 45.0;
