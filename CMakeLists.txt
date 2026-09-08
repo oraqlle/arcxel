@@ -74,6 +74,7 @@ add_library(
     arcxel_lib OBJECT
     src/cube.cxx
     src/engine.cxx
+    src/floor.cxx
     src/game_object.cxx
     src/log.cxx
     src/object.cxx

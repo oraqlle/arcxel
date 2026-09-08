@@ -1,5 +1,6 @@
 #include "scene.h"
 #include "cube.h"
+#include "floor.h"
 #include "game_object.h"
 #include "player.h"
 #include "transform.h"
@@ -47,7 +48,7 @@ auto Scene::update(f64 delta) -> void {
 
 
 auto Scene::render(f64 delta) -> void {
-    DrawGrid(10000, 1.0f);
+    DrawGrid(1000, 1.0f);
 
 
     for (auto& obj : objects) {
@@ -62,24 +63,16 @@ auto Scene::render(f64 delta) -> void {
 
 
 auto Scene::_M_create_floor() -> void {
-    auto transform = Transform{
-        .translation = Vector3{0.0f, 0.0f, 0.0f},
-        .rotation = Quaternion{0.0f, 0.0f, 0.0f, 0.0f},
-        .scale = Vector3{.x = 1000.0f, .y = 0.001f, .z = 1000.0f}
-    };
-
-    auto floor = std::make_unique<Cube>(transform);
-    floor->set_gravity(false);
-    floor->set_body_type(rp3d::BodyType::STATIC);
+    auto floor = std::make_unique<Floor>();
     objects.push_back(std::move(floor));
 }
 
 
 auto Scene::_M_generate_objects(usize num_objects) -> void {
     auto rand = std::default_random_engine(std::random_device{}());
-    auto xdist = std::uniform_real_distribution<float>(-100.0f, 100.0f);
-    auto ydist = std::uniform_real_distribution<float>(-100.0f, 100.0f);
-    auto zdist = std::uniform_real_distribution<float>(-50.0f, -30.0f);
+    auto xdist = std::uniform_real_distribution<float>(-50.0f, 50.0f);
+    auto ydist = std::uniform_real_distribution<float>(10.0f, 50.0f);
+    auto zdist = std::uniform_real_distribution<float>(-50.0f, 50.0f);
 
     for (auto _ : std::views::iota(num_objects) | std::views::take(num_objects)) {
         auto translation = Vector3{.x = xdist(rand), .y = ydist(rand), .z = zdist(rand)};
