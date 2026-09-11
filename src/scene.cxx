@@ -77,13 +77,13 @@ auto Scene::_M_generate_objects(usize num_objects) -> void {
     auto zdist = std::uniform_real_distribution<float>(-50.0f, 50.0f);
 
     for (auto _ : std::views::iota(num_objects) | std::views::take(num_objects)) {
-        auto translation = Vector3{.x = xdist(rand), .y = ydist(rand), .z = zdist(rand)};
+        auto translation = Vector3{ .x = xdist(rand),
+                                    .y = ydist(rand),
+                                    .z = zdist(rand) };
 
-        auto transform = Transform{
-            .translation = translation,
-            .rotation = QuaternionUnitX,
-            .scale = Vector3{1.0f, 1.0f, 1.0f}
-        };
+        auto transform = Transform{ .translation = translation,
+                                    .rotation = QuaternionUnitX,
+                                    .scale = Vector3{ 1.0f, 1.0f, 1.0f } };
 
         auto colour = Color{
             .r = static_cast<unsigned char>(std::abs(translation.x / 50.0f) * 255.0f),
