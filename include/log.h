@@ -92,10 +92,11 @@ template <typename... Args>
 constexpr auto
 make_log_string(const LogLevel level, std::format_string<Args...> fmt, Args&&... args)
     -> std::string {
+    namespace chrono = std::chrono;
+
     const auto now = current_datetime();
-    const auto seconds = std::chrono::floor<std::chrono::seconds>(now);
-    const auto ns = std::chrono::duration_cast<std::chrono::nanoseconds>(now - seconds)
-                        .count();
+    const auto seconds = chrono::floor<chrono::seconds>(now);
+    const auto ns = chrono::duration_cast<chrono::nanoseconds>(now - seconds) .count();
 
     return std::format(
         "[{:%R}:{:%S}.{:09}] {:<5} {}",
