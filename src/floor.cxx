@@ -18,17 +18,16 @@ Floor::Floor(f32 width, f32 length) noexcept
     //! 1.0f height floor centred at 0.5f locally, thus translate by -0.5f to make level
     //! with world origin XZ plane.
     auto physics_pos = as(transform.translation);
-    //physics_pos.y = -0.5f;
+    // physics_pos.y = -0.5f;
 
-    auto physics_transform = rp3d::Transform{physics_pos, rp3d::Quaternion::identity()};
+    auto physics_transform = rp3d::Transform{ physics_pos, rp3d::Quaternion::identity() };
 
     body = Physics::singleton().world->createRigidBody(physics_transform);
     body->setType(rp3d::BodyType::STATIC);
     body->enableGravity(false);
 
     shape = Physics::singleton().common.createBoxShape(
-        rp3d::Vector3(width * 0.5f, 0.00001f, length * 0.5f)
-    );
+        rp3d::Vector3(width * 0.5f, 0.00001f, length * 0.5f));
 
     collider = body->addCollider(shape, rp3d::Transform::identity());
     auto physics_mat = collider->getMaterial();

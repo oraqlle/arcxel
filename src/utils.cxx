@@ -14,14 +14,13 @@ namespace arcxel {
     if (!std::filesystem::exists(path)) {
         log(LogLevel::Info, "Creating logs directory at path '{}'", path.string());
         std::filesystem::create_directories(path);
-    } else if (std::filesystem::status(path).type() !=
-               std::filesystem::file_type::directory) {
+    } else if (
+        std::filesystem::status(path).type() != std::filesystem::file_type::directory) {
         return std::unexpected(
-            std::format("Path '{}' exists but is not a directory", path.string())
-        );
+            std::format("Path '{}' exists but is not a directory", path.string()));
     }
 
-    return {path};
+    return { path };
 }
 
 

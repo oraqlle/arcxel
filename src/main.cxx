@@ -20,15 +20,14 @@
 #include "engine.h"
 #include "log.h"
 #include "physics.h"
+#include "rp3d.h"
 #include "scene.h"
 #include "timing.h"
 #include "types.h"
 #include "utils.h"
 #include "window_info.h"
 
-
 #include <raylib.h>
-#include "rp3d.h"
 
 #include <expected>
 #include <optional>
@@ -121,8 +120,9 @@ static inline auto game_loop() -> void {
 [[nodiscard]] static auto run() -> arcxel::Fallible {
 
     // ---- WINDOW CREATION ----
-    const auto winfo =
-        arcxel::WindowInfo{.width = WIDTH, .height = HEIGHT, .target_fps = 0};
+    const auto winfo = arcxel::WindowInfo{ .width = WIDTH,
+                                           .height = HEIGHT,
+                                           .target_fps = 0 };
 
     if (auto r = create_window(winfo); !r) {
         return r;
@@ -162,7 +162,7 @@ auto main() -> int {
     } else {
         SetTraceLogLevel(LOG_NONE);
     }
-    
+
 
     // ---- CREATE PROFILE TRACE STORE ----
     if constexpr (arcxel::profiling_enabled) {

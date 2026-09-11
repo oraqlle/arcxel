@@ -36,7 +36,7 @@ namespace arcxel {
  */
 static constexpr Transform TransformIdentity = Transform{
     .translation = Vector3Zeros,
-    .rotation = Quaternion{.x = 0.0f, .y = 0.0f, .z = 0.0f, .w = 1.0f},
+    .rotation = Quaternion{ .x = 0.0f, .y = 0.0f, .z = 0.0f, .w = 1.0f },
     .scale = Vector3Ones
 };
 
@@ -55,31 +55,29 @@ static constexpr Transform TransformIdentity = Transform{
 
 
 [[nodiscard]] constexpr auto as(const rp3d::Vector3& vec) -> Vector3 {
-    return Vector3{vec.x, vec.y, vec.z};
+    return Vector3{ vec.x, vec.y, vec.z };
 }
 
 
 [[nodiscard]] constexpr auto as(const Vector3& vec) -> rp3d::Vector3 {
-    return rp3d::Vector3{vec.x, vec.y, vec.z};
+    return rp3d::Vector3{ vec.x, vec.y, vec.z };
 }
 
 
 [[nodiscard]] constexpr auto as(const rp3d::Quaternion& quat) -> Quaternion {
-    return Quaternion{quat.x, quat.y, quat.z, quat.w};
+    return Quaternion{ quat.x, quat.y, quat.z, quat.w };
 }
 
 
 [[nodiscard]] constexpr auto as(const Quaternion& quat) -> rp3d::Quaternion {
-    return rp3d::Quaternion{quat.x, quat.y, quat.z, quat.w};
+    return rp3d::Quaternion{ quat.x, quat.y, quat.z, quat.w };
 }
 
 
 [[nodiscard]] constexpr auto as(const rp3d::Transform& transform) -> Transform {
-    return Transform{
-        .translation = as(transform.getPosition()),
-        .rotation = as(transform.getOrientation()),
-        .scale = Vector3{1.0f, 1.0f, 1.0f}
-    };
+    return Transform{ .translation = as(transform.getPosition()),
+                      .rotation = as(transform.getOrientation()),
+                      .scale = Vector3{ 1.0f, 1.0f, 1.0f } };
 }
 
 

@@ -38,8 +38,7 @@ public:
 
 private:
     explicit Physics(
-        std::optional<rp3d::PhysicsWorld::WorldSettings> opt_settings
-    ) noexcept;
+        std::optional<rp3d::PhysicsWorld::WorldSettings> opt_settings) noexcept;
 
     ~Physics() noexcept;
 

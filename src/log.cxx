@@ -121,8 +121,11 @@ auto capture_raylib_logs() -> void {
     const auto seconds = std::chrono::floor<std::chrono::seconds>(now);
     const auto millis =
         std::chrono::duration_cast<std::chrono::milliseconds>(now - seconds).count();
-    const auto fname =
-        std::format("arcxel-{0:%F}_{0:%R}:{1:%S}-{2:03}.log", now, seconds, millis);
+    const auto fname = std::format(
+        "arcxel-{0:%F}_{0:%R}:{1:%S}-{2:03}.log",
+        now,
+        seconds,
+        millis);
     const auto fpath = outdir / fname;
 
     // Check if filesystem object of the same name exists
@@ -132,8 +135,7 @@ auto capture_raylib_logs() -> void {
             fpath.filename().string());
     } else if (fs::status(outdir).type() != fs::file_type::regular) {
         return std::unexpected(
-            std::format("File '{}' exists, overwriting.", fpath.filename().string())
-        );
+            std::format("File '{}' exists, overwriting.", fpath.filename().string()));
     } else {
         log(LogLevel::Warning,
             "File '{}' exists, overwriting.",
