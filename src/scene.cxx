@@ -62,6 +62,11 @@ auto Scene::render(f64 delta) -> void {
 [[nodiscard]] auto Scene::primary_camera() -> Camera3D { return player.get_camera(); }
 
 
+auto Scene::unload() -> void {
+    objects.clear();
+}
+
+
 auto Scene::_M_create_floor() -> void {
     auto floor = std::make_unique<Floor>();
     objects.push_back(std::move(floor));

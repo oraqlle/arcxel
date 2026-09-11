@@ -30,7 +30,12 @@ Engine::Engine(std::optional<Scene> opt_scene)
 }
 
 
-auto Engine::stop() -> void { running = false; }
+// expand to drop the scene so objects freed in while logger is open
+auto Engine::stop() -> void {
+    running = false;
+
+    scene.unload();
+}
 
 
 auto Engine::handle_events() -> void { scene.handle_events(); }

@@ -141,6 +141,8 @@ static inline auto game_loop() -> void {
     game_loop();
     EnableCursor();
 
+    arcxel::Engine::singleton().stop();
+
     return {};
 }
 

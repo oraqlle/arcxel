@@ -43,6 +43,8 @@ public:
 
     [[nodiscard]] auto primary_camera() -> Camera3D;
 
+    auto unload() -> void;
+
 private:
     auto _M_create_floor() -> void;
 
