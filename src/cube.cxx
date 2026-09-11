@@ -22,7 +22,7 @@ Cube::~Cube() noexcept {
     }
 
     if (shape) {
-        Physics::singleton().common.destroyBoxShape(dynamic_cast<shape_t*>(shape));
+        Physics::singleton().common.destroyBoxShape(shape);
         shape = nullptr;
     }
 }
