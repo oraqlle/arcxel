@@ -3,7 +3,6 @@
 #include "floor.h"
 #include "game_object.h"
 #include "player.h"
-#include "transform.h"
 #include "types.h"
 
 #include <raylib.h>
@@ -48,7 +47,7 @@ auto Scene::update(f64 delta) -> void {
 
 
 auto Scene::render(f64 delta) -> void {
-    DrawGrid(1000, 1.0f);
+    DrawGrid(200, 1.0f);
 
 
     for (auto& obj : objects) {
@@ -62,9 +61,7 @@ auto Scene::render(f64 delta) -> void {
 [[nodiscard]] auto Scene::primary_camera() -> Camera3D { return player.get_camera(); }
 
 
-auto Scene::unload() -> void {
-    objects.clear();
-}
+auto Scene::unload() -> void { objects.clear(); }
 
 
 auto Scene::_M_create_floor() -> void {
@@ -84,11 +81,18 @@ auto Scene::_M_generate_objects(usize num_objects) -> void {
 
         auto transform = Transform{
             .translation = translation,
-            .rotation = Quaternion{0.0f, 0.0f, 0.0f, 0.0f},
+            .rotation = QuaternionUnitX,
             .scale = Vector3{1.0f, 1.0f, 1.0f}
         };
 
-        auto cube = std::make_unique<Cube>(transform);
+        auto colour = Color{
+            .r = static_cast<unsigned char>(std::abs(translation.x / 50.0f) * 255.0f),
+            .g = static_cast<unsigned char>(std::abs(translation.y / 50.0f) * 255.0f),
+            .b = static_cast<unsigned char>(std::abs(translation.z / 50.0f) * 255.0f),
+            .a = 255
+        };
+
+        auto cube = std::make_unique<Cube>(transform, colour);
         objects.push_back(std::move(cube));
     }
 }
