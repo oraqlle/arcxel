@@ -19,38 +19,28 @@
 
 #pragma once
 
-#include "game_object.h"
 #include "rp3d.h"
+#include "shape.h"
 
 #include <raylib.h>
 
 namespace arcxel {
 
-class Cube : public GameObject {
+class Cube : public Shape {
 public:
-    Cube() noexcept;
+    using shape_t = rp3d::BoxShape;
 
-    explicit Cube(Transform transform) noexcept;
+    explicit Cube(Transform transform = TransformUnit, Color colour = GRAY) noexcept;
 
-    ~Cube() noexcept = default;
+    ~Cube() noexcept override;
 
-    auto handle_events() -> void override;
+protected:
+    virtual auto _M_create_mesh() -> void override;
 
-    auto update(f64 delta) -> void override;
-
-    auto render(f64 delta) -> void override;
+    virtual auto _M_create_collision_shape() -> void override;
 
 private:
-    f32 width;
-    f32 height;
-    f32 length;
-    Color colour;
-    Mesh mesh;
-    Model model;
-
-    rp3d::RigidBody* body;
-    rp3d::BoxShape* shape;
-    rp3d::Collider* collider;
+    Vector3 size;
 }; // class Cube
 
 } // namespace arcxel

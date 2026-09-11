@@ -27,11 +27,9 @@ namespace arcxel {
 
 class GameObject {
 public:
-    GameObject() noexcept;
+    explicit GameObject(Transform transform) noexcept;
 
     virtual ~GameObject() noexcept = default;
-
-    explicit GameObject(Transform transform);
 
     virtual auto handle_events() -> void = 0;
 

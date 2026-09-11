@@ -26,9 +26,19 @@
 
 #include <expected>
 #include <filesystem>
+#include <raymath.h>
 #include <string>
 
 namespace arcxel {
+
+/*
+ * @brief Unit Transform object, translation & rotation are zeroed and scale is one'd
+ */
+static constexpr Transform TransformUnit = Transform{
+    .translation = Vector3Zeros,
+    .rotation = Quaternion{.x = 0.0f, .y = 0.0f, .z = 0.0f, .w = 1.0f},
+    .scale = Vector3Ones
+};
 
 /**
  * @brief Create a directory from the given string
@@ -76,4 +86,5 @@ namespace arcxel {
 [[nodiscard]] constexpr auto as(const Transform& transform) -> rp3d::Transform {
     return rp3d::Transform(as(transform.translation), as(transform.rotation));
 }
+
 } // namespace arcxel

@@ -8,7 +8,7 @@
 namespace arcxel {
 
 Floor::Floor(f32 width, f32 length) noexcept
-    : GameObject()
+    : GameObject(TransformUnit)
     , width(width * transform.scale.x)
     , length(length * transform.scale.z)
     , colour(LIGHTGRAY) {

@@ -7,73 +7,40 @@
 
 namespace arcxel {
 
-Cube::Cube() noexcept
-    : GameObject()
-    , width(1.0f)
-    , height(1.0f)
-    , length(1.0f)
-    , colour(RED) {
-    mesh = GenMeshCube(width, height, length);
-    model = LoadModelFromMesh(mesh);
-
-    const auto physics_pos = as(transform.translation);
-    auto physics_transform = rp3d::Transform{physics_pos, rp3d::Quaternion::identity()};
-
-    body = Physics::singleton().world->createRigidBody(physics_transform);
-    body->setType(rp3d::BodyType::DYNAMIC);
-
-    shape = Physics::singleton().common.createBoxShape(rp3d::Vector3(
-        width * 0.5f,
-        height * 0.5f,
-        length * 0.5f
-    ));
-
-    collider = body->addCollider(shape, rp3d::Transform::identity());
-    collider->getMaterial().setMassDensity(1.0f);
-    body->updateMassPropertiesFromColliders();
-};
-
-
-Cube::Cube(Transform transform) noexcept
-    : GameObject(transform)
-    , width(1.0f * transform.scale.x)
-    , height(1.0f * transform.scale.y)
-    , length(1.0f * transform.scale.z)
-    , colour(RED) {
-    mesh = GenMeshCube(width, height, length);
-    model = LoadModelFromMesh(mesh);
-
-    const auto physics_pos = as(transform.translation);
-    auto physics_transform = rp3d::Transform{physics_pos, rp3d::Quaternion::identity()};
-
-    body = Physics::singleton().world->createRigidBody(physics_transform);
-    body->setType(rp3d::BodyType::DYNAMIC);
-
-    shape = Physics::singleton().common.createBoxShape(rp3d::Vector3(
-        width * 0.5f,
-        height * 0.5f,
-        length * 0.5f
-    ));
-
-    collider = body->addCollider(shape, rp3d::Transform::identity());
-    collider->getMaterial().setMassDensity(1.0f);
-    body->updateMassPropertiesFromColliders();
+Cube::Cube(Transform transform, Color colour) noexcept
+    : Shape(rp3d::BodyType::DYNAMIC, transform, colour)
+    , size(Vector3Ones * transform.scale) {
+    _M_create_mesh();
+    _M_create_collision_shape();
 }
 
 
-auto Cube::handle_events() -> void {};
+Cube::~Cube() noexcept {
+    if (body && collider) {
+        body->removeCollider(collider);
+        collider = nullptr;
+    }
 
-
-auto Cube::update(f64 delta) -> void {
-    transform = as(body->getTransform());
+    if (shape) {
+        Physics::singleton().common.destroyBoxShape(dynamic_cast<shape_t*>(shape));
+        shape = nullptr;
+    }
 }
 
 
-auto Cube::render(f64 delta) -> void {
-    auto axis = Vector3{};
-    auto angle = f32{};
-    QuaternionToAxisAngle(transform.rotation, &axis, &angle);
-    DrawModelEx(model, transform.translation, axis, angle, transform.scale, colour);
+auto Cube::_M_create_mesh() -> void {
+    mesh = GenMeshCube(size.x, size.y, size.z);
+    model = LoadModelFromMesh(mesh);
+
+    mesh = {};
+}
+
+
+auto Cube::_M_create_collision_shape() -> void {
+    shape = Physics::singleton().common.createBoxShape(as(size * 0.5));
+    collider = body->addCollider(shape, rp3d::Transform::identity());
+    collider->getMaterial().setMassDensity(1.0f);
+    body->updateMassPropertiesFromColliders();
 }
 
 } // namespace arcxel
