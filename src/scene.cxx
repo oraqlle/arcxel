@@ -3,6 +3,7 @@
 #include "floor.h"
 #include "game_object.h"
 #include "player.h"
+#include "sphere.h"
 #include "types.h"
 
 #include <raylib.h>
@@ -75,6 +76,7 @@ auto Scene::_M_generate_objects(usize num_objects) -> void {
     auto xdist = std::uniform_real_distribution<float>(-50.0f, 50.0f);
     auto ydist = std::uniform_real_distribution<float>(10.0f, 50.0f);
     auto zdist = std::uniform_real_distribution<float>(-50.0f, 50.0f);
+    auto shape_type_dist = std::uniform_int_distribution<int>{};
 
     for (auto _ : std::views::iota(num_objects) | std::views::take(num_objects)) {
         auto translation = Vector3{ .x = xdist(rand),
@@ -92,8 +94,15 @@ auto Scene::_M_generate_objects(usize num_objects) -> void {
             .a = 255
         };
 
-        auto cube = std::make_unique<Cube>(transform, colour);
-        objects.push_back(std::move(cube));
+        switch (shape_type_dist(rand) % 2) {
+            case 0: // Cube
+                objects.push_back(std::make_unique<Cube>(transform, colour));
+                break;
+
+            case 1: // Sphere
+                objects.push_back(std::make_unique<Sphere>(transform, colour));
+                break;
+        }
     }
 }
 
