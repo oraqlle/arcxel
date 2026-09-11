@@ -8,7 +8,7 @@
 namespace arcxel {
 
 Cube::Cube(Transform transform, Color colour) noexcept
-    : Shape(rp3d::BodyType::DYNAMIC, transform, colour)
+    : PhysicsObject(rp3d::BodyType::DYNAMIC, transform, colour)
     , size(Vector3Ones * transform.scale) {
     _M_create_mesh();
     _M_create_collision_shape();

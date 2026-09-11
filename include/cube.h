@@ -19,18 +19,19 @@
 
 #pragma once
 
+#include "physics_object.h"
 #include "rp3d.h"
-#include "shape.h"
+#include "utils.h"
 
 #include <raylib.h>
 
 namespace arcxel {
 
-class Cube : public Shape {
+class Cube : public PhysicsObject {
 public:
     using shape_t = rp3d::BoxShape;
 
-    explicit Cube(Transform transform = TransformUnit, Color colour = GRAY) noexcept;
+    explicit Cube(Transform transform = TransformIdentity, Color colour = GRAY) noexcept;
 
     ~Cube() noexcept override;
 
@@ -39,7 +40,9 @@ protected:
 
     virtual auto _M_create_collision_shape() -> void override;
 
-private:
+protected:
+    rp3d::CollisionShape* shape;
+    rp3d::Collider* collider;
     Vector3 size;
 }; // class Cube
 

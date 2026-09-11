@@ -81,7 +81,7 @@ add_library(
     src/physics.cxx
     src/player.cxx
     src/scene.cxx
-    src/shape.cxx
+    src/physics_object.cxx
     src/timing.cxx
     src/transform.cxx
     src/utils.cxx

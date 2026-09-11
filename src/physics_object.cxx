@@ -1,4 +1,4 @@
-#include "shape.h"
+#include "physics_object.h"
 #include "physics.h"
 #include "utils.h"
 
@@ -7,17 +7,22 @@
 
 namespace arcxel {
 
-Shape::Shape(rp3d::BodyType btype, Transform transform, Color colour) noexcept
+PhysicsObject::PhysicsObject(
+    rp3d::BodyType btype,
+    Transform transform,
+    Color colour) noexcept
     : GameObject(transform)
     , colour(colour)
     , mesh({})
     , model({})
-    , body(Shape::_M_create_rigid_body(btype, transform))
-    , shape(nullptr)
-    , collider(nullptr) {}
+    , body(nullptr) {
+    const auto phys_pos = as(transform.translation);
+    auto phys_transform = rp3d::Transform{ phys_pos, rp3d::Quaternion::identity() };
+    body = Physics::singleton().world->createRigidBody(phys_transform);
+    body->setType(btype);
+}
 
-
-Shape::~Shape() noexcept {
+PhysicsObject::~PhysicsObject() noexcept {
     if (body) {
         Physics::singleton().world->destroyRigidBody(body);
         body = nullptr;
@@ -32,13 +37,13 @@ Shape::~Shape() noexcept {
 }
 
 
-auto Shape::handle_events() -> void {};
+auto PhysicsObject::handle_events() -> void {};
 
 
-auto Shape::update(f64) -> void { transform = as(body->getTransform()); }
+auto PhysicsObject::update(f64) -> void { transform = as(body->getTransform()); }
 
 
-auto Shape::render(f64) -> void {
+auto PhysicsObject::render(f64) -> void {
     auto axis = Vector3{};
     auto angle = f32{};
     QuaternionToAxisAngle(transform.rotation, &axis, &angle);

@@ -34,7 +34,7 @@ namespace arcxel {
 /*
  * @brief Unit Transform object, translation & rotation are zeroed and scale is one'd
  */
-static constexpr Transform TransformUnit = Transform{
+static constexpr Transform TransformIdentity = Transform{
     .translation = Vector3Zeros,
     .rotation = Quaternion{.x = 0.0f, .y = 0.0f, .z = 0.0f, .w = 1.0f},
     .scale = Vector3Ones

@@ -1,4 +1,4 @@
-// <shape.h> -*- C++ -*-
+// <physics_object.h> -*- C++ -*-
 
 //  Arcxel Test Bench
 //  Copyright (C) 2026  Tyler Swann, Georgia Kanellis
@@ -20,19 +20,20 @@
 #pragma once
 
 #include "game_object.h"
-#include "physics.h"
 #include "rp3d.h"
-#include "utils.h"
 
 #include <raylib.h>
 
 namespace arcxel {
 
-class Shape : public GameObject {
+class PhysicsObject : public GameObject {
 public:
-    explicit Shape(rp3d::BodyType btype, Transform transform, Color colour) noexcept;
+    explicit PhysicsObject(
+        rp3d::BodyType btype,
+        Transform transform,
+        Color colour) noexcept;
 
-    virtual ~Shape() noexcept;
+    virtual ~PhysicsObject() noexcept;
 
     virtual auto handle_events() -> void override;
 
@@ -41,16 +42,6 @@ public:
     virtual auto render(f64 delta) -> void override;
 
 protected:
-    static auto _M_create_rigid_body(rp3d::BodyType btype, Transform transform)
-        -> rp3d::RigidBody* {
-        const auto physics_pos = as(transform.translation);
-        auto physics_transform =
-            rp3d::Transform{physics_pos, rp3d::Quaternion::identity()};
-        auto body = Physics::singleton().world->createRigidBody(physics_transform);
-        body->setType(btype);
-        return body;
-    }
-
     virtual auto _M_create_mesh() -> void = 0;
 
     virtual auto _M_create_collision_shape() -> void = 0;
@@ -61,8 +52,6 @@ protected:
     Model model;
 
     rp3d::RigidBody* body;
-    rp3d::CollisionShape* shape;
-    rp3d::Collider* collider;
 }; // class Cube
 
 } // namespace arcxel
