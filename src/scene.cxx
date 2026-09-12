@@ -12,6 +12,8 @@
 
 namespace arcxel {
 
+constexpr u32 SCENE_SEED = 20260913;
+
 Scene::Scene() noexcept {
     auto player = Player();
 
@@ -76,7 +78,7 @@ auto Scene::_M_create_floor() -> void {
 
 
 auto Scene::_M_generate_objects(usize num_objects) -> void {
-    auto rand = std::default_random_engine(std::random_device{}());
+    auto rand = std::mt19937(SCENE_SEED); // not random_egnine to make things reproducable
     auto xdist = std::uniform_real_distribution<float>(-100.0f, 100.0f);
     auto ydist = std::uniform_real_distribution<float>(-100.0f, 100.0f);
     auto zdist = std::uniform_real_distribution<float>(-50.0f, -30.0f);
