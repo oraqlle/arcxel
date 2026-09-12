@@ -34,6 +34,8 @@ message(STATUS "ARXCEL_PROFILING: ${ARCXEL_PROFILING}")
 # ---- Dependencies ----
 include(FetchContent)
 
+find_package(Threads REQUIRED)
+
 # -- raylib --
 FetchContent_Declare(
     raylib
@@ -72,6 +74,7 @@ endif ()
 # ---- Library ----
 add_library(
     arcxel_lib OBJECT
+    src/broad_thread_pool.cxx
     src/cube.cxx
     src/engine.cxx
     src/game_object.cxx
@@ -97,7 +100,7 @@ target_compile_definitions(
         ARCXEL_PROFILING=$<BOOL:${ARCXEL_PROFILING}>
 )
 
-target_link_libraries(arcxel_lib PUBLIC raylib ReactPhysics3D::reactphysics3d)
+target_link_libraries(arcxel_lib PUBLIC raylib ReactPhysics3D::reactphysics3d Threads::Threads)
 
 # ---- Entrypoint ----
 add_executable(arcxel src/main.cxx)
