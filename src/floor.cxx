@@ -15,11 +15,7 @@ Floor::Floor(f32 width, f32 length) noexcept
     mesh = GenMeshPlane(width, length, 1, 1);
     model = LoadModelFromMesh(mesh);
 
-    //! 1.0f height floor centred at 0.5f locally, thus translate by -0.5f to make level
-    //! with world origin XZ plane.
     auto physics_pos = as(transform.translation);
-    // physics_pos.y = -0.5f;
-
     auto physics_transform = rp3d::Transform{ physics_pos, rp3d::Quaternion::identity() };
 
     body = Physics::singleton().world->createRigidBody(physics_transform);
