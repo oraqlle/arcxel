@@ -36,7 +36,7 @@ auto Sphere::_M_create_mesh() -> void {
 
 
 auto Sphere::_M_create_collision_shape() -> void {
-    shape = Physics::singleton().common.createSphereShape(radius);
+    shape = Physics::singleton().common.createSphereShape(radius * 0.5f);
     collider = body->addCollider(shape, rp3d::Transform::identity());
     collider->getMaterial().setMassDensity(1.0f);
     body->updateMassPropertiesFromColliders();
