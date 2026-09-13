@@ -19,8 +19,9 @@ set(BUILD_GAMES     OFF CACHE BOOL "" FORCE) # don't build the supplied example 
 
 # ---- Build Options ----
 include(CMakeDependentOption)
-cmake_dependent_option(ARCXEL_DEBUG      "Enable debug options" ON  [[CMAKE_BUILD_TYPE STREQUAL "Debug"]] OFF)
-cmake_dependent_option(ARCXEL_SANITIZERS "Enable sanitizers"    OFF [[CMAKE_BUILD_TYPE STREQUAL "Debug"]] OFF)
+cmake_dependent_option(ARCXEL_DEBUG                  "Enable debug options" ON  [[CMAKE_BUILD_TYPE STREQUAL "Debug"]] OFF)
+cmake_dependent_option(ARCXEL_SANITIZERS             "Enable sanitizers"    OFF [[CMAKE_BUILD_TYPE STREQUAL "Debug"]] OFF)
+cmake_dependent_option(ARCXEL_PHYSICS_DEBUG_RENDERER "Enable sanitizers"    OFF [[CMAKE_BUILD_TYPE STREQUAL "Debug"]] OFF)
 
 option(ARCXEL_LOGGING    "Log program traces"    ON)
 option(ARCXEL_PROFILING  "Record profile traces" ON)
@@ -28,6 +29,7 @@ option(ARCXEL_PROFILING  "Record profile traces" ON)
 # Build options log
 message(STATUS "ARXCEL_DEBUG: ${ARCXEL_DEBUG}")
 message(STATUS "ARXCEL_SANITIZERS: ${ARCXEL_SANITIZERS}")
+message(STATUS "ARXCEL_PHYSICS_DEBUG_RENDERER: ${ARCXEL_PHYSICS_DEBUG_RENDERER}")
 message(STATUS "ARXCEL_LOGGING: ${ARCXEL_LOGGING}")
 message(STATUS "ARXCEL_PROFILING: ${ARCXEL_PROFILING}")
 
@@ -98,6 +100,7 @@ target_compile_definitions(
         ARCXEL_DEBUG=$<BOOL:${ARCXEL_DEBUG}>
         ARCXEL_LOGGING=$<BOOL:${ARCXEL_LOGGING}>
         ARCXEL_PROFILING=$<BOOL:${ARCXEL_PROFILING}>
+        ARCXEL_PHYSICS_DEBUG_RENDERER=$<BOOL:${ARCXEL_PHYSICS_DEBUG_RENDERER}>
 )
 
 target_link_libraries(arcxel_lib PUBLIC raylib ReactPhysics3D::reactphysics3d)

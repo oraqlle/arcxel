@@ -48,6 +48,8 @@ protected:
 
     auto _M_sync_model_to_physics() -> void;
 
+    auto _M_render_physics_debug_shapes() -> void;
+
 protected:
     Color colour;
     Mesh mesh;

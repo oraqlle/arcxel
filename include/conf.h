@@ -19,12 +19,22 @@
 
 #pragma once
 
+#include "types.h"
+
 namespace arcxel {
 
-#ifdef ARCXEL_DEBUG
+#if ARCXEL_DEBUG
     static constexpr bool debug_enabled = true;
 #else
     static constexpr bool debug_enabled = false;
+#endif
+
+#if ARCXEL_PHYSICS_DEBUG_RENDERER
+    static constexpr bool physics_debug_renderer_enabled = true;
+    static constexpr usize simulation_size = 50;
+#else
+    static constexpr bool physics_debug_renderer_enabled = false;
+    static constexpr usize simulation_size = 1000;
 #endif
 
 } // namespace arcxel

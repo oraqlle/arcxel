@@ -17,6 +17,7 @@
 //  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 //  USA
 
+#include "conf.h"
 #include "engine.h"
 #include "log.h"
 #include "physics.h"
@@ -82,7 +83,8 @@ constexpr i32 HEIGHT = 1080;
 
 
 static inline auto game_loop() -> void {
-    auto& engine = arcxel::Engine::singleton(std::make_optional(arcxel::Scene(1000)));
+    auto& engine = arcxel::Engine::singleton(
+        std::make_optional(arcxel::Scene(arcxel::simulation_size)));
 
     while (engine.is_running()) {
 
@@ -129,11 +131,29 @@ static inline auto game_loop() -> void {
     }
 
     // ---- PHYSICS WORLD CREATION ----
-    auto physics_info = rp3d::PhysicsWorld::WorldSettings{};
-    physics_info.isSleepingEnabled = true;
-    physics_info.gravity = rp3d::Vector3(0, -9.81, 0);
-    auto& _ = arcxel::Physics::singleton(std::make_optional(std::move(physics_info)));
+    auto phys_info = rp3d::PhysicsWorld::WorldSettings{};
+    phys_info.isSleepingEnabled = true;
+    phys_info.gravity = rp3d::Vector3(0, -9.81, 0);
+
+    auto& phys_sys = arcxel::Physics::singleton(std::make_optional(std::move(phys_info)));
     arcxel::log(LogLevel::Info, "physics world created");
+
+    if constexpr (arcxel::physics_debug_renderer_enabled) {
+        phys_sys.world->setIsDebugRenderingEnabled(true);
+        auto& dbgr = phys_sys.world->getDebugRenderer();
+
+        dbgr.setIsDebugItemDisplayed(
+            rp3d::DebugRenderer::DebugItem::COLLISION_SHAPE,
+            true);
+        dbgr.setIsDebugItemDisplayed(rp3d::DebugRenderer::DebugItem::COLLIDER_AABB, true);
+        dbgr.setIsDebugItemDisplayed(
+            rp3d::DebugRenderer::DebugItem::COLLISION_SHAPE_NORMAL,
+            true);
+
+        arcxel::log(LogLevel::Info, "debug renderer enabled for physics engine");
+    } else {
+        arcxel::log(LogLevel::Info, "debug renderer disabled for physics engine");
+    }
 
 
     // ---- GAME LOOP ----
