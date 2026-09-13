@@ -61,4 +61,8 @@ auto Engine::render(f64 delta) -> void {
     }
 }
 
+[[nodiscard]] auto Engine::get_scene() -> Scene& {
+    return scene;
+}
+
 } // namespace arcxel

@@ -38,12 +38,23 @@ auto Scene::handle_events() -> void {
     player.handle_events();
 }
 
-
+// update order
+// range -> player
 auto Scene::update(f64 delta) -> void {
-    for (auto& obj : objects) {
-        obj->update(delta);
-    }
+    update_range(0, objects.size(), delta);
+    update_player(delta);
+}
 
+// update objects
+auto Scene::update_range(usize first, usize last, f64 delta) -> void {
+    // (?)
+    for (auto i : std::views::iota(first, last)) {
+        objects[i]->update(delta);
+    }
+}
+
+// update the player position
+auto Scene::update_player(f64 delta) -> void {
     player.update(delta);
 }
 
@@ -58,7 +69,6 @@ auto Scene::render(f64 delta) -> void {
 
     player.render(delta);
 }
-
 
 [[nodiscard]] auto Scene::primary_camera() -> Camera3D { return player.get_camera(); }
 

@@ -43,6 +43,8 @@ public:
 
     auto render(f64 delta) -> void;
 
+    [[nodiscard]] auto get_scene() -> Scene&;
+
 private:
     explicit Engine(std::optional<Scene> opt_scene);
 
