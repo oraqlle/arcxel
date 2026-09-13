@@ -46,6 +46,8 @@ protected:
 
     virtual auto _M_create_collision_shape() -> void = 0;
 
+    auto _M_sync_model_to_physics() -> void;
+
 protected:
     Color colour;
     Mesh mesh;

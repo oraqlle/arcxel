@@ -40,14 +40,25 @@ PhysicsObject::~PhysicsObject() noexcept {
 auto PhysicsObject::handle_events() -> void {};
 
 
-auto PhysicsObject::update(f64) -> void { transform = as(body->getTransform()); }
+auto PhysicsObject::update(f64) -> void { _M_sync_model_to_physics(); }
 
 
 auto PhysicsObject::render(f64) -> void {
     auto axis = Vector3{};
     auto angle = f32{};
-    QuaternionToAxisAngle(transform.rotation, &axis, &angle);
-    DrawModelEx(model, transform.translation, axis, angle, transform.scale, colour);
+    QuaternionToAxisAngle(QuaternionNormalize(transform.rotation), &axis, &angle);
+    DrawModelEx(
+        model,
+        transform.translation,
+        axis,
+        angle * RAD2DEG,
+        transform.scale,
+        colour);
+}
+
+
+auto PhysicsObject::_M_sync_model_to_physics() -> void {
+    transform = as(body->getTransform());
 }
 
 } // namespace arcxel

@@ -79,10 +79,10 @@ add_library(
     src/log.cxx
     src/object.cxx
     src/physics.cxx
+    src/physics_object.cxx
     src/player.cxx
     src/scene.cxx
     src/sphere.cxx
-    src/physics_object.cxx
     src/timing.cxx
     src/transform.cxx
     src/utils.cxx
