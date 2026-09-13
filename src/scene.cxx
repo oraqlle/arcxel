@@ -7,6 +7,7 @@
 #include "types.h"
 
 #include <raylib.h>
+#include <raymath.h>
 
 #include <random>
 #include <ranges>
@@ -49,6 +50,14 @@ auto Scene::update(f64 delta) -> void {
 
 auto Scene::render(f64 delta) -> void {
     DrawGrid(200, 1.0f);
+
+    auto x_axis = Vector3{ 1000.0f, 0.0f, 0.0f };
+    auto y_axis = Vector3{ 0.0f, 1000.0f, 0.0f };
+    auto z_axis = Vector3{ 0.0f, 0.0f, 1000.0f };
+
+    DrawLine3D(x_axis, Vector3Zeros - x_axis, RED);
+    DrawLine3D(y_axis, Vector3Zeros - y_axis, GREEN);
+    DrawLine3D(z_axis, Vector3Zeros - z_axis, BLUE);
 
 
     for (auto& obj : objects) {
