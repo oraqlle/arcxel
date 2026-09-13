@@ -43,7 +43,13 @@ auto Floor::update(f64) -> void {}
 auto Floor::render(f64) -> void {
     auto axis = Vector3{};
     auto angle = f32{};
-    QuaternionToAxisAngle(transform.rotation, &axis, &angle);
-    DrawModelEx(model, transform.translation, axis, angle, transform.scale, colour);
+    QuaternionToAxisAngle(QuaternionNormalize(transform.rotation), &axis, &angle);
+    DrawModelEx(
+        model,
+        transform.translation,
+        axis,
+        angle * RAD2DEG,
+        transform.scale,
+        colour);
 }
 } // namespace arcxel
