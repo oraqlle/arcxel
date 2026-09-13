@@ -7,8 +7,7 @@ namespace arcxel {
 
 Engine::Engine(std::optional<Scene> opt_scene)
     : sample_record()
-    , running(true)
-{
+    , running(true) {
     if (opt_scene) {
         scene = std::move(*opt_scene);
     } else {
@@ -17,8 +16,7 @@ Engine::Engine(std::optional<Scene> opt_scene)
 }
 
 
-[[nodiscard]] auto Engine::singleton(std::optional<Scene> init)
-    -> Engine& {
+[[nodiscard]] auto Engine::singleton(std::optional<Scene> init) -> Engine& {
 
     static auto engine = Engine(std::move(init));
     return engine;

@@ -82,10 +82,10 @@ auto Scene::_M_create_floor() -> void {
 
 auto Scene::_M_generate_objects(usize num_objects) -> void {
     auto rand = std::default_random_engine(std::random_device{}());
-    auto xdist = std::uniform_real_distribution<float>(-50.0f, 50.0f);
-    auto ydist = std::uniform_real_distribution<float>(10.0f, 50.0f);
-    auto zdist = std::uniform_real_distribution<float>(-50.0f, 50.0f);
-    auto shape_type_dist = std::uniform_int_distribution<int>{};
+    auto xdist = std::uniform_real_distribution<f32>(-50.0f, 50.0f);
+    auto ydist = std::uniform_real_distribution<f32>(10.0f, 50.0f);
+    auto zdist = std::uniform_real_distribution<f32>(-50.0f, 50.0f);
+    auto shape_type_dist = std::uniform_int_distribution<u32>{};
 
     for (auto _ : std::views::iota(num_objects) | std::views::take(num_objects)) {
         auto translation = Vector3{ .x = xdist(rand),
@@ -94,7 +94,7 @@ auto Scene::_M_generate_objects(usize num_objects) -> void {
 
         auto transform = Transform{ .translation = translation,
                                     .rotation = QuaternionUnitX,
-                                    .scale = Vector3{ 1.0f, 1.0f, 1.0f } };
+                                    .scale = Vector3Ones };
 
         auto colour = Color{
             .r = static_cast<unsigned char>(std::abs(translation.x / 50.0f) * 255.0f),

@@ -68,8 +68,8 @@ constexpr u8 num_labels = static_cast<u8>(Sample::Label::Present) + 1;
 
 
 static_assert(
-    Sample::Clock::is_steady, "Profiling measurements require a monotonic clock"
-);
+    Sample::Clock::is_steady,
+    "Profiling measurements require a monotonic clock");
 
 
 [[nodiscard]] inline constexpr auto sample_label_to_depth(Sample::Label label) -> u32 {
@@ -94,8 +94,7 @@ static_assert(
 
 struct SampleRecord {
 public:
-
-    // ~4M samples, ~10mins of uncapped frames. Further Samples are dropped, no reallocation
+    // ~4M samples, ~10mins of frames. Further Samples are dropped, no reallocation
     static constexpr usize MAX_SAMPLES = 1U << 22U;
 
     explicit SampleRecord(usize max_num_samples = MAX_SAMPLES) noexcept;
@@ -134,13 +133,10 @@ public:
 
     ~Timespan() noexcept {
         store.record(
-            Sample{
-                .start = start,
-                .end = Sample::Clock::now(),
-                .tid = std::this_thread::get_id(),
-                .label = label
-            }
-        );
+            Sample{ .start = start,
+                    .end = Sample::Clock::now(),
+                    .tid = std::this_thread::get_id(),
+                    .label = label });
     }
 
     Timespan(const Timespan&) = delete;

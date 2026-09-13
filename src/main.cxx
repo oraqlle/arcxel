@@ -84,7 +84,7 @@ constexpr i32 HEIGHT = 1080;
 
 static inline auto game_loop() -> void {
     auto& engine = arcxel::Engine::singleton(
-        std::make_optional(arcxel::Scene(arcxel::simulation_size)));
+        std::make_optional(arcxel::Scene(arcxel::default_num_sim_objects)));
 
     while (engine.is_running()) {
 

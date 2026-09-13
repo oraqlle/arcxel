@@ -24,17 +24,17 @@
 namespace arcxel {
 
 #if ARCXEL_DEBUG
-    static constexpr bool debug_enabled = true;
+static constexpr bool debug_enabled = true;
 #else
-    static constexpr bool debug_enabled = false;
+static constexpr bool debug_enabled = false;
 #endif
 
 #if ARCXEL_PHYSICS_DEBUG_RENDERER
-    static constexpr bool physics_debug_renderer_enabled = true;
-    static constexpr usize simulation_size = 50;
+static constexpr bool physics_debug_renderer_enabled = true;
+static constexpr usize default_num_sim_objects = 50;
 #else
-    static constexpr bool physics_debug_renderer_enabled = false;
-    static constexpr usize simulation_size = 1000;
+static constexpr bool physics_debug_renderer_enabled = false;
+static constexpr usize default_num_sim_objects = 1000;
 #endif
 
 } // namespace arcxel
