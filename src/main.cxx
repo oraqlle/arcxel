@@ -25,7 +25,7 @@
 #include "types.h"
 #include "utils.h"
 #include "window_info.h"
-
+#include "serial/frame.h"
 
 #include <raylib.h>
 #include "rp3d.h"
@@ -33,6 +33,8 @@
 #include <expected>
 #include <optional>
 #include <string>
+#include <cstdlib>
+#include <string_view>
 
 // clang-format off
 using arcxel::i8;
@@ -63,6 +65,14 @@ constexpr i32 WIDTH = 1920;
 constexpr i32 HEIGHT = 1080;
 
 
+// which frame to run from ACXEL_ARCH
+enum class Architecture : u8 {
+    Serial,
+    Task,
+    Fine
+};
+
+
 /**
  * @brief Create raylib window instance, validating it opened correctly
  */
@@ -81,38 +91,50 @@ constexpr i32 HEIGHT = 1080;
     return {};
 }
 
+[[nodiscard]] static auto architecture_from_env() -> Architecture {
+    const auto* value = std::getenv("ARCXEL_ARCH");
+
+    if (value == nullptr) {
+        arcxel::log(LogLevel::Warning, "ARCXEL_ARCH not found, using serial");
+        return Architecture::Serial;
+    }
+
+    const auto name = std::string_view(value);
+
+    if (name == "serial") {
+        arcxel::log(LogLevel::Warning, "ARCXEL_ARCH == serial");
+        return Architecture::Serial;
+    }
+    // else if (name == "task") {
+    //     arcxel::log(LogLevel::Warning, "ARCXEL_ARCH == task");
+    //     return Architecture::Task;
+    // }
+    // else if (name == "fine") {
+    //     arcxel::log(LogLevel::Warning, "ARCXEL_ARCH == fine");
+    //     return Architecture::Fine;
+    // }
+
+    arcxel::log(LogLevel::Warning, "unknown ARCXEL_ARCH '{}', using serial", name);
+    return Architecture::Serial;
+
+}
+
 
 static inline auto game_loop() -> void {
     auto& engine = arcxel::Engine::singleton(std::make_optional(arcxel::Scene(1000)));
+    const auto arch = architecture_from_env();
 
     while (engine.is_running()) {
 
         const auto frame_span = arcxel::Timespan(Label::Frame, engine.sample_record);
-
-
-        {
-            const auto _ = arcxel::Timespan(Label::Events, engine.sample_record);
-            engine.handle_events();
-        }
-
-
+        
         const f64 delta = GetFrameTime();
 
-        {
-            const auto _ = arcxel::Timespan(Label::PhysicsUpdate, engine.sample_record);
-            arcxel::Physics::singleton().update(delta);
-        }
-
-
-        {
-            const auto _ = arcxel::Timespan(Label::Update, engine.sample_record);
-            engine.update(delta);
-        }
-
-
-        {
-            const auto _ = arcxel::Timespan(Label::Render, engine.sample_record);
-            engine.render(delta);
+        switch (arch) {
+            case Architecture::Serial:
+            default:
+                arcxel::serial::run_frame(engine, delta);
+                break;
         }
     }
 }
