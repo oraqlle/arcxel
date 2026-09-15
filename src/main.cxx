@@ -68,7 +68,7 @@ constexpr i32 HEIGHT = 1080;
 // which frame to run from ACXEL_ARCH
 enum class Architecture : u8 {
     Serial,
-    Task,
+    Broad,
     Fine
 };
 
@@ -102,15 +102,15 @@ enum class Architecture : u8 {
     const auto name = std::string_view(value);
 
     if (name == "serial") {
-        arcxel::log(LogLevel::Warning, "ARCXEL_ARCH == serial");
+        arcxel::log(LogLevel::Info, "ARCXEL_ARCH == serial");
         return Architecture::Serial;
     }
-    // else if (name == "task") {
-    //     arcxel::log(LogLevel::Warning, "ARCXEL_ARCH == task");
-    //     return Architecture::Task;
-    // }
+    else if (name == "broad") {
+        arcxel::log(LogLevel::Info, "ARCXEL_ARCH == broad");
+        return Architecture::Broad;
+    }
     // else if (name == "fine") {
-    //     arcxel::log(LogLevel::Warning, "ARCXEL_ARCH == fine");
+    //     arcxel::log(LogLevel::Info, "ARCXEL_ARCH == fine");
     //     return Architecture::Fine;
     // }
 
