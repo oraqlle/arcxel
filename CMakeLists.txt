@@ -88,6 +88,7 @@ add_library(
     src/utils.cxx
     src/window.cxx
     src/serial/frame.cxx
+    src/broad/frame.cxx
 )
 
 target_include_directories(arcxel_lib PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)

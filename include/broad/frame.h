@@ -24,7 +24,6 @@
 
 namespace arcxel::broad {
 
-// runs one frame with the update stage forked across the thread pool
-auto run_frame(Engine& engine, f64 delta) -> void;
+    auto run_frame(Engine& engine, f64 delta) -> void;
 
 } // namespace arcxel::broad

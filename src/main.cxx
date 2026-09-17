@@ -26,6 +26,8 @@
 #include "utils.h"
 #include "window_info.h"
 #include "serial/frame.h"
+#include "broad/frame.h"
+#include "broad_thread_pool.h"
 
 #include <raylib.h>
 #include "rp3d.h"
@@ -119,10 +121,33 @@ enum class Architecture : u8 {
 
 }
 
+[[nodiscard]] static auto thread_count_from_env() -> std::optional<usize> {
+    const auto* value = std::getenv("ARCXEL_THREADS");
+
+    // use hardware_concurrency()
+    if (value == nullptr) {
+        return std::nullopt;
+    }
+
+    const auto count = std::atoi(value);
+
+    if (count < 1) {
+        arcxel::log(LogLevel::Warning, "ARCXEL_THREADS '{}' invalid, using default", value);
+        return std::nullopt;
+    }
+
+    return std::make_optional(static_cast<usize>(count));
+}
 
 static inline auto game_loop() -> void {
     auto& engine = arcxel::Engine::singleton(std::make_optional(arcxel::Scene(1000)));
     const auto arch = architecture_from_env();
+
+    // get num threads
+    if (arch == Architecture::Broad) {
+        auto& pool = arcxel::BroadThreadPool::singleton(thread_count_from_env());
+        arcxel::log(LogLevel::Info, "thread pool started with {} workers", pool.size());
+    }
 
     while (engine.is_running()) {
 
@@ -131,6 +156,10 @@ static inline auto game_loop() -> void {
         const f64 delta = GetFrameTime();
 
         switch (arch) {
+            case Architecture::Broad:
+                  arcxel::broad::run_frame(engine, delta);
+                  break;
+
             case Architecture::Serial:
             default:
                 arcxel::serial::run_frame(engine, delta);
