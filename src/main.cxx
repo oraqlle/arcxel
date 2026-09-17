@@ -160,9 +160,9 @@ struct Config {
 }
 
 
-static inline auto game_loop() -> void {
+static inline auto game_loop(Config config) -> void {
     auto& engine = arcxel::Engine::singleton(
-        std::make_optional(arcxel::Scene(arcxel::default_num_sim_objects)));
+        std::make_optional(arcxel::Scene(config.num_sim_objects)));
 
     while (engine.is_running()) {
 
@@ -197,7 +197,7 @@ static inline auto game_loop() -> void {
 }
 
 
-[[nodiscard]] static auto run() -> arcxel::Fallible {
+[[nodiscard]] static auto run(Config config) -> arcxel::Fallible {
 
     // ---- WINDOW CREATION ----
     const auto winfo = arcxel::WindowInfo{ .width = WIDTH,
@@ -236,7 +236,7 @@ static inline auto game_loop() -> void {
 
     // ---- GAME LOOP ----
     DisableCursor();
-    game_loop();
+    game_loop(config);
     EnableCursor();
 
     arcxel::Engine::singleton().stop();
@@ -283,7 +283,7 @@ auto main(int argc, char* argv[]) -> int {
 
 
     // ---- ENGINE ----
-    if (const auto r = run(/* config */); !r) {
+    if (const auto r = run(config); !r) {
         arcxel::raw_log("{}", r.error());
     }
 
