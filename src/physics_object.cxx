@@ -17,8 +17,10 @@ PhysicsObject::PhysicsObject(
     , mesh({})
     , model({})
     , body(nullptr) {
+
     const auto phys_pos = as(transform.translation);
-    auto phys_transform = rp3d::Transform{ phys_pos, rp3d::Quaternion::identity() };
+    const auto phys_rot = as(transform.rotation);
+    auto phys_transform = rp3d::Transform{ phys_pos, phys_rot };
     body = Physics::singleton().world->createRigidBody(phys_transform);
     body->setType(btype);
 
