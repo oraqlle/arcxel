@@ -13,7 +13,7 @@ PhysicsObject::PhysicsObject(
     Transform transform,
     Color colour) noexcept
     : GameObject(transform)
-    , colour(colour)
+    , tint(colour)
     , mesh({})
     , model({})
     , body(nullptr) {
@@ -60,7 +60,7 @@ auto PhysicsObject::render(f64) -> void {
         axis,
         angle * RAD2DEG,
         transform.scale,
-        colour);
+        tint);
 
     if constexpr (physics_debug_renderer_enabled) {
         _M_render_physics_debug_shapes();

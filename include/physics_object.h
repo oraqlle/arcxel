@@ -51,7 +51,7 @@ protected:
     auto _M_render_physics_debug_shapes() -> void;
 
 protected:
-    Color colour;
+    Color tint;
     Mesh mesh;
     Model model;
 
