@@ -1,16 +1,17 @@
-#include "floor.h"
+#include "plane.h"
 #include "physics.h"
 #include "utils.h"
 
 #include <raylib.h>
 #include <raymath.h>
+#include <rlgl.h>
 
 namespace arcxel {
 
-Floor::Floor(f32 width, f32 length) noexcept
-    : GameObject(TransformIdentity)
-    , width(width * transform.scale.x)
-    , length(length * transform.scale.z)
+Plane::Plane(f32 length, f32 width, Transform transform) noexcept
+    : GameObject(transform)
+    , length(length * transform.scale.x)
+    , width(width * transform.scale.z)
     , colour(LIGHTGRAY) {
     mesh = GenMeshPlane(width, length, 1, 1);
     model = LoadModelFromMesh(mesh);
@@ -23,7 +24,7 @@ Floor::Floor(f32 width, f32 length) noexcept
     body->enableGravity(false);
 
     shape = Physics::singleton().common.createBoxShape(
-        rp3d::Vector3(width * 0.5f, 0.00001f, length * 0.5f));
+        rp3d::Vector3(length * 0.5f, 0.00001f, width * 0.5f));
 
     collider = body->addCollider(shape, rp3d::Transform::identity());
     auto physics_mat = collider->getMaterial();
@@ -34,16 +35,19 @@ Floor::Floor(f32 width, f32 length) noexcept
 }
 
 
-auto Floor::handle_events() -> void {};
+auto Plane::handle_events() -> void {};
 
 
-auto Floor::update(f64) -> void {}
+auto Plane::update(f64) -> void {}
 
 
-auto Floor::render(f64) -> void {
+auto Plane::render(f64) -> void {
     auto axis = Vector3{};
     auto angle = f32{};
     QuaternionToAxisAngle(QuaternionNormalize(transform.rotation), &axis, &angle);
+
+    rlDisableBackfaceCulling(); //<! Draw both sides of the plane
+
     DrawModelEx(
         model,
         transform.translation,
@@ -51,5 +55,7 @@ auto Floor::render(f64) -> void {
         angle * RAD2DEG,
         transform.scale,
         colour);
+
+    rlEnableBackfaceCulling();
 }
 } // namespace arcxel
