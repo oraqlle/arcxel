@@ -48,6 +48,8 @@ public:
 private:
     auto _M_create_floor() -> void;
 
+    auto _M_create_walls() -> void;
+
     auto _M_generate_objects(usize num_objects) -> void;
 
 public: // Scene objects

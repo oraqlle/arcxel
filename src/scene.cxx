@@ -1,10 +1,11 @@
 #include "scene.h"
 #include "cube.h"
-#include "floor.h"
 #include "game_object.h"
+#include "plane.h"
 #include "player.h"
 #include "sphere.h"
 #include "types.h"
+#include "utils.h"
 
 #include <raylib.h>
 #include <raymath.h>
@@ -26,6 +27,7 @@ Scene::Scene(usize num_objects) noexcept {
     auto player = Player();
 
     _M_create_floor();
+    _M_create_walls();
     _M_generate_objects(num_objects);
 }
 
@@ -75,8 +77,53 @@ auto Scene::unload() -> void { objects.clear(); }
 
 
 auto Scene::_M_create_floor() -> void {
-    auto floor = std::make_unique<Floor>();
+    auto floor = std::make_unique<Plane>();
     objects.push_back(std::move(floor));
+}
+
+
+auto Scene::_M_create_walls() -> void {
+    const auto height = 20.0f;
+
+    // ---- LEFT WALL ----
+    const auto left_transform = Transform{
+        .translation = Vector3{ 0.0f, height * 0.5f, 50.0f },
+        .rotation = QuaternionFromAxisAngle(Vector3UnitX, 90 * DEG2RAD),
+        .scale = Vector3Ones
+    };
+
+    auto left = std::make_unique<Plane>(height, 100, left_transform);
+    objects.push_back(std::move(left));
+
+    // ---- RIGHT WALL ----
+    const auto right_transform = Transform{
+        .translation = Vector3{ 0.0f, height * 0.5f, -50.0f },
+        .rotation = QuaternionFromAxisAngle(Vector3UnitX, 90 * DEG2RAD),
+        .scale = Vector3Ones
+    };
+
+    auto right = std::make_unique<Plane>(height, 100, right_transform);
+    objects.push_back(std::move(right));
+
+    // ---- TOP WALL ----
+    const auto top_transform = Transform{
+        .translation = Vector3{ -50.0f, height * 0.5f, 0.0f },
+        .rotation = QuaternionFromAxisAngle(Vector3UnitZ, 90 * DEG2RAD),
+        .scale = Vector3Ones
+    };
+
+    auto top = std::make_unique<Plane>(100, height, top_transform);
+    objects.push_back(std::move(top));
+
+    // ---- BOTTOM WALL ----
+    const auto bottom_transform = Transform{
+        .translation = Vector3{ 50.0f, height * 0.5f, 0.0f },
+        .rotation = QuaternionFromAxisAngle(Vector3UnitZ, 90 * DEG2RAD),
+        .scale = Vector3Ones
+    };
+
+    auto bottom = std::make_unique<Plane>(100, height, bottom_transform);
+    objects.push_back(std::move(bottom));
 }
 
 
