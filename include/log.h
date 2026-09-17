@@ -99,7 +99,7 @@ make_log_string(const LogLevel level, std::format_string<Args...> fmt, Args&&...
     const auto ns = chrono::duration_cast<chrono::nanoseconds>(now - seconds).count();
 
     return std::format(
-        "[{:%R}:{:%S}.{:09}] {:<5} {}",
+        "[{:%R}:{:%S}.{:09}] {:<8} {}",
         now,
         seconds,
         ns,
