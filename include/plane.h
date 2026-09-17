@@ -19,7 +19,7 @@
 
 #pragma once
 
-#include "game_object.h"
+#include "physics_object.h"
 #include "rp3d.h"
 #include "utils.h"
 
@@ -27,29 +27,26 @@
 
 namespace arcxel {
 
-class Plane : public GameObject {
+class Plane : public PhysicsObject {
 public:
     Plane(
         f32 length = 100.0f,
         f32 width = 100.0f,
         Transform transform = TransformIdentity) noexcept;
 
-    ~Plane() noexcept = default;
+    ~Plane() noexcept override;
 
-    auto handle_events() -> void override;
+    virtual auto render(f64 delta) -> void override;
 
-    auto update(f64 delta) -> void override;
+protected:
+    virtual auto _M_create_mesh() -> void override;
 
-    auto render(f64 delta) -> void override;
+    virtual auto _M_create_collision_shape() -> void override;
 
 private:
-    f32 length;
-    f32 width;
-    Color colour;
-    Mesh mesh;
-    Model model;
+    f32 length; //< default x-axis (before transform)
+    f32 width;  //< default x-axis (before transform)
 
-    rp3d::RigidBody* body;
     rp3d::BoxShape* shape;
     rp3d::Collider* collider;
 }; // class Plane

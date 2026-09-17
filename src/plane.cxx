@@ -1,6 +1,6 @@
 #include "plane.h"
 #include "physics.h"
-#include "utils.h"
+#include "physics_object.h"
 
 #include <raylib.h>
 #include <raymath.h>
@@ -9,24 +9,43 @@
 namespace arcxel {
 
 Plane::Plane(f32 length, f32 width, Transform transform) noexcept
-    : GameObject(transform)
+    : PhysicsObject(rp3d::BodyType::STATIC, transform, LIGHTGRAY)
     , length(length * transform.scale.x)
-    , width(width * transform.scale.z)
-    , colour(LIGHTGRAY) {
-    mesh = GenMeshPlane(width, length, 1, 1);
-    model = LoadModelFromMesh(mesh);
-
-    auto physics_pos = as(transform.translation);
-    auto physics_transform = rp3d::Transform{ physics_pos, rp3d::Quaternion::identity() };
-
-    body = Physics::singleton().world->createRigidBody(physics_transform);
-    body->setType(rp3d::BodyType::STATIC);
+    , width(width * transform.scale.z) {
     body->enableGravity(false);
 
+    _M_create_mesh();
+    _M_create_collision_shape();
+}
+
+
+Plane::~Plane() noexcept {
+    if (body && collider) {
+        body->removeCollider(collider);
+        collider = nullptr;
+    }
+
+    if (shape) {
+        Physics::singleton().common.destroyBoxShape(shape);
+        shape = nullptr;
+    }
+}
+
+
+auto Plane::_M_create_mesh() -> void {
+    mesh = GenMeshPlane(length, width, 1, 1);
+    model = LoadModelFromMesh(mesh);
+
+    mesh = {};
+}
+
+
+auto Plane::_M_create_collision_shape() -> void {
     shape = Physics::singleton().common.createBoxShape(
         rp3d::Vector3(length * 0.5f, 0.00001f, width * 0.5f));
 
     collider = body->addCollider(shape, rp3d::Transform::identity());
+
     auto physics_mat = collider->getMaterial();
     physics_mat.setMassDensity(1.0f);
     physics_mat.setBounciness(0.0f);
@@ -35,27 +54,9 @@ Plane::Plane(f32 length, f32 width, Transform transform) noexcept
 }
 
 
-auto Plane::handle_events() -> void {};
-
-
-auto Plane::update(f64) -> void {}
-
-
-auto Plane::render(f64) -> void {
-    auto axis = Vector3{};
-    auto angle = f32{};
-    QuaternionToAxisAngle(QuaternionNormalize(transform.rotation), &axis, &angle);
-
+auto Plane::render(f64 delta) -> void {
     rlDisableBackfaceCulling(); //<! Draw both sides of the plane
-
-    DrawModelEx(
-        model,
-        transform.translation,
-        axis,
-        angle * RAD2DEG,
-        transform.scale,
-        colour);
-
+    PhysicsObject::render(delta);
     rlEnableBackfaceCulling();
 }
 } // namespace arcxel
