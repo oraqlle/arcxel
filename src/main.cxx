@@ -33,6 +33,8 @@
 #include <expected>
 #include <optional>
 #include <string>
+#include <system_error>
+#include <utility>
 
 // clang-format off
 using arcxel::i8;
@@ -61,6 +63,82 @@ constexpr std::string_view DEFAULT_TRACES_DIR = "traces";
 
 constexpr i32 WIDTH = 1920;
 constexpr i32 HEIGHT = 1080;
+
+
+[[nodiscard]] static auto make_args(i32 argc, char* argv[]) -> std::vector<std::string> {
+    auto args = std::vector<std::string>();
+    args.reserve(argc);
+
+    for (auto idx = 0; idx < argc; idx++) {
+        args.push_back(argv[idx]);
+    }
+
+    return args;
+}
+
+
+struct Config {
+    usize num_sim_objects = arcxel::default_num_sim_objects;
+}; // struct Config
+
+
+[[nodiscard]] static auto parse_args(const std::vector<std::string> args)
+    -> std::expected<Config, std::string> {
+    auto config = Config{};
+
+    for (auto idx = 1U; idx < args.size(); idx++) {
+        if (args[idx] == "-h") {
+            return std::unexpected(
+                arcxel::make_log_string(
+                    LogLevel::Info,
+                    "Arcxel Sample Game Engine\nUsage: program [options]\n  -n,    "
+                    "Number of "
+                    "simulation objects\n  -h, --help         Show this help"));
+        }
+
+        if (args[idx] == "-n") {
+            idx += 1;
+
+            if (idx >= args.size()) {
+                arcxel::log(
+                    LogLevel::Error,
+                    "Input flag -n specified with no input, ignoring argument");
+
+                continue;
+            }
+
+            const auto& arg = args[idx];
+            auto num_objects = usize{ 0 };
+            auto [ptr, err] = std::from_chars(
+                arg.data(),
+                arg.data() + arg.size(),
+                num_objects);
+
+            if (err != std::errc()) {
+                arcxel::log(
+                    LogLevel::Error,
+                    "Parsing -n flag input \"{}\" failed with error condition {}, "
+                    "ignoring argument",
+                    arg,
+                    ptr - arg.data(),
+                    std::make_error_condition(err).message());
+            } else {
+                if (ptr != arg.data() + arg.size()) {
+                    arcxel::log(
+                        LogLevel::Warning,
+                        "Partial parsing of -n flag input \"{}\", failed at character "
+                        "number {}",
+                        arg,
+                        ptr - arg.data());
+                }
+
+                config.num_sim_objects = num_objects;
+            }
+        }
+    }
+
+    return config;
+}
 
 
 /**
@@ -166,7 +244,7 @@ static inline auto game_loop() -> void {
     return {};
 }
 
-auto main() -> int {
+auto main(int argc, char* argv[]) -> int {
 
     // ---- OPEN LOGGING ----
     if constexpr (arcxel::logging_enabled) {
@@ -177,10 +255,21 @@ auto main() -> int {
 
         if (!r) {
             arcxel::raw_log("{}", r.error());
+            std::exit(-1);
         }
-
     } else {
         SetTraceLogLevel(LOG_NONE);
+    }
+
+    // ---- ARG PARSING ----
+    const auto args = make_args(argc, argv);
+    auto config = Config{};
+
+    if (const auto r = parse_args(args); !r) {
+        arcxel::raw_log("{}", r.error());
+        std::exit(-1);
+    } else {
+        config = r.value();
     }
 
 
@@ -188,12 +277,13 @@ auto main() -> int {
     if constexpr (arcxel::profiling_enabled) {
         if (const auto r = arcxel::create_dir(DEFAULT_TRACES_DIR); !r) {
             arcxel::raw_log("{}", r.error());
+            std::exit(-1);
         };
     }
 
 
     // ---- ENGINE ----
-    if (const auto r = run(); !r) {
+    if (const auto r = run(/* config */); !r) {
         arcxel::raw_log("{}", r.error());
     }
 
@@ -212,7 +302,8 @@ auto main() -> int {
     // ---- CLOSE LOGGING ----
     if (const auto r = arcxel::close_log_file(); !r) {
         arcxel::raw_log("{}", r.error());
+        std::exit(-1);
     }
 
-    return 0;
+    std::exit(0);
 }
