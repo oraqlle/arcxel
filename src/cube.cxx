@@ -67,6 +67,10 @@ auto Cube::handle_events() -> void {};
 
 auto Cube::update(f64 delta) -> void {
     transform = as(body->getTransform());
+
+    // seeded from itself
+    // chain crosses frames so nothing can be precomputed
+    work_sink = synthetic_work(work_iterations, work_sink);
 }
 
 

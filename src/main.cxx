@@ -25,6 +25,7 @@
 #include "types.h"
 #include "utils.h"
 #include "window_info.h"
+#include "workload.h"
 #include "serial/frame.h"
 #include "broad/frame.h"
 #include "broad_thread_pool.h"
@@ -139,8 +140,32 @@ enum class Architecture : u8 {
     return std::make_optional(static_cast<usize>(count));
 }
 
+[[nodiscard]] static auto workload_from_env() -> arcxel::Workload {
+    auto workload = arcxel::Workload{};
+
+    // TODO
+    // ARCXEL_WORK -> workload.magnitude
+    // getenv, nullptr leaves it 0
+    // atoi, warn and keep 0 if negative
+
+    // TODO
+    // ARCXEL_WORK_VARIANCE -> workload.variance
+    // getenv, nullptr leaves it 0.0
+    // atof, warn and keep 0.0 if outside 0..1
+
+    // log both
+    // lets each csv be matched to its settings
+    arcxel::log(LogLevel::Info, "workload: {} iterations, variance {}",
+                workload.magnitude, workload.variance);
+
+    return workload;
+}
+
+
 static inline auto game_loop() -> void {
-    auto& engine = arcxel::Engine::singleton(std::make_optional(arcxel::Scene(1000)));
+    auto& engine = arcxel::Engine::singleton(
+        std::make_optional(arcxel::Scene(1000, workload_from_env()))
+    );
     const auto arch = architecture_from_env();
 
     // get num threads

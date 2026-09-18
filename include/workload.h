@@ -1,4 +1,4 @@
-// <game_object.h> -*- C++ -*-
+// <workload.h> -*- C++ -*-
 
 //  Arcxel Test Bench
 //  Copyright (C) 2026  Tyler Swann, Georgia Kanellis
@@ -20,34 +20,35 @@
 #pragma once
 
 #include "types.h"
-#include "workload.h"
 
-#include <raylib.h>
+#include <cmath>
+#include <ranges>
 
 namespace arcxel {
 
-class GameObject {
-public:
-    GameObject() noexcept = default;
+    // per object update cost
+    // shared by every architecture
+    struct Workload {
+        u32 magnitude = 0;   // mean iterations per object, 0 is off
+        f32 variance = 0.0f; // 0 uniform, 1 maximally uneven
+    }; // struct Workload
 
-    virtual ~GameObject() noexcept = default;
 
-    explicit GameObject(Transform transform);
+    // seeded by the caller so nothing can be precomputed
+    [[nodiscard]] inline auto synthetic_work(
+        [[maybe_unused]] u32 iterations, f32 seed
+    ) noexcept -> f32 {
+        // TODO
+        // acc = seed
+        // loop iterations times
+        //     acc = fma(acc, 1.0000001f, 0.0000001f)
+        // return acc
+        //
+        // each step needs the one before it
+        // so the cpu cant run them at once
+        // and cost scales with the count
 
-    virtual auto handle_events() -> void = 0;
-
-    virtual auto update(f64 delta) -> void = 0;
-
-    virtual auto render(f64 delta) -> void = 0;
-
-public:
-    Transform transform;
-
-    // synthetic update cost, see workload.h. 0 means off
-    u32 work_iterations = 0;
-
-    // volatile so the compiler cannot delete the work that writes it
-    volatile f32 work_sink = 1.0f;
-}; // class GameObject
+        return seed; // stub, costs nothing yet
+    }
 
 } // namespace arcxel

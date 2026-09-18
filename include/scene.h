@@ -22,6 +22,7 @@
 #include "game_object.h"
 #include "player.h"
 #include "types.h"
+#include "workload.h"
 
 #include <memory>
 #include <raylib.h>
@@ -33,7 +34,7 @@ class Scene {
 public:
     Scene() noexcept;
 
-    explicit Scene(usize num_objects) noexcept;
+    explicit Scene(usize num_objects, Workload workload = Workload{}) noexcept;
 
     auto handle_events() -> void;
 
@@ -48,7 +49,7 @@ public:
 private:
     auto _M_create_floor() -> void;
 
-    auto _M_generate_objects(usize num_objects) -> void;
+    auto _M_generate_objects(usize num_objects, Workload workload) -> void;
 
 public: // Scene objects
     std::vector<std::unique_ptr<GameObject>> objects;
