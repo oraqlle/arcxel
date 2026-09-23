@@ -4,6 +4,7 @@
 #include "utils.h"
 
 #include <algorithm>
+#include <array>
 #include <chrono>
 #include <filesystem>
 #include <format>
