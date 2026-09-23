@@ -29,4 +29,37 @@ namespace arcxel {
     return std::chrono::current_zone()->to_local(std::chrono::system_clock::now());
 }
 
+
+
+[[nodiscard]] auto as(const rp3d::Vector3& vec) -> Vector3 {
+    return Vector3{ vec.x, vec.y, vec.z };
+}
+
+
+[[nodiscard]] auto as(const Vector3& vec) -> rp3d::Vector3 {
+    return rp3d::Vector3{ vec.x, vec.y, vec.z };
+}
+
+
+[[nodiscard]] auto as(const rp3d::Quaternion& quat) -> Quaternion {
+    return Quaternion{ quat.x, quat.y, quat.z, quat.w };
+}
+
+
+[[nodiscard]] auto as(const Quaternion& quat) -> rp3d::Quaternion {
+    return rp3d::Quaternion{ quat.x, quat.y, quat.z, quat.w };
+}
+
+
+[[nodiscard]] auto as(const rp3d::Transform& transform) -> Transform {
+    return Transform{ .translation = as(transform.getPosition()),
+                      .rotation = as(transform.getOrientation()),
+                      .scale = Vector3{ 1.0f, 1.0f, 1.0f } };
+}
+
+
+[[nodiscard]] auto as(const Transform& transform) -> rp3d::Transform {
+    return rp3d::Transform(as(transform.translation), as(transform.rotation));
+}
+
 } // namespace arcxel
