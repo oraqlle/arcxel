@@ -118,22 +118,14 @@ auto capture_raylib_logs() -> void {
     auto* old_rdbuf = change_rdbuf_to(logstream, ss.rdbuf());
 
     // Construct filename from current date and time
-    const auto now = current_datetime();
-    const auto secs = chrono::floor<chrono::seconds>(now);
-    const auto millis = chrono::duration_cast<chrono::milliseconds>(now - secs).count();
-
-    const auto fname = std::format(
-        "arcxel-{0:%F}_{0:%R}:{1:%S}-{2:03}.log",
-        now,
-        secs,
-        millis);
-
+    const auto now = chrono::floor<chrono::seconds>(current_datetime());
+    const auto fname = std::format("arcxel_{:%F_%H-%M-%S}.log", now);
     const auto fpath = outdir / fname;
 
     // Check if filesystem object of the same name exists
     if (!fs::exists(fpath)) {
         log(LogLevel::Info,
-            "Creating '{}' exists, overwriting.",
+            "File '{}' does not exists, creating.",
             fpath.filename().string());
     } else if (fs::status(outdir).type() != fs::file_type::regular) {
         return std::unexpected(
@@ -145,7 +137,7 @@ auto capture_raylib_logs() -> void {
     }
 
     // Open fstream object for logging
-    logfile.open(fpath, std::ios::out);
+    logfile.open(fpath, std::ios::out | std::ios::trunc);
 
     if (logfile.is_open()) {
         change_rdbuf_to(logstream, logfile.rdbuf());
@@ -155,11 +147,15 @@ auto capture_raylib_logs() -> void {
 
         log(LogLevel::Info, "Successfully opened log file '{}'", fpath.string());
     } else {
+        const auto errnum = errno;
+        const auto errstr = std::strerror(errno);
         change_rdbuf_to(logstream, old_rdbuf);
 
         logfile.clear();
 
         log(LogLevel::Error, "Could not open file '{}'.", fpath.string());
+        log(LogLevel::Error, "errno: {}.", errnum);
+        log(LogLevel::Error, "errstr: '{}'.", errstr);
         log(LogLevel::Info, "Logs only outputting to STDERR");
     }
 

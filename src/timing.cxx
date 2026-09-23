@@ -152,16 +152,8 @@ auto SampleRecord::record(const Sample& sample) -> bool {
 
     namespace chrono = std::chrono;
 
-    const auto now = current_datetime();
-    const auto secs = chrono::floor<chrono::seconds>(now);
-    const auto millis = chrono::duration_cast<chrono::milliseconds>(now - secs).count();
-
-    const auto fname = std::format(
-        "arcxel-{0:%F}_{0:%R}:{1:%S}-{2:03}.csv",
-        now,
-        secs,
-        millis);
-
+    const auto now = chrono::floor<chrono::seconds>(current_datetime());
+    const auto fname = std::format("arcxel_{:%F_%H-%M-%S}.csv", now);
     const auto fpath = std::filesystem::path{ path } / fname;
 
     // TODO: overwrite warning
