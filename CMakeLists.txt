@@ -8,10 +8,16 @@ project(
 )
 
 # ---- Global Defines ----
-set(CMAKE_EXPORT_COMPILE_COMMANDS   ON  CACHE BOOL "" FORCE)
-set(BUILD_SHARED_LIBS               ON  CACHE BOOL "" FORCE)
-set(CMAKE_CXX_STANDARD_REQUIRED     ON  CACHE BOOL "" FORCE)
-set(CMAKE_CXX_EXTENSIONS            OFF CACHE BOOL "" FORCE)
+set(CMAKE_EXPORT_COMPILE_COMMANDS     ON  CACHE BOOL "" FORCE)
+set(BUILD_SHARED_LIBS                 ON  CACHE BOOL "" FORCE)
+set(CMAKE_CXX_STANDARD_REQUIRED       ON  CACHE BOOL "" FORCE)
+set(CMAKE_CXX_EXTENSIONS              OFF CACHE BOOL "" FORCE)
+
+if(MSVC)
+	set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
+else ()
+	set(BUILD_SHARED_LIBS ON  CACHE BOOL "" FORCE)
+endif ()
 
 # ---- raylib Defines ----
 set(BUILD_EXAMPLES  OFF CACHE BOOL "" FORCE) # don't build the supplied examples
@@ -35,6 +41,11 @@ message(STATUS "ARXCEL_PROFILING: ${ARCXEL_PROFILING}")
 
 # ---- Dependencies ----
 include(FetchContent)
+
+
+if(MSVC)
+    set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS  ON  CACHE BOOL "" FORCE)
+endif()
 
 # -- raylib --
 FetchContent_Declare(
@@ -64,8 +75,20 @@ set_target_properties(reactphysics3d PROPERTIES SYSTEM TRUE)
 
 # ---- Exceptions and Warnings ----
 if (MSVC)
-    set(ARCXEL_NO_EXCEPTIONS /EHs-c-)
+	set(ARCXEL_NO_EXCEPTIONS /EHs-c-)
     set(ARCXEL_WARNINGS /W4)
+
+    # Remove /EHsc flag to disbale exceptions
+    foreach(flag_var 
+        CMAKE_CXX_FLAGS 
+        CMAKE_CXX_FLAGS_DEBUG 
+        CMAKE_CXX_FLAGS_RELEASE 
+        CMAKE_CXX_FLAGS_MINSIZEREL 
+        CMAKE_CXX_FLAGS_RELWITHDEBINFO
+    )
+        string(REPLACE "/EHsc" "" ${flag_var} "${${flag_var}}")
+    endforeach()
+
 else ()
     set(ARCXEL_NO_EXCEPTIONS -fno-exceptions)
     set(ARCXEL_WARNINGS -Wall -Wextra -Wpedantic)
@@ -94,6 +117,7 @@ add_library(
 target_include_directories(arcxel_lib PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 target_compile_features(arcxel_lib PUBLIC cxx_std_23)
 target_compile_options(arcxel_lib PRIVATE ${ARCXEL_WARNINGS} ${ARCXEL_NO_EXCEPTIONS})
+target_compile_definitions(arcxel_lib PRIVATE _HAS_EXCEPTIONS=0)
 target_compile_definitions(
     arcxel_lib
     PUBLIC
@@ -109,6 +133,7 @@ target_link_libraries(arcxel_lib PUBLIC raylib ReactPhysics3D::reactphysics3d)
 add_executable(arcxel src/main.cxx)
 target_compile_features(arcxel PUBLIC cxx_std_23)
 target_compile_options(arcxel PRIVATE ${ARCXEL_WARNINGS} ${ARCXEL_NO_EXCEPTIONS})
+target_compile_definitions(arcxel PRIVATE _HAS_EXCEPTIONS=0)
 target_link_libraries(arcxel PRIVATE arcxel_lib)
 
 # ----  Enable Sanitizers ----
