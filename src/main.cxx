@@ -211,7 +211,7 @@ static inline auto game_loop(Config config) -> void {
     // ---- PHYSICS WORLD CREATION ----
     auto phys_info = rp3d::PhysicsWorld::WorldSettings{};
     phys_info.isSleepingEnabled = true;
-    phys_info.gravity = rp3d::Vector3(0, -9.81, 0);
+    phys_info.gravity = rp3d::Vector3(0, -9.81f, 0);
 
     auto& phys_sys = arcxel::Physics::singleton(std::make_optional(std::move(phys_info)));
     arcxel::log(LogLevel::Info, "physics world created");
