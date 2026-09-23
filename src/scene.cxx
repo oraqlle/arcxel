@@ -16,7 +16,7 @@
 namespace arcxel {
 
 Scene::Scene() noexcept {
-    auto player = Player();
+    player = Player();
 
     _M_create_floor(Vector2{ DEFAULT_BOX_SIZE.x, DEFAULT_BOX_SIZE.z });
     _M_create_walls(DEFAULT_BOX_SIZE);
@@ -31,7 +31,7 @@ Scene::Scene(usize num_objects, const Vector3 size) noexcept
     assert(size.y > 0.0f);
     assert(size.z > 0.0f);
 
-    auto player = Player();
+    player = Player();
 
     _M_create_floor(Vector2{ size.x, size.z });
     _M_create_walls(size);
