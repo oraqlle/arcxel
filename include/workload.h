@@ -38,7 +38,7 @@ namespace arcxel {
     /**
      * Compute synthetic workload, seeded by the caller to prevent being precomputed
      */
-    [[nodiscard]] auto synthetic_work([[maybe_unused]] u32 iterations, f32 seed) -> f32 {
+    [[nodiscard]] static auto synthetic_work([[maybe_unused]] u32 iterations, f32 seed) -> f32 {
         // TODO
         // acc = seed
         // loop iterations times
