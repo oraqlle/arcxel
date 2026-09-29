@@ -1,28 +1,10 @@
-// <timing.cxx> -*- C++ -*-
-
-//  Arcxel Test Bench
-//  Copyright (C) 2026  Tyler Swann, Georgia Kanellis
-//
-//  This library is free software; you can redistribute it and/or
-//  modify it under the terms of the GNU Lesser General Public
-//  License v2.1 as published by the Free Software Foundation.
-//
-//  This library is distributed in the hope that it will be useful,
-//  but WITHOUT ANY WARRANTY; without even the implied warranty of
-//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-//  Lesser General Public License for more details.
-//
-//  You should have received a copy of the GNU Lesser General Public
-//  License along with this library; if not, write to the Free Software
-//  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
-//  USA
-
 #include "timing.h"
 #include "log.h"
 #include "types.h"
 #include "utils.h"
 
 #include <algorithm>
+#include <array>
 #include <chrono>
 #include <filesystem>
 #include <format>
@@ -54,14 +36,14 @@ struct Totals {
 
 
 static inline auto totals = std::array<Totals, num_labels>{
-    Totals{.label = Sample::Label::Frame},
-    Totals{.label = Sample::Label::Events},
-    Totals{.label = Sample::Label::Update},
-    Totals{.label = Sample::Label::PhysicsUpdate},
-    Totals{.label = Sample::Label::Render},
-    Totals{.label = Sample::Label::Construct},
-    Totals{.label = Sample::Label::Draw},
-    Totals{.label = Sample::Label::Present}
+    Totals{ .label = Sample::Label::Frame },
+    Totals{ .label = Sample::Label::Events },
+    Totals{ .label = Sample::Label::Update },
+    Totals{ .label = Sample::Label::PhysicsUpdate },
+    Totals{ .label = Sample::Label::Render },
+    Totals{ .label = Sample::Label::Construct },
+    Totals{ .label = Sample::Label::Draw },
+    Totals{ .label = Sample::Label::Present }
 };
 
 
@@ -175,23 +157,20 @@ auto SampleRecord::record(const Sample& sample) -> bool {
         };
     }
 
-    const auto now = current_datetime();
-    const auto seconds = std::chrono::floor<std::chrono::seconds>(now);
-    const auto millis =
-        std::chrono::duration_cast<std::chrono::milliseconds>(now - seconds).count();
+    namespace chrono = std::chrono;
 
-    const auto fname =
-        std::format("arcxel-{0:%F}_{0:%R}:{1:%S}-{2:03}.csv", now, seconds, millis);
-
-    const auto fpath = std::filesystem::path{path} / fname;
+    const auto now = chrono::floor<chrono::seconds>(current_datetime());
+    const auto fname = std::format("arcxel_{:%F_%H-%M-%S}.csv", now);
+    const auto fpath = std::filesystem::path{ path } / fname;
 
     // TODO: overwrite warning
     auto file = std::fstream(fpath, std::ios::trunc | std::ios::out);
 
     if (!file.is_open()) {
         return std::unexpected(make_log_string(
-            LogLevel::Error, "profiler: could not open {} for writing", fname
-        ));
+            LogLevel::Error,
+            "profiler: could not open {} for writing",
+            fname));
     }
 
     // CSV headings
@@ -216,8 +195,7 @@ auto SampleRecord::record(const Sample& sample) -> bool {
             sample.tid,
             as_us(start),
             as_us(end),
-            as_us(diff)
-        );
+            as_us(diff));
     }
 
     log(LogLevel::Info,

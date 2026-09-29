@@ -33,6 +33,7 @@
 
 # C++ Build Output Directories
 **/build
+**/dbuild
 **/out
 
 # User tooling

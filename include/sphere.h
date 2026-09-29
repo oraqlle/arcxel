@@ -1,4 +1,4 @@
-// <conf.h> -*- C++ -*-
+// <sphere.h> -*- C++ -*-
 
 //  Arcxel Test Bench
 //  Copyright (C) 2026  Tyler Swann, Georgia Kanellis
@@ -19,22 +19,29 @@
 
 #pragma once
 
-#include "types.h"
+#include "physics_object.h"
+#include "rp3d.h"
+#include "utils.h"
+
+#include <raylib.h>
 
 namespace arcxel {
 
-#if ARCXEL_DEBUG
-static constexpr bool debug_enabled = true;
-#else
-static constexpr bool debug_enabled = false;
-#endif
+class Sphere : public PhysicsObject {
+public:
+    explicit Sphere(Transform transform = TransformIdentity, Color colour = GRAY) noexcept;
 
-#if ARCXEL_PHYSICS_DEBUG_RENDERER
-static constexpr bool physics_debug_renderer_enabled = true;
-static constexpr usize default_num_sim_objects = 50;
-#else
-static constexpr bool physics_debug_renderer_enabled = false;
-static constexpr usize default_num_sim_objects = 1000;
-#endif
+    ~Sphere() noexcept override;
+
+protected:
+    virtual auto _M_create_mesh() -> void override;
+
+    virtual auto _M_create_collision_shape() -> void override;
+
+protected:
+    rp3d::SphereShape* shape;
+    rp3d::Collider* collider;
+    f32 radius;
+}; // class Sphere
 
 } // namespace arcxel

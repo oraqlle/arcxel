@@ -1,4 +1,4 @@
-// <conf.h> -*- C++ -*-
+// <physics_object.h> -*- C++ -*-
 
 //  Arcxel Test Bench
 //  Copyright (C) 2026  Tyler Swann, Georgia Kanellis
@@ -19,22 +19,43 @@
 
 #pragma once
 
-#include "types.h"
+#include "game_object.h"
+#include "rp3d.h"
+
+#include <raylib.h>
 
 namespace arcxel {
 
-#if ARCXEL_DEBUG
-static constexpr bool debug_enabled = true;
-#else
-static constexpr bool debug_enabled = false;
-#endif
+class PhysicsObject : public GameObject {
+public:
+    explicit PhysicsObject(
+        rp3d::BodyType btype,
+        Transform transform,
+        Color colour) noexcept;
 
-#if ARCXEL_PHYSICS_DEBUG_RENDERER
-static constexpr bool physics_debug_renderer_enabled = true;
-static constexpr usize default_num_sim_objects = 50;
-#else
-static constexpr bool physics_debug_renderer_enabled = false;
-static constexpr usize default_num_sim_objects = 1000;
-#endif
+    virtual ~PhysicsObject() noexcept;
+
+    virtual auto handle_events() -> void override;
+
+    virtual auto update(f64 delta) -> void override;
+
+    virtual auto render(f64 delta) -> void override;
+
+protected:
+    virtual auto _M_create_mesh() -> void = 0;
+
+    virtual auto _M_create_collision_shape() -> void = 0;
+
+    auto _M_sync_model_to_physics() -> void;
+
+    auto _M_render_physics_debug_shapes() -> void;
+
+protected:
+    Color tint;
+    Mesh mesh;
+    Model model;
+
+    rp3d::RigidBody* body;
+}; // class Cube
 
 } // namespace arcxel

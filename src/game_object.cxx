@@ -4,7 +4,7 @@
 
 namespace arcxel {
 
-GameObject::GameObject(Transform transform)
+GameObject::GameObject(Transform transform) noexcept
     : transform(transform) {}
 
 } // namespace arcxel

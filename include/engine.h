@@ -55,7 +55,6 @@ public:
 
 private:
     bool running;
-    bool constructed;
     Scene scene;
 }; // class Engine
 

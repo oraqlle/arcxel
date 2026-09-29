@@ -1,4 +1,4 @@
-// <physics.h> -*- C++ -*-
+// <plane.h> -*- C++ -*-
 
 //  Arcxel Test Bench
 //  Copyright (C) 2026  Tyler Swann, Georgia Kanellis
@@ -14,40 +14,41 @@
 //
 //  You should have received a copy of the GNU Lesser General Public
 //  License along with this library; if not, write to the Free Software
-//  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
+//  Foundation, Inc., 51 Franklin Street, Fifth Plane, Boston, MA  02110-1301
 //  USA
 
 #pragma once
 
+#include "physics_object.h"
 #include "rp3d.h"
-#include "types.h"
+#include "utils.h"
 
-#include <optional>
+#include <raylib.h>
 
 namespace arcxel {
 
-class Physics {
+class Plane : public PhysicsObject {
 public:
-    static constexpr f32 timestep = 1.0f / 60.0f;
+    Plane(
+        f32 length = 100.0f,
+        f32 width = 100.0f,
+        Transform transform = TransformIdentity) noexcept;
 
-    [[nodiscard]] static auto
-    singleton(std::optional<rp3d::PhysicsWorld::WorldSettings> init = std::nullopt)
-        -> Physics&;
+    ~Plane() noexcept override;
 
-    auto update(f64 delta) -> void;
+    virtual auto render(f64 delta) -> void override;
+
+protected:
+    virtual auto _M_create_mesh() -> void override;
+
+    virtual auto _M_create_collision_shape() -> void override;
 
 private:
-    explicit Physics(
-        std::optional<rp3d::PhysicsWorld::WorldSettings> opt_settings) noexcept;
+    f32 length; //< default x-axis (before transform)
+    f32 width;  //< default x-axis (before transform)
 
-    ~Physics() noexcept;
-
-public:
-    rp3d::PhysicsWorld* world;
-    rp3d::PhysicsCommon common;
-
-private:
-    f64 accumulator;
-};
+    rp3d::BoxShape* shape;
+    rp3d::Collider* collider;
+}; // class Plane
 
 } // namespace arcxel

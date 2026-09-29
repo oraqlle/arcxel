@@ -52,8 +52,8 @@ enum class LogLevel : u8 {
 
 #ifdef ARCXEL_LOGGING
 static inline constexpr bool logging_enabled = true;
-static inline constexpr LogLevel min_log_level =
-    debug_enabled ? LogLevel::Trace : LogLevel::Info;
+static inline constexpr LogLevel min_log_level = debug_enabled ? LogLevel::Trace
+                                                               : LogLevel::Info;
 #else
 static inline constexpr bool logging_enabled = false
     static inline constexpr Level min_log_level = Level::Off
@@ -92,19 +92,19 @@ template <typename... Args>
 constexpr auto
 make_log_string(const LogLevel level, std::format_string<Args...> fmt, Args&&... args)
     -> std::string {
+    namespace chrono = std::chrono;
+
     const auto now = current_datetime();
-    const auto seconds = std::chrono::floor<std::chrono::seconds>(now);
-    const auto ns =
-        std::chrono::duration_cast<std::chrono::nanoseconds>(now - seconds).count();
+    const auto seconds = chrono::floor<chrono::seconds>(now);
+    const auto ns = chrono::duration_cast<chrono::nanoseconds>(now - seconds).count();
 
     return std::format(
-        "[{:%R}:{:%S}.{:09}] {:<5} {}",
+        "[{:%R}:{:%S}.{:09}] {:<8} {}",
         now,
         seconds,
         ns,
         level,
-        std::format(fmt, std::forward<Args>(args)...)
-    );
+        std::format(fmt, std::forward<Args>(args)...));
 }
 
 
@@ -113,8 +113,10 @@ make_log_string(const LogLevel level, std::format_string<Args...> fmt, Args&&...
  */
 template <typename Stream, typename... Args>
 auto log_to(
-    Stream& stream, const LogLevel level, std::format_string<Args...> fmt, Args&&... args
-) -> void {
+    Stream& stream,
+    const LogLevel level,
+    std::format_string<Args...> fmt,
+    Args&&... args) -> void {
     if constexpr (logging_enabled) {
         if (level >= min_log_level) {
             auto msg = make_log_string(level, fmt, std::forward<Args>(args)...);
@@ -135,11 +137,11 @@ auto raw_log(std::format_string<Args...> fmt, Args&&... args) -> void {
         auto msg = std::format(fmt, std::forward<Args>(args)...);
 
         if (logfile.is_open()) {
-            auto syncedlog = std::osyncstream{logstream};
+            auto syncedlog = std::osyncstream{ logstream };
             std::println(syncedlog, "{}", msg);
         }
 
-        auto syncederr = std::osyncstream{std::cerr};
+        auto syncederr = std::osyncstream{ std::cerr };
         std::println(syncederr, "{}", msg);
     }
 }
@@ -156,11 +158,11 @@ auto log(const LogLevel level, std::format_string<Args...> fmt, Args&&... args) 
             auto msg = make_log_string(level, fmt, std::forward<Args>(args)...);
 
             if (logfile.is_open()) {
-                auto syncedlog = std::osyncstream{logstream};
+                auto syncedlog = std::osyncstream{ logstream };
                 std::println(syncedlog, "{}", msg);
             }
 
-            auto syncederr = std::osyncstream{std::cerr};
+            auto syncederr = std::osyncstream{ std::cerr };
             std::println(syncederr, "{}", msg);
         }
     }

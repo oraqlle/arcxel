@@ -7,26 +7,31 @@
 namespace arcxel {
 
 Player::Player() noexcept
-    : speed(5.0f)
-    , sprint_speed_scale(1.75f)
+    : speed(10.0f)
+    , sprint_speed_scale(3.75f)
     , look_sensitivity(0.0015f) {
-    camera.position = Vector3Zero();
-    camera.target = Vector3{0.0f, 0.0f, -1.0f};
-    camera.up = Vector3{0.0f, 1.0f, 0.0f};
+    camera.position = Vector3{ 100.0f, 80.0f, 0.0f };
+    camera.target = Vector3{ 0.0f, 0.0f, -1.0f };
+    camera.up = Vector3UnitY;
     camera.fovy = 45.0;
     camera.projection = CameraProjection::CAMERA_PERSPECTIVE;
 }
 
+
 [[nodiscard]] auto Player::get_camera() -> Camera3D { return camera; }
 
+
 auto Player::handle_events() -> void {}
+
 
 auto Player::update(f64 delta) -> void {
     _look_controls(delta);
     _movement_controls(delta);
 }
 
-auto Player::render(f64 delta) -> void {}
+
+auto Player::render(f64) -> void {}
+
 
 auto Player::_movement_controls(f64 delta) -> void {
     auto speed_delta = speed * static_cast<f32>(delta);
@@ -60,7 +65,8 @@ auto Player::_movement_controls(f64 delta) -> void {
     }
 }
 
-auto Player::_look_controls(f64 delta) -> void {
+
+auto Player::_look_controls(f64) -> void {
     auto mouse = GetMouseDelta();
     CameraYaw(&camera, -mouse.x * look_sensitivity, false);
     CameraPitch(&camera, -mouse.y * look_sensitivity, true, false, false);

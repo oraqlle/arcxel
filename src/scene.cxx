@@ -1,11 +1,14 @@
 #include "scene.h"
 #include "cube.h"
 #include "game_object.h"
+#include "plane.h"
 #include "player.h"
-#include "transform.h"
+#include "sphere.h"
 #include "types.h"
 
+#include <cassert>
 #include <raylib.h>
+#include <raymath.h>
 
 #include <random>
 #include <ranges>
@@ -15,18 +18,26 @@ namespace arcxel {
 constexpr u32 SCENE_SEED = 20260913;
 
 Scene::Scene() noexcept {
-    auto player = Player();
+    player = Player();
 
-    _M_create_floor();
-    _M_generate_objects(1, Workload{});
+    _M_create_floor(Vector2{ DEFAULT_BOX_SIZE.x, DEFAULT_BOX_SIZE.z });
+    _M_create_walls(DEFAULT_BOX_SIZE);
+    _M_generate_objects(1, DEFAULT_BOX_SIZE, Workload{});
 }
 
 
-Scene::Scene(usize num_objects, Workload workload) noexcept {
-    auto player = Player();
+Scene::Scene(usize num_objects, const Vector3 size, Workload workload) noexcept
+    : world_size(size) {
 
-    _M_create_floor();
-    _M_generate_objects(num_objects, workload);
+    assert(size.x > 0.0f);
+    assert(size.y > 0.0f);
+    assert(size.z > 0.0f);
+
+    player = Player();
+
+    _M_create_floor(Vector2{ size.x, size.z });
+    _M_create_walls(size);
+    _M_generate_objects(num_objects, size, workload);
 }
 
 
@@ -60,7 +71,15 @@ auto Scene::update_player(f64 delta) -> void {
 
 
 auto Scene::render(f64 delta) -> void {
-    DrawGrid(10000, 1.0f);
+    DrawGrid(200, 1.0f);
+
+    auto x_axis = Vector3{ 1000.0f, 0.0f, 0.0f };
+    auto y_axis = Vector3{ 0.0f, 1000.0f, 0.0f };
+    auto z_axis = Vector3{ 0.0f, 0.0f, 1000.0f };
+
+    DrawLine3D(x_axis, Vector3Zeros - x_axis, RED);
+    DrawLine3D(y_axis, Vector3Zeros - y_axis, GREEN);
+    DrawLine3D(z_axis, Vector3Zeros - z_axis, BLUE);
 
 
     for (auto& obj : objects) {
@@ -73,25 +92,73 @@ auto Scene::render(f64 delta) -> void {
 [[nodiscard]] auto Scene::primary_camera() -> Camera3D { return player.get_camera(); }
 
 
-auto Scene::_M_create_floor() -> void {
-    auto transform = Transform{
-        .translation = Vector3{0.0f, 0.0f, 0.0f},
-        .rotation = Quaternion{0.0f, 0.0f, 0.0f, 0.0f},
-        .scale = Vector3{.x = 1000.0f, .y = 0.001f, .z = 1000.0f}
-    };
+auto Scene::unload() -> void { objects.clear(); }
 
-    auto floor = std::make_unique<Cube>(transform);
-    floor->set_gravity(false);
-    floor->set_body_type(rp3d::BodyType::STATIC);
+
+auto Scene::_M_create_floor(const Vector2 size) -> void {
+    auto floor = std::make_unique<Plane>(size.x, size.y);
     objects.push_back(std::move(floor));
 }
 
 
-auto Scene::_M_generate_objects(usize num_objects, [[maybe_unused]] Workload workload) -> void {
-    auto rand = std::mt19937(SCENE_SEED); // not random_egnine to make things reproducable
+auto Scene::_M_create_walls(const Vector3 size) -> void {
+    // ---- LEFT WALL ----
+    const auto left_transform = Transform{
+        .translation = Vector3{ 0.0f, size.y * 0.5f, size.z * 0.5f },
+        .rotation = QuaternionFromAxisAngle(Vector3UnitX, 90 * DEG2RAD),
+        .scale = Vector3Ones
+    };
+
+    auto left = std::make_unique<Plane>(size.x, size.y, left_transform);
+    objects.push_back(std::move(left));
+
+    // ---- RIGHT WALL ----
+    const auto right_transform = Transform{
+        .translation = Vector3{ 0.0f, size.y * 0.5f, size.z * -0.5f },
+        .rotation = QuaternionFromAxisAngle(Vector3UnitX, 90 * DEG2RAD),
+        .scale = Vector3Ones
+    };
+
+    auto right = std::make_unique<Plane>(size.x, size.y, right_transform);
+    objects.push_back(std::move(right));
+
+    // ---- TOP WALL ----
+    const auto top_transform = Transform{
+        .translation = Vector3{ size.x * -0.5f, size.y * 0.5f, 0.0f },
+        .rotation = QuaternionFromAxisAngle(Vector3UnitZ, 90 * DEG2RAD),
+        .scale = Vector3Ones
+    };
+
+    auto top = std::make_unique<Plane>(size.y, size.z, top_transform);
+    objects.push_back(std::move(top));
+
+    // ---- BOTTOM WALL ----
+    const auto bottom_transform = Transform{
+        .translation = Vector3{ size.x * 0.5f, size.y * 0.5f, 0.0f },
+        .rotation = QuaternionFromAxisAngle(Vector3UnitZ, 90 * DEG2RAD),
+        .scale = Vector3Ones
+    };
+
+    auto bottom = std::make_unique<Plane>(size.y, size.z, bottom_transform);
+    objects.push_back(std::move(bottom));
+}
+
+
+auto Scene::_M_generate_objects(
+    usize num_objects,
+    const Vector3 size,
+    [[maybe_unused]] Workload workload) -> void {
+    const auto xdim = size.x * 0.5f;
+    const auto zdim = size.z * 0.5f;
+
+    auto rand = std::mt19937(SCENE_SEED); // fixed seed so runs are reproducible
+    auto xdist = std::uniform_real_distribution<f32>(-xdim, xdim);
+    auto ydist = std::uniform_real_distribution<f32>(10.0f, size.y);
+    auto zdist = std::uniform_real_distribution<f32>(-zdim, zdim);
+    auto shape_type_dist = std::uniform_int_distribution<u32>{};
 
     // separate stream
-    // keeps cube positions the same at every knob setting
+    // keeps object positions the same at every knob setting
     [[maybe_unused]] auto work_rand = std::mt19937(SCENE_SEED + 1);
     [[maybe_unused]] auto is_heavy = std::bernoulli_distribution(0.1);
 
@@ -106,27 +173,37 @@ auto Scene::_M_generate_objects(usize num_objects, [[maybe_unused]] Workload wor
     //
     // otherwise variance changes total work too
     // and a slowdown cant be blamed on imbalance
-    [[maybe_unused]] const auto light = u32{0};
-    [[maybe_unused]] const auto heavy = u32{0};
-    auto xdist = std::uniform_real_distribution<float>(-100.0f, 100.0f);
-    auto ydist = std::uniform_real_distribution<float>(-100.0f, 100.0f);
-    auto zdist = std::uniform_real_distribution<float>(-50.0f, -30.0f);
+    [[maybe_unused]] const auto light = u32{ 0 };
+    [[maybe_unused]] const auto heavy = u32{ 0 };
 
     for (auto _ : std::views::iota(num_objects) | std::views::take(num_objects)) {
-        auto translation = Vector3{.x = xdist(rand), .y = ydist(rand), .z = zdist(rand)};
+        auto translation = Vector3{ .x = xdist(rand),
+                                    .y = ydist(rand),
+                                    .z = zdist(rand) };
 
-        auto transform = Transform{
-            .translation = translation,
-            .rotation = Quaternion{0.0f, 0.0f, 0.0f, 0.0f},
-            .scale = Vector3{1.0f, 1.0f, 1.0f}
+        auto transform = Transform{ .translation = translation,
+                                    .rotation = QuaternionUnitX,
+                                    .scale = Vector3Ones };
+
+        auto colour = Color{
+            .r = static_cast<unsigned char>(std::abs(translation.x / xdim) * 255.0f),
+            .g = static_cast<unsigned char>(std::abs(translation.y / size.y) * 255.0f),
+            .b = static_cast<unsigned char>(std::abs(translation.z / zdim) * 255.0f),
+            .a = 255
         };
 
-        auto cube = std::make_unique<Cube>(transform);
+        switch (shape_type_dist(rand) % 2) {
+            case 0: // Cube
+                objects.push_back(std::make_unique<Cube>(transform, colour));
+                break;
+
+            case 1: // Sphere
+                objects.push_back(std::make_unique<Sphere>(transform, colour));
+                break;
+        }
 
         // TODO
-        // cube->work_iterations = is_heavy(work_rand) ? heavy : light;
-
-        objects.push_back(std::move(cube));
+        // objects.back()->work_iterations = is_heavy(work_rand) ? heavy : light;
     }
 }
 

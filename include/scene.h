@@ -32,9 +32,14 @@ namespace arcxel {
 
 class Scene {
 public:
+    static constexpr Vector3 DEFAULT_BOX_SIZE = Vector3{ 100.0f, 20.0f, 100.0f };
+
     Scene() noexcept;
 
-    explicit Scene(usize num_objects, Workload workload = Workload{}) noexcept;
+    explicit Scene(
+        usize num_objects,
+        const Vector3 size = Scene::DEFAULT_BOX_SIZE,
+        Workload workload = Workload{}) noexcept;
 
     auto handle_events() -> void;
 
@@ -46,15 +51,21 @@ public:
 
     [[nodiscard]] auto primary_camera() -> Camera3D;
 
-private:
-    auto _M_create_floor() -> void;
+    auto unload() -> void;
 
-    auto _M_generate_objects(usize num_objects, Workload workload) -> void;
+private:
+    auto _M_create_floor(const Vector2 size) -> void;
+
+    auto _M_create_walls(const Vector3 size) -> void;
+
+    auto _M_generate_objects(usize num_objects, const Vector3 size, Workload workload)
+        -> void;
 
 public: // Scene objects
     std::vector<std::unique_ptr<GameObject>> objects;
 
 private:
+    Vector3 world_size;
     Player player;
 
 }; // class Scene
