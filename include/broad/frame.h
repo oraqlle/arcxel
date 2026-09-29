@@ -1,4 +1,4 @@
-// <engine.h> -*- C++ -*-
+// <frame.h> -*- C++ -*-
 
 //  Arcxel Test Bench
 //  Copyright (C) 2026  Tyler Swann, Georgia Kanellis
@@ -19,43 +19,11 @@
 
 #pragma once
 
-#include "scene.h"
-#include "timing.h"
+#include "engine.h"
 #include "types.h"
 
-#include <optional>
-#include <raylib.h>
+namespace arcxel::broad {
 
-namespace arcxel {
+    auto run_frame(Engine& engine, f64 delta) -> void;
 
-class Engine {
-public:
-    [[nodiscard]] static auto singleton(std::optional<Scene> init = std::nullopt)
-        -> Engine&;
-
-    [[nodiscard]] auto is_running() -> bool;
-
-    auto stop() -> void;
-
-    auto handle_events() -> void;
-
-    auto update(f64 delta) -> void;
-
-    auto render(f64 delta) -> void;
-
-    [[nodiscard]] auto get_scene() -> Scene&;
-
-private:
-    explicit Engine(std::optional<Scene> opt_scene);
-
-    ~Engine() noexcept = default;
-
-public:
-    SampleRecord sample_record;
-
-private:
-    bool running;
-    Scene scene;
-}; // class Engine
-
-} // namespace arcxel
+} // namespace arcxel::broad

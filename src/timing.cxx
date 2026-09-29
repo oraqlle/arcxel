@@ -11,6 +11,8 @@
 #include <fstream>
 #include <ios>
 #include <print>
+#include <cassert>
+#include <thread>
 
 namespace arcxel {
 
@@ -96,13 +98,18 @@ auto log_trace_summary(const SampleRecord& store) -> void {
 
 SampleRecord::SampleRecord(usize max_num_samples) noexcept
     : max_samples(max_num_samples)
-    , num_dropped_samples(0) {
+    , num_dropped_samples(0)
+    , owner(std::this_thread::get_id()) {
     samples_store.reserve(max_num_samples);
 }
 
 
 auto SampleRecord::record(const Sample& sample) -> bool {
-    if (samples_store.size() <= max_samples) {
+    if constexpr (debug_enabled) {
+        assert(sample.tid == owner && "No timespan inside a task");
+    }
+
+    if (samples_store.size() < max_samples) { 
         samples_store.emplace_back(sample);
         return true;
     }
@@ -166,11 +173,8 @@ auto SampleRecord::record(const Sample& sample) -> bool {
             fname));
     }
 
-    // CSV headings
     std::println(file, "label,depth,thread,start (ns),end (ns),duration (ns)");
 
-    // Sort samples based on Sample::start, directly uses
-    // member as std::ranges::sort is in-place.
     std::ranges::sort(samples_store, {}, [](const auto& s) { return s.start; });
 
     const auto local_epoch = samples().front().start;

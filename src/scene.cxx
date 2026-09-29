@@ -15,16 +15,18 @@
 
 namespace arcxel {
 
+static constexpr u32 SCENE_SEED = 20260913;
+
 Scene::Scene() noexcept {
     player = Player();
 
     _M_create_floor(Vector2{ DEFAULT_BOX_SIZE.x, DEFAULT_BOX_SIZE.z });
     _M_create_walls(DEFAULT_BOX_SIZE);
-    _M_generate_objects(1, DEFAULT_BOX_SIZE);
+    _M_generate_objects(1, DEFAULT_BOX_SIZE, Workload{});
 }
 
 
-Scene::Scene(usize num_objects, const Vector3 size) noexcept
+Scene::Scene(usize num_objects, const Vector3 size, Workload workload) noexcept
     : world_size(size) {
 
     assert(size.x > 0.0f);
@@ -35,7 +37,7 @@ Scene::Scene(usize num_objects, const Vector3 size) noexcept
 
     _M_create_floor(Vector2{ size.x, size.z });
     _M_create_walls(size);
-    _M_generate_objects(num_objects, size);
+    _M_generate_objects(num_objects, size, workload);
 }
 
 
@@ -47,12 +49,23 @@ auto Scene::handle_events() -> void {
     player.handle_events();
 }
 
-
+// update order
+// range -> player
 auto Scene::update(f64 delta) -> void {
-    for (auto& obj : objects) {
-        obj->update(delta);
-    }
+    update_range(0, objects.size(), delta);
+    update_player(delta);
+}
 
+// update objects
+auto Scene::update_range(usize first, usize last, f64 delta) -> void {
+    // (?)
+    for (auto i : std::views::iota(first, last)) {
+        objects[i]->update(delta);
+    }
+}
+
+// update the player position
+auto Scene::update_player(f64 delta) -> void {
     player.update(delta);
 }
 
@@ -75,7 +88,6 @@ auto Scene::render(f64 delta) -> void {
 
     player.render(delta);
 }
-
 
 [[nodiscard]] auto Scene::primary_camera() -> Camera3D { return player.get_camera(); }
 
@@ -132,15 +144,36 @@ auto Scene::_M_create_walls(const Vector3 size) -> void {
 }
 
 
-auto Scene::_M_generate_objects(usize num_objects, const Vector3 size) -> void {
+auto Scene::_M_generate_objects(
+    usize num_objects,
+    const Vector3 size,
+    [[maybe_unused]] Workload workload) -> void {
     const auto xdim = size.x * 0.5f;
     const auto zdim = size.z * 0.5f;
 
-    auto rand = std::default_random_engine(std::random_device{}());
+    //auto rand = std::default_random_engine(std::random_device{}());
+    auto rand = std::mt19937(SCENE_SEED);
     auto xdist = std::uniform_real_distribution<f32>(-xdim, xdim);
     auto ydist = std::uniform_real_distribution<f32>(10.0f, size.y);
     auto zdist = std::uniform_real_distribution<f32>(-zdim, zdim);
     auto shape_type_dist = std::uniform_int_distribution<u32>{};
+
+    [[maybe_unused]] auto work_rand = std::mt19937(SCENE_SEED + 1);
+    [[maybe_unused]] auto is_heavy = std::bernoulli_distribution(0.1);
+
+    // TODO
+    // 10% heavy, 90% light
+    // mean stays at magnitude whatever the variance
+    //
+    //   light = magnitude * (1 - variance)
+    //   heavy = magnitude * (1 - variance) + 10 * magnitude * variance
+    //
+    // check: 0.1 * heavy + 0.9 * light == magnitude
+    //
+    // otherwise variance changes total work too
+    // and a slowdown cant be blamed on imbalance
+    [[maybe_unused]] const auto light = u32{0};
+    [[maybe_unused]] const auto heavy = u32{0};
 
     for (auto _ : std::views::iota(num_objects) | std::views::take(num_objects)) {
         auto translation = Vector3{ .x = xdist(rand),
@@ -167,6 +200,10 @@ auto Scene::_M_generate_objects(usize num_objects, const Vector3 size) -> void {
                 objects.push_back(std::make_unique<Sphere>(transform, colour));
                 break;
         }
+
+
+        // TODO
+        // cube->work_iterations = is_heavy(work_rand) ? heavy : light;
     }
 }
 

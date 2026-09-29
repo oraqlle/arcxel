@@ -41,6 +41,6 @@ auto Cube::_M_create_collision_shape() -> void {
     collider = body->addCollider(shape, rp3d::Transform::identity());
     collider->getMaterial().setMassDensity(1.0f);
     body->updateMassPropertiesFromColliders();
-}
+};
 
 } // namespace arcxel

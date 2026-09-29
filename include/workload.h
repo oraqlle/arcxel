@@ -1,4 +1,4 @@
-// <engine.h> -*- C++ -*-
+// <workload.h> -*- C++ -*-
 
 //  Arcxel Test Bench
 //  Copyright (C) 2026  Tyler Swann, Georgia Kanellis
@@ -19,43 +19,37 @@
 
 #pragma once
 
-#include "scene.h"
-#include "timing.h"
 #include "types.h"
 
-#include <optional>
-#include <raylib.h>
+#include <cmath>
+#include <ranges>
 
 namespace arcxel {
 
-class Engine {
-public:
-    [[nodiscard]] static auto singleton(std::optional<Scene> init = std::nullopt)
-        -> Engine&;
+    /**
+     * Synthetic workload for each object, run per object update
+     */
+    struct Workload {
+        u32 magnitude = 0;   // mean iterations per object, 0 is off
+        f32 variance = 0.0f; // 0 uniform, 1 maximally uneven
+    }; // struct Workload
 
-    [[nodiscard]] auto is_running() -> bool;
 
-    auto stop() -> void;
+    /**
+     * Compute synthetic workload, seeded by the caller to prevent being precomputed
+     */
+    [[nodiscard]] auto synthetic_work([[maybe_unused]] u32 iterations, f32 seed) -> f32 {
+        // TODO
+        // acc = seed
+        // loop iterations times
+        //     acc = fma(acc, 1.0000001f, 0.0000001f)
+        // return acc
+        //
+        // each step needs the one before it
+        // so the cpu cant run them at once
+        // and cost scales with the count
 
-    auto handle_events() -> void;
-
-    auto update(f64 delta) -> void;
-
-    auto render(f64 delta) -> void;
-
-    [[nodiscard]] auto get_scene() -> Scene&;
-
-private:
-    explicit Engine(std::optional<Scene> opt_scene);
-
-    ~Engine() noexcept = default;
-
-public:
-    SampleRecord sample_record;
-
-private:
-    bool running;
-    Scene scene;
-}; // class Engine
+        return seed;
+    }
 
 } // namespace arcxel

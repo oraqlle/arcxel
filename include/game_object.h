@@ -20,6 +20,7 @@
 #pragma once
 
 #include "types.h"
+#include "workload.h"
 
 #include <raylib.h>
 
@@ -39,6 +40,8 @@ public:
 
 public:
     Transform transform;
+    u32 work_iterations = 0;
+    volatile f32 work_sink = 1.0f; //< volatile so the compiler cannot delete it
 }; // class GameObject
 
 } // namespace arcxel

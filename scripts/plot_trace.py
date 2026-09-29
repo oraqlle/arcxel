@@ -10,6 +10,7 @@ LABEL_NAMES = [
     'Events',
     'PhysicsUpdate',
     'Update',
+    'PhysicsUpdate',
     'Construct',
     'Draw',
     'Present',

@@ -22,6 +22,7 @@
 #include "game_object.h"
 #include "player.h"
 #include "types.h"
+#include "workload.h"
 
 #include <memory>
 #include <raylib.h>
@@ -37,11 +38,14 @@ public:
 
     explicit Scene(
         usize num_objects,
-        const Vector3 size = Scene::DEFAULT_BOX_SIZE) noexcept;
+        const Vector3 size = Scene::DEFAULT_BOX_SIZE,
+        Workload workload = Workload{}) noexcept;
 
     auto handle_events() -> void;
 
     auto update(f64 delta) -> void;
+    auto update_range(usize first, usize last, f64 delta) -> void; // update objects
+    auto update_player(f64 delta) -> void;
 
     auto render(f64 delta) -> void;
 
@@ -54,7 +58,7 @@ private:
 
     auto _M_create_walls(const Vector3 size) -> void;
 
-    auto _M_generate_objects(usize num_objects, const Vector3 size) -> void;
+    auto _M_generate_objects(usize num_objects, const Vector3 size, Workload workload) -> void;
 
 public: // Scene objects
     std::vector<std::unique_ptr<GameObject>> objects;

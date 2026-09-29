@@ -9,7 +9,6 @@ project(
 
 # ---- Global Defines ----
 set(CMAKE_EXPORT_COMPILE_COMMANDS     ON  CACHE BOOL "" FORCE)
-set(BUILD_SHARED_LIBS                 ON  CACHE BOOL "" FORCE)
 set(CMAKE_CXX_STANDARD_REQUIRED       ON  CACHE BOOL "" FORCE)
 set(CMAKE_CXX_EXTENSIONS              OFF CACHE BOOL "" FORCE)
 
@@ -42,10 +41,13 @@ message(STATUS "ARXCEL_PROFILING: ${ARCXEL_PROFILING}")
 # ---- Dependencies ----
 include(FetchContent)
 
-
 if(MSVC)
     set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS  ON  CACHE BOOL "" FORCE)
 endif()
+
+# -- Native Threads --
+find_package(Threads REQUIRED)
+
 
 # -- raylib --
 FetchContent_Declare(
@@ -97,6 +99,7 @@ endif ()
 # ---- Library ----
 add_library(
     arcxel_lib OBJECT
+    src/broad_thread_pool.cxx
     src/cube.cxx
     src/engine.cxx
     src/plane.cxx
@@ -112,6 +115,8 @@ add_library(
     src/transform.cxx
     src/utils.cxx
     src/window.cxx
+    src/serial/frame.cxx
+    src/broad/frame.cxx
 )
 
 target_include_directories(arcxel_lib PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
@@ -127,7 +132,7 @@ target_compile_definitions(
         ARCXEL_PHYSICS_DEBUG_RENDERER=$<BOOL:${ARCXEL_PHYSICS_DEBUG_RENDERER}>
 )
 
-target_link_libraries(arcxel_lib PUBLIC raylib ReactPhysics3D::reactphysics3d)
+target_link_libraries(arcxel_lib PUBLIC raylib ReactPhysics3D::reactphysics3d Threads::Threads)
 
 # ---- Entrypoint ----
 add_executable(arcxel src/main.cxx)

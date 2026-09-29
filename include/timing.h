@@ -20,6 +20,7 @@
 #pragma once
 
 #include "types.h"
+#include "conf.h"
 
 #include <chrono>
 #include <format>
@@ -119,6 +120,7 @@ private:
     std::vector<Sample> samples_store;
     usize max_samples;
     usize num_dropped_samples;
+    Sample::ThreadId owner;
 }; // class SampleRecord
 
 

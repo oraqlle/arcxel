@@ -8,6 +8,10 @@
 #include "types.h"
 #include "utils.h"
 #include "window_info.h"
+#include "workload.h"
+#include "serial/frame.h"
+#include "broad/frame.h"
+#include "broad_thread_pool.h"
 
 #include <raylib.h>
 
@@ -16,6 +20,9 @@
 #include <string>
 #include <system_error>
 #include <utility>
+#include <cstdlib>
+#include <string_view>
+
 
 // clang-format off
 using arcxel::i8;
@@ -61,6 +68,7 @@ constexpr i32 HEIGHT = 1080;
 struct Config {
     usize num_sim_objects = arcxel::default_num_sim_objects;
 }; // struct Config
+
 
 
 [[nodiscard]] static auto parse_args(const std::vector<std::string> args)
@@ -122,6 +130,13 @@ struct Config {
 }
 
 
+enum class Architecture : u8 {
+    Serial,
+    Broad,
+    Fine
+};
+
+
 /**
  * @brief Create raylib window instance, validating it opened correctly
  */
@@ -140,39 +155,101 @@ struct Config {
     return {};
 }
 
+[[nodiscard]] static auto architecture_from_env() -> Architecture {
+    const auto* value = std::getenv("ARCXEL_ARCH");
+
+    if (value == nullptr) {
+        arcxel::log(LogLevel::Warning, "ARCXEL_ARCH not found, using serial");
+        return Architecture::Serial;
+    }
+
+    const auto name = std::string_view(value);
+
+    if (name == "serial") {
+        arcxel::log(LogLevel::Info, "ARCXEL_ARCH == serial");
+        return Architecture::Serial;
+    }
+    else if (name == "broad") {
+        arcxel::log(LogLevel::Info, "ARCXEL_ARCH == broad");
+        return Architecture::Broad;
+    }
+    // else if (name == "fine") {
+    //     arcxel::log(LogLevel::Info, "ARCXEL_ARCH == fine");
+    //     return Architecture::Fine;
+    // }
+
+    arcxel::log(LogLevel::Warning, "unknown ARCXEL_ARCH '{}', using serial", name);
+    return Architecture::Serial;
+
+}
+
+[[nodiscard]] static auto thread_count_from_env() -> std::optional<usize> {
+    const auto* value = std::getenv("ARCXEL_THREADS");
+
+    // use hardware_concurrency()
+    if (value == nullptr) {
+        return std::nullopt;
+    }
+
+    const auto count = std::atoi(value);
+
+    if (count < 1) {
+        arcxel::log(LogLevel::Warning, "ARCXEL_THREADS '{}' invalid, using default", value);
+        return std::nullopt;
+    }
+
+    return std::make_optional(static_cast<usize>(count));
+}
+
+[[nodiscard]] static auto workload_from_env() -> arcxel::Workload {
+    auto workload = arcxel::Workload{};
+
+    // TODO
+    // ARCXEL_WORK -> workload.magnitude
+    // getenv, nullptr leaves it 0
+    // atoi, warn and keep 0 if negative
+
+    // TODO
+    // ARCXEL_WORK_VARIANCE -> workload.variance
+    // getenv, nullptr leaves it 0.0
+    // atof, warn and keep 0.0 if outside 0..1
+
+    // log both
+    // lets each csv be matched to its settings
+    arcxel::log(LogLevel::Info, "workload: {} iterations, variance {}",
+                workload.magnitude, workload.variance);
+
+    return workload;
+}
+
 
 static inline auto game_loop(Config config) -> void {
     auto& engine = arcxel::Engine::singleton(
         std::make_optional(arcxel::Scene(config.num_sim_objects)));
 
+    const auto arch = architecture_from_env();
+
+    // get num threads
+    if (arch == Architecture::Broad) {
+        auto& pool = arcxel::BroadThreadPool::singleton(thread_count_from_env());
+        arcxel::log(LogLevel::Info, "thread pool started with {} workers", pool.size());
+    }
+
     while (engine.is_running()) {
 
         const auto frame_span = arcxel::Timespan(Label::Frame, engine.sample_record);
-
-
-        {
-            const auto _ = arcxel::Timespan(Label::Events, engine.sample_record);
-            engine.handle_events();
-        }
-
-
+        
         const f64 delta = GetFrameTime();
 
-        {
-            const auto _ = arcxel::Timespan(Label::PhysicsUpdate, engine.sample_record);
-            arcxel::Physics::singleton().update(delta);
-        }
+        switch (arch) {
+            case Architecture::Broad:
+                  arcxel::broad::run_frame(engine, delta);
+                  break;
 
-
-        {
-            const auto _ = arcxel::Timespan(Label::Update, engine.sample_record);
-            engine.update(delta);
-        }
-
-
-        {
-            const auto _ = arcxel::Timespan(Label::Render, engine.sample_record);
-            engine.render(delta);
+            case Architecture::Serial:
+            default:
+                arcxel::serial::run_frame(engine, delta);
+                break;
         }
     }
 }
