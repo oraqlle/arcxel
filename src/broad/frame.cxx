@@ -1,10 +1,10 @@
 // <frame.cxx> -*- C++ -*-
 
 #include "broad/frame.h"
-#include "broad_thread_pool.h"
 #include "engine.h"
 #include "physics.h"
 #include "scene.h"
+#include "thread_pool.h"
 #include "timing.h"
 #include "types.h"
 
@@ -16,7 +16,7 @@ namespace arcxel::broad {
 using Label = Sample::Label;
 
 auto run_frame(Engine& engine, f64 delta) -> void {
-    auto& pool = BroadThreadPool::singleton();
+    auto& pool = ThreadPool::singleton();
     auto& scene = engine.get_scene();
 
     // main thread only
@@ -39,7 +39,7 @@ auto run_frame(Engine& engine, f64 delta) -> void {
         const auto chunks = pool.size();
         const auto per_chunk = (count + chunks - 1) / chunks; // ceiling divide
 
-        for (auto chunk : std::views::iota(usize{0}, chunks)) {
+        for (auto chunk : std::views::iota(usize{ 0 }, chunks)) {
             const auto first = chunk * per_chunk;
             const auto last = std::min(first + per_chunk, count);
 
@@ -48,9 +48,8 @@ auto run_frame(Engine& engine, f64 delta) -> void {
                 continue;
             }
 
-            pool.submit([&scene, first, last, delta] {
-                scene.update_range(first, last, delta);
-            });
+            pool.submit(
+                [&scene, first, last, delta] { scene.update_range(first, last, delta); });
         }
 
         pool.wait();

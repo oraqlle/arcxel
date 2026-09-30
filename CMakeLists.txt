@@ -99,7 +99,6 @@ endif ()
 # ---- Library ----
 add_library(
     arcxel_lib OBJECT
-    src/broad_thread_pool.cxx
     src/cube.cxx
     src/engine.cxx
     src/plane.cxx
@@ -112,6 +111,7 @@ add_library(
     src/scene.cxx
     src/sphere.cxx
     src/timing.cxx
+    src/thread_pool.cxx
     src/transform.cxx
     src/utils.cxx
     src/window.cxx
