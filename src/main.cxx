@@ -1,27 +1,27 @@
+#include "broad/frame.h"
 #include "conf.h"
 #include "engine.h"
 #include "log.h"
 #include "physics.h"
 #include "rp3d.h"
 #include "scene.h"
+#include "serial/frame.h"
+#include "thread_pool.h"
 #include "timing.h"
 #include "types.h"
 #include "utils.h"
 #include "window_info.h"
 #include "workload.h"
-#include "serial/frame.h"
-#include "broad/frame.h"
-#include "broad_thread_pool.h"
 
 #include <raylib.h>
 
+#include <cstdlib>
 #include <expected>
 #include <optional>
 #include <string>
+#include <string_view>
 #include <system_error>
 #include <utility>
-#include <cstdlib>
-#include <string_view>
 
 
 // clang-format off
@@ -53,6 +53,15 @@ constexpr i32 WIDTH = 1920;
 constexpr i32 HEIGHT = 1080;
 
 
+enum class ThreadingType : u8 { Serial, Broad, Fine };
+
+
+struct Config {
+    usize num_sim_objects = arcxel::default_num_sim_objects;
+    ThreadingType threading_type = ThreadingType::Serial;
+}; // struct Config
+
+
 [[nodiscard]] static auto make_args(i32 argc, char* argv[]) -> std::vector<std::string> {
     auto args = std::vector<std::string>();
     args.reserve(argc);
@@ -63,12 +72,6 @@ constexpr i32 HEIGHT = 1080;
 
     return args;
 }
-
-
-struct Config {
-    usize num_sim_objects = arcxel::default_num_sim_objects;
-}; // struct Config
-
 
 
 [[nodiscard]] static auto parse_args(const std::vector<std::string> args)
@@ -130,13 +133,6 @@ struct Config {
 }
 
 
-enum class Architecture : u8 {
-    Serial,
-    Broad,
-    Fine
-};
-
-
 /**
  * @brief Create raylib window instance, validating it opened correctly
  */
@@ -155,98 +151,28 @@ enum class Architecture : u8 {
     return {};
 }
 
-[[nodiscard]] static auto architecture_from_env() -> Architecture {
-    const auto* value = std::getenv("ARCXEL_ARCH");
-
-    if (value == nullptr) {
-        arcxel::log(LogLevel::Warning, "ARCXEL_ARCH not found, using serial");
-        return Architecture::Serial;
-    }
-
-    const auto name = std::string_view(value);
-
-    if (name == "serial") {
-        arcxel::log(LogLevel::Info, "ARCXEL_ARCH == serial");
-        return Architecture::Serial;
-    }
-    else if (name == "broad") {
-        arcxel::log(LogLevel::Info, "ARCXEL_ARCH == broad");
-        return Architecture::Broad;
-    }
-    // else if (name == "fine") {
-    //     arcxel::log(LogLevel::Info, "ARCXEL_ARCH == fine");
-    //     return Architecture::Fine;
-    // }
-
-    arcxel::log(LogLevel::Warning, "unknown ARCXEL_ARCH '{}', using serial", name);
-    return Architecture::Serial;
-
-}
-
-[[nodiscard]] static auto thread_count_from_env() -> std::optional<usize> {
-    const auto* value = std::getenv("ARCXEL_THREADS");
-
-    // use hardware_concurrency()
-    if (value == nullptr) {
-        return std::nullopt;
-    }
-
-    const auto count = std::atoi(value);
-
-    if (count < 1) {
-        arcxel::log(LogLevel::Warning, "ARCXEL_THREADS '{}' invalid, using default", value);
-        return std::nullopt;
-    }
-
-    return std::make_optional(static_cast<usize>(count));
-}
-
-[[nodiscard]] static auto workload_from_env() -> arcxel::Workload {
-    auto workload = arcxel::Workload{};
-
-    // TODO
-    // ARCXEL_WORK -> workload.magnitude
-    // getenv, nullptr leaves it 0
-    // atoi, warn and keep 0 if negative
-
-    // TODO
-    // ARCXEL_WORK_VARIANCE -> workload.variance
-    // getenv, nullptr leaves it 0.0
-    // atof, warn and keep 0.0 if outside 0..1
-
-    // log both
-    // lets each csv be matched to its settings
-    arcxel::log(LogLevel::Info, "workload: {} iterations, variance {}",
-                workload.magnitude, workload.variance);
-
-    return workload;
-}
-
 
 static inline auto game_loop(Config config) -> void {
-    auto& engine = arcxel::Engine::singleton(
-        std::make_optional(arcxel::Scene(config.num_sim_objects)));
-
-    const auto arch = architecture_from_env();
+    auto& engine = arcxel::Engine::singleton({ arcxel::Scene(config.num_sim_objects) });
 
     // get num threads
-    if (arch == Architecture::Broad) {
-        auto& pool = arcxel::BroadThreadPool::singleton(thread_count_from_env());
+    if (config.threading_type == ThreadingType::Broad) {
+        auto& pool = arcxel::ThreadPool::singleton();
         arcxel::log(LogLevel::Info, "thread pool started with {} workers", pool.size());
     }
 
     while (engine.is_running()) {
 
         const auto frame_span = arcxel::Timespan(Label::Frame, engine.sample_record);
-        
+
         const f64 delta = GetFrameTime();
 
-        switch (arch) {
-            case Architecture::Broad:
-                  arcxel::broad::run_frame(engine, delta);
-                  break;
+        switch (config.threading_type) {
+            case ThreadingType::Broad:
+                arcxel::broad::run_frame(engine, delta);
+                break;
 
-            case Architecture::Serial:
+            case ThreadingType::Serial:
             default:
                 arcxel::serial::run_frame(engine, delta);
                 break;
