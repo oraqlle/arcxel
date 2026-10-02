@@ -1,11 +1,12 @@
 $TEST_RUNTIME = 5
+$PAUSE_BETWEEN_TESTS = 5
 
 # Override to run only some
 # e.g. $env:OBJECT_COUNTS = "500 1000"; .\scripts\run_test.ps1
 
 $OBJECT_COUNTS    = if ($env:OBJECT_COUNTS)    { $env:OBJECT_COUNTS }    else { "10 100" }   # 500 1000 2500 5000 10000
 $THREADING_METHOD = if ($env:THREADING_METHOD) { $env:THREADING_METHOD } else { "serial" }   # broad fine
-$SMT_METHOD       = if ($env:SMT_METHOD)       { $env:SMT_METHOD }       else { "off" }      # on off
+$SMT_LABEL        = if ($env:SMT_LABEL)        { $env:SMT_LABEL }        else { "off" }      # on off
 
 $ARCXEL = ".\build\arcxel.exe"
 
@@ -21,30 +22,33 @@ foreach ($n in $OBJECT_COUNTS.Split(" ")) {
 
     foreach ($t in $THREADING_METHOD.Split(" ")) {
 
-        foreach ($h in $SMT_METHOD.Split(" ")) {
-            Write-Host ""
-            Write-Host ""
-            Write-Host ""
-            Write-Host "================================================== TEST RUNTIME = $TEST_RUNTIME SECONDS =================================================="
-            Write-Host ""
-            Write-Host "Object count:     $n"
-            Write-Host "Threading method: $t"
-            Write-Host "Hyperthreading:   $h"
-            Write-Host ""
-            Write-Host "==============================================================================================================================="
-            Write-Host ""
-            # Write-Host "Writing to:       .log / .csv"
+        Write-Host ""
+        Write-Host ""
+        Write-Host ""
+        Write-Host "================================================== TEST RUNTIME = $TEST_RUNTIME SECONDS =================================================="
+        Write-Host ""
+        Write-Host "Object count:     $n"
+        Write-Host "Threading method: $t"
+        Write-Host "Hyperthreading:   $SMT_LABEL"
+        Write-Host ""
+        Write-Host "==============================================================================================================================="
+        Write-Host ""
+        # Write-Host "Writing to:       .log / .csv"
 
-            $proc = Start-Process $ARCXEL -ArgumentList "-n", $n -NoNewWindow -PassThru
+        $proc = Start-Process $ARCXEL -ArgumentList "-n", $n -NoNewWindow -PassThru # -t $t
 
-            if (-not $proc.WaitForExit($TEST_RUNTIME * 1000)) {
-                # ignore the Ctrl+C ourselves so only arcxel reacts to it
-                [Win32.Console]::SetConsoleCtrlHandler([IntPtr]::Zero, $true) | Out-Null
-                [Win32.Console]::GenerateConsoleCtrlEvent(0, 0) | Out-Null
-                $proc.WaitForExit()
-                [Win32.Console]::SetConsoleCtrlHandler([IntPtr]::Zero, $false) | Out-Null
-            }
-
+        if (-not $proc.WaitForExit($TEST_RUNTIME * 1000)) {
+            # ignore the Ctrl+C ourselves so only arcxel reacts to it
+            [Win32.Console]::SetConsoleCtrlHandler([IntPtr]::Zero, $true) | Out-Null
+            [Win32.Console]::GenerateConsoleCtrlEvent(0, 0) | Out-Null
+            $proc.WaitForExit()
+            [Win32.Console]::SetConsoleCtrlHandler([IntPtr]::Zero, $false) | Out-Null
         }
+
+        Start-Sleep -Seconds $PAUSE_BETWEEN_TESTS
     }
+
+# Start-Sleep -Seconds 10
+# run sort_results.py
+
 }
