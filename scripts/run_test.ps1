@@ -8,7 +8,7 @@ $OBJECT_COUNTS    = if ($env:OBJECT_COUNTS)    { $env:OBJECT_COUNTS }    else { 
 $THREADING_METHOD = if ($env:THREADING_METHOD) { $env:THREADING_METHOD } else { "serial" }   # broad fine
 $SMT_LABEL        = if ($env:SMT_LABEL)        { $env:SMT_LABEL }        else { "off" }      # on off
 
-$ARCXEL = ".\build\arcxel.exe"
+$ARCXEL = "$pwd\build\Release\arcxel.exe"
 
 # Windows has no kill -INT. Sending Ctrl+C to the console is what arcxel sees as SIGINT.
 Add-Type -Namespace Win32 -Name Console -MemberDefinition @'
@@ -27,15 +27,17 @@ foreach ($n in $OBJECT_COUNTS.Split(" ")) {
         Write-Host ""
         Write-Host "================================================== TEST RUNTIME = $TEST_RUNTIME SECONDS =================================================="
         Write-Host ""
+	Write-Host "PWD:              $pwd"
         Write-Host "Object count:     $n"
         Write-Host "Threading method: $t"
         Write-Host "Hyperthreading:   $SMT_LABEL"
+	Write-Host "Program:          $ARCXEL"
         Write-Host ""
         Write-Host "==============================================================================================================================="
         Write-Host ""
         # Write-Host "Writing to:       .log / .csv"
 
-        $proc = Start-Process $ARCXEL -ArgumentList "-n", $n -NoNewWindow -PassThru # -t $t
+        $proc = Start-Process -FilePath "$ARCXEL" -ArgumentList "-n", $n -NoNewWindow -PassThru # -t $t
 
         if (-not $proc.WaitForExit($TEST_RUNTIME * 1000)) {
             # ignore the Ctrl+C ourselves so only arcxel reacts to it
