@@ -33,16 +33,16 @@ option(ARCXEL_PROFILING        "Record profile traces" ON)
 
 # ---- Threading Model To Use ----
 set(ARCXEL_THREADING_MODEL "SERIAL" CACHE STRING "Threading Model Used")
-set(ARCXEL_THREADING_SERIAL ON CACHE BOOL "" FORCE)
-set(ARCXEL_THREADING_BROAD  OFF CACHE BOOL "" FORCE)
-set(ARCXEL_THREADING_FINE   OFF CACHE BOOL "" FORCE)
 
-if(ARCXEL_THREADING_TYPE STREQUAL "BROAD")
-    set(ARCXEL_THREADING_BROAD  ON CACHE BOOL "" FORCE)
-    set(ARCXEL_THREADING_SERIAL OFF CACHE BOOL "" FORCE)
-elif(ARCXEL_THREADING_TYPE STREQUAL "FINE")
+if(ARCXEL_THREADING_MODEL STREQUAL "BROAD")
+	set(ARCXEL_THREADING_BROAD  ON CACHE BOOL "" FORCE)
+	set(ARCXEL_THREADING_SRC src/game_loop_broad.cxx)
+elseif(ARCXEL_THREADING_MODEL STREQUAL "FINE")
     set(ARCXEL_THREADING_FINE   ON CACHE BOOL "" FORCE)
-    set(ARCXEL_THREADING_SERIAL OFF CACHE BOOL "" FORCE)
+	set(ARCXEL_THREADING_SRC src/game_loop_fine.cxx)
+else()
+	set(ARCXEL_THREADING_SERIAL ON CACHE BOOL "" FORCE)
+	set(ARCXEL_THREADING_SRC src/game_loop_serial.cxx)
 endif()
 
 # Build options log
@@ -111,7 +111,7 @@ else ()
     set(ARCXEL_WARNINGS -Wall -Wextra -Wpedantic)
 endif ()
 
-# ---- Library ----
+# ---- Arcxel Internal Object Library ----
 add_library(
     arcxel_lib OBJECT
     src/cube.cxx
@@ -130,8 +130,6 @@ add_library(
     src/transform.cxx
     src/utils.cxx
     src/window.cxx
-    src/serial/frame.cxx
-    src/broad/frame.cxx
 )
 
 target_include_directories(arcxel_lib PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
@@ -152,12 +150,33 @@ target_compile_definitions(
 
 target_link_libraries(arcxel_lib PUBLIC raylib ReactPhysics3D::reactphysics3d Threads::Threads)
 
+# ---- Game Loop Object Library ----
+add_library(arcxel_gameloop OBJECT ${ARCXEL_THREADING_SRC})
+
+target_include_directories(arcxel_gameloop PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
+target_compile_features(arcxel_gameloop PUBLIC cxx_std_23)
+target_compile_options(arcxel_gameloop PRIVATE ${ARCXEL_WARNINGS} ${ARCXEL_NO_EXCEPTIONS})
+target_compile_definitions(arcxel_gameloop PRIVATE _HAS_EXCEPTIONS=0)
+target_compile_definitions(
+    arcxel_gameloop
+    PUBLIC
+        ARCXEL_DEBUG=$<BOOL:${ARCXEL_DEBUG}>
+        ARCXEL_LOGGING=$<BOOL:${ARCXEL_LOGGING}>
+        ARCXEL_PROFILING=$<BOOL:${ARCXEL_PROFILING}>
+        ARCXEL_PHYSICS_DEBUG_RENDERER=$<BOOL:${ARCXEL_PHYSICS_DEBUG_RENDERER}>
+        ARCXEL_THREADING_SERIAL=$<BOOL:${ARCXEL_THREADING_SERIAL}>
+        ARCXEL_THREADING_BROAD=$<BOOL:${ARCXEL_THREADING_BROAD}>
+        ARCXEL_THREADING_FINE=$<BOOL:${ARCXEL_THREADING_FINE}>
+)
+
+target_link_libraries(arcxel_gameloop PUBLIC raylib ReactPhysics3D::reactphysics3d Threads::Threads)
+
 # ---- Entrypoint ----
 add_executable(arcxel src/main.cxx)
 target_compile_features(arcxel PUBLIC cxx_std_23)
 target_compile_options(arcxel PRIVATE ${ARCXEL_WARNINGS} ${ARCXEL_NO_EXCEPTIONS})
 target_compile_definitions(arcxel PRIVATE _HAS_EXCEPTIONS=0)
-target_link_libraries(arcxel PRIVATE arcxel_lib)
+target_link_libraries(arcxel PRIVATE arcxel_lib arcxel_gameloop)
 
 # ----  Enable Sanitizers ----
 if(ARCXEL_SANITIZERS)
