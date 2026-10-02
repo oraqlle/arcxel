@@ -123,14 +123,14 @@ constexpr i32 HEIGHT = 1080;
         arcxel::log(LogLevel::Info, "debug renderer disabled for physics engine");
     }
 
-    auto& engine = arcxel::Engine::singleton({ arcxel::Scene(config.num_sim_objects) });
+    arcxel::Engine::singleton().load_scene(arcxel::Scene(config.num_sim_objects));
 
     // ---- GAME LOOP ----
     DisableCursor();
     game_loop(config);
     EnableCursor();
 
-    engine.stop();
+    arcxel::Engine::singleton().stop();
 
     return {};
 }
@@ -180,6 +180,7 @@ auto main(int argc, char* argv[]) -> int {
 
 
     // ---- ENGINE ----
+    auto& _ = arcxel::Engine::singleton();
     if (const auto r = run(config); !r) {
         arcxel::raw_log("{}", r.error());
     }

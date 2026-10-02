@@ -30,12 +30,15 @@ namespace arcxel {
 
 class Engine {
 public:
-    [[nodiscard]] static auto singleton(std::optional<Scene> init = std::nullopt)
-        -> Engine&;
+    [[nodiscard]] static auto singleton() -> Engine&;
 
     [[nodiscard]] auto is_running() -> bool;
 
     auto stop() -> void;
+
+    auto load_scene(Scene&& scene) -> void;
+
+    [[nodiscard]] auto unload_scene() -> std::optional<Scene>;
 
     auto handle_events() -> void;
 
@@ -43,10 +46,10 @@ public:
 
     auto render(f64 delta) -> void;
 
-    [[nodiscard]] auto get_scene() -> Scene&;
+    [[nodiscard]] auto get_scene() -> std::optional<Scene>&;
 
 private:
-    explicit Engine(std::optional<Scene> opt_scene);
+    explicit Engine();
 
     ~Engine() noexcept = default;
 
@@ -55,7 +58,7 @@ public:
 
 private:
     bool running;
-    Scene scene;
+    std::optional<Scene> scene;
 }; // class Engine
 
 } // namespace arcxel

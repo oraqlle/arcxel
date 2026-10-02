@@ -5,20 +5,15 @@
 
 namespace arcxel {
 
-Engine::Engine(std::optional<Scene> opt_scene)
+Engine::Engine()
     : sample_record()
-    , running(true) {
-    if (opt_scene) {
-        scene = std::move(*opt_scene);
-    } else {
-        scene = Scene();
-    }
-}
+    , running(true)
+    , scene(std::nullopt) {}
 
 
-[[nodiscard]] auto Engine::singleton(std::optional<Scene> init) -> Engine& {
+[[nodiscard]] auto Engine::singleton() -> Engine& {
 
-    static auto engine = Engine(std::move(init));
+    static auto engine = Engine();
     return engine;
 }
 
@@ -32,40 +27,73 @@ Engine::Engine(std::optional<Scene> opt_scene)
 auto Engine::stop() -> void {
     running = false;
 
-    scene.unload();
+    if (scene) {
+		scene.value().unload();
+    }
 }
 
 
-auto Engine::handle_events() -> void { scene.handle_events(); }
+
+auto Engine::load_scene(Scene&& scene) -> void {
+    this->scene.emplace(std::move(scene));
+}
 
 
-auto Engine::update(f64 delta) -> void { scene.update(delta); }
+auto Engine::unload_scene() -> std::optional<Scene> {
+    if (scene) {
+        auto&& _scene = std::move(scene);
+		scene.reset();
+		return std::move(_scene);
+    }
+    
+    return std::nullopt;
+}
+
+
+[[nodiscard]] auto Engine::get_scene() -> std::optional<Scene>& {
+    return scene;
+}
+
+
+auto Engine::handle_events() -> void {
+    if (scene) {
+        scene.value().handle_events();
+    }
+}
+
+
+auto Engine::update(f64 delta) -> void {
+    if (scene) {
+        scene.value().update(delta);
+    }
+}
 
 
 auto Engine::render(f64 delta) -> void {
-    auto camera = scene.primary_camera();
+    if (scene) {
+        auto& _scene = *scene;
+		auto camera = _scene.primary_camera();
 
-    {
-        const auto span = Timespan(Sample::Label::Construct, sample_record);
-        BeginDrawing();
-        ClearBackground(RAYWHITE);
-    }
+		{
+			const auto span = Timespan(Sample::Label::Construct, sample_record);
+			BeginDrawing();
+			ClearBackground(RAYWHITE);
+		}
 
-    {
-        const auto span = Timespan(Sample::Label::Draw, sample_record);
-        BeginMode3D(camera);
-        scene.render(delta);
-        EndMode3D();
-    }
+		{
+			const auto span = Timespan(Sample::Label::Draw, sample_record);
+			BeginMode3D(camera);
+			_scene.render(delta);
+			EndMode3D();
+		}
 
-    {
-        const auto span = Timespan(Sample::Label::Present, sample_record);
-        EndDrawing();
+		{
+			const auto span = Timespan(Sample::Label::Present, sample_record);
+			EndDrawing();
+		}
+
     }
 }
 
-[[nodiscard]] auto Engine::get_scene() -> Scene& {
-    return scene;
-}
 
 } // namespace arcxel

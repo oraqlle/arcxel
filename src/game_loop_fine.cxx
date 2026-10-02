@@ -16,14 +16,19 @@ using Label = Sample::Label;
 auto game_loop(Config config) -> void {
 
 	log(LogLevel::Info, "Starting [FINE] game loop");
+
+	auto& pool = ThreadPool::singleton();
+	auto& scene = Engine::singleton().get_scene();
+
+	if (!scene) {
+		log(LogLevel::Warning, "No root scene set for engine");
+		return;
+	}
     
     while (Engine::singleton().is_running()) {
 
         const auto frame_span = arcxel::Timespan(Label::Frame, Engine::singleton().sample_record);
         const f64 delta = GetFrameTime();
-
-		auto& pool = ThreadPool::singleton();
-		auto& scene = Engine::singleton().get_scene();
 
 		{
 			const auto _ = Timespan(Label::Events, Engine::singleton().sample_record);
@@ -38,7 +43,7 @@ auto game_loop(Config config) -> void {
 		{
 			const auto _ = Timespan(Label::Update, Engine::singleton().sample_record);
 
-			const auto count = scene.objects.size();
+			const auto count = scene.value().objects.size();
 			const auto chunks = pool.size();
 			const auto per_chunk = (count + chunks - 1) / chunks;
 
@@ -51,11 +56,11 @@ auto game_loop(Config config) -> void {
 				}
 
 				pool.submit(
-					[&scene, first, last, delta] { scene.update_range(first, last, delta); });
+					[&scene, first, last, delta] { scene.value().update_range(first, last, delta); });
 			}
 
 			pool.wait();
-			scene.update_player(delta);
+			scene.value().update_player(delta);
 		}
 
 		{
