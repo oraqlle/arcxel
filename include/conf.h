@@ -49,8 +49,13 @@ static constexpr ThreadingType threading_model = ThreadingType::Serial;
 #endif
 
 
+constexpr std::string_view DEFAULT_TRACES_DIR = "traces";
+constexpr std::string_view DEFAULT_LOGS_DIR = "logs";
+
 struct Config {
     usize num_sim_objects = arcxel::default_num_sim_objects;
+    std::string trace_dir = static_cast<std::string>(DEFAULT_TRACES_DIR);
+    std::string log_dir = static_cast<std::string>(DEFAULT_LOGS_DIR);
 }; // struct Config
 
 

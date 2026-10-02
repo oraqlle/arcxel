@@ -18,10 +18,6 @@ else ()
 	set(BUILD_SHARED_LIBS ON  CACHE BOOL "" FORCE)
 endif ()
 
-# ---- raylib Defines ----
-set(BUILD_EXAMPLES  OFF CACHE BOOL "" FORCE) # don't build the supplied examples
-set(BUILD_GAMES     OFF CACHE BOOL "" FORCE) # don't build the supplied example games
-
 # ---- Build Options ----
 include(CMakeDependentOption)
 cmake_dependent_option(ARCXEL_DEBUG                  "Enable debug options" ON  [[CMAKE_BUILD_TYPE STREQUAL "Debug"]] OFF)
@@ -63,6 +59,9 @@ endif()
 # -- Native Threads --
 find_package(Threads REQUIRED)
 
+# -- raylib Defines --
+set(BUILD_EXAMPLES  OFF CACHE BOOL "" FORCE) # don't build the supplied examples
+set(BUILD_GAMES     OFF CACHE BOOL "" FORCE) # don't build the supplied example games
 
 # -- raylib --
 FetchContent_Declare(
@@ -90,6 +89,19 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(reactphysics3d)
 
 set_target_properties(reactphysics3d PROPERTIES SYSTEM TRUE)
+
+# -- cxxopts --
+FetchContent_Declare(
+    cxxopts
+    GIT_REPOSITORY  https://github.com/jarro2783/cxxopts.git
+    GIT_TAG         v3.3.1
+    GIT_PROGRESS    TRUE
+    GIT_SUBMODULES  ""
+)
+
+FetchContent_MakeAvailable(cxxopts)
+
+set_target_properties(cxxopts PROPERTIES SYSTEM TRUE)
 
 # ---- Exceptions and Warnings ----
 if (MSVC)
@@ -177,7 +189,7 @@ add_executable(arcxel src/main.cxx)
 target_compile_features(arcxel PUBLIC cxx_std_23)
 target_compile_options(arcxel PRIVATE ${ARCXEL_WARNINGS} ${ARCXEL_NO_EXCEPTIONS})
 target_compile_definitions(arcxel PRIVATE _HAS_EXCEPTIONS=0)
-target_link_libraries(arcxel PRIVATE arcxel_lib arcxel_gameloop)
+target_link_libraries(arcxel PRIVATE arcxel_lib arcxel_gameloop cxxopts)
 
 # ----  Enable Sanitizers ----
 if(ARCXEL_SANITIZERS)

@@ -40,7 +40,7 @@ auto game_loop(Config config) -> void {
 
 			const auto count = scene.objects.size();
 			const auto chunks = pool.size();
-			const auto per_chunk = (count + chunks - 1) / chunks; // ceiling divide
+			const auto per_chunk = (count + chunks - 1) / chunks;
 
 			for (auto chunk : std::views::iota(usize{ 0 }, chunks)) {
 				const auto first = chunk * per_chunk;
