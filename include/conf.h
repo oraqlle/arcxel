@@ -37,4 +37,16 @@ static constexpr bool physics_debug_renderer_enabled = false;
 static constexpr usize default_num_sim_objects = 1000;
 #endif
 
+
+enum class ThreadingType : u8 { Serial, Broad, Fine };
+
+#if ARCXEL_THREADING_BROAD
+static constexpr ThreadingType threading_model = ThreadingType::Broad;
+#elif ARCXEL_THREADING_FINE
+static constexpr ThreadingType threading_model = ThreadingType::Fine;
+#else
+static constexpr ThreadingType threading_model = ThreadingType::Serial;
+#endif
+
+
 } // namespace arcxel

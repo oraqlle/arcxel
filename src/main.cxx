@@ -43,6 +43,7 @@ using arcxel::f64;
 
 using arcxel::LogLevel;
 using Label = arcxel::Sample::Label;
+using ThreadingType = arcxel::ThreadingType;
 // clang-format on
 
 
@@ -53,12 +54,8 @@ constexpr i32 WIDTH = 1920;
 constexpr i32 HEIGHT = 1080;
 
 
-enum class ThreadingType : u8 { Serial, Broad, Fine };
-
-
 struct Config {
     usize num_sim_objects = arcxel::default_num_sim_objects;
-    ThreadingType threading_type = ThreadingType::Serial;
 }; // struct Config
 
 
@@ -156,7 +153,7 @@ static inline auto game_loop(Config config) -> void {
     auto& engine = arcxel::Engine::singleton({ arcxel::Scene(config.num_sim_objects) });
 
     // get num threads
-    if (config.threading_type == ThreadingType::Broad) {
+    if (arcxel::threading_model == ThreadingType::Broad) {
         auto& pool = arcxel::ThreadPool::singleton();
         arcxel::log(LogLevel::Info, "thread pool started with {} workers", pool.size());
     }
@@ -167,7 +164,7 @@ static inline auto game_loop(Config config) -> void {
 
         const f64 delta = GetFrameTime();
 
-        switch (config.threading_type) {
+        switch (arcxel::threading_model) {
             case ThreadingType::Broad:
                 arcxel::broad::run_frame(engine, delta);
                 break;

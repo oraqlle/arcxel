@@ -28,8 +28,22 @@ cmake_dependent_option(ARCXEL_DEBUG                  "Enable debug options" ON  
 cmake_dependent_option(ARCXEL_SANITIZERS             "Enable sanitizers"    OFF [[CMAKE_BUILD_TYPE STREQUAL "Debug"]] OFF)
 cmake_dependent_option(ARCXEL_PHYSICS_DEBUG_RENDERER "Enable sanitizers"    OFF [[CMAKE_BUILD_TYPE STREQUAL "Debug"]] OFF)
 
-option(ARCXEL_LOGGING    "Log program traces"    ON)
-option(ARCXEL_PROFILING  "Record profile traces" ON)
+option(ARCXEL_LOGGING          "Log program traces"    ON)
+option(ARCXEL_PROFILING        "Record profile traces" ON)
+
+# ---- Threading Model To Use ----
+set(ARCXEL_THREADING_MODEL "SERIAL" CACHE STRING "Threading Model Used")
+set(ARCXEL_THREADING_SERIAL ON CACHE BOOL "" FORCE)
+set(ARCXEL_THREADING_BROAD  OFF CACHE BOOL "" FORCE)
+set(ARCXEL_THREADING_FINE   OFF CACHE BOOL "" FORCE)
+
+if(ARCXEL_THREADING_TYPE STREQUAL "BROAD")
+    set(ARCXEL_THREADING_BROAD  ON CACHE BOOL "" FORCE)
+    set(ARCXEL_THREADING_SERIAL OFF CACHE BOOL "" FORCE)
+elif(ARCXEL_THREADING_TYPE STREQUAL "FINE")
+    set(ARCXEL_THREADING_FINE   ON CACHE BOOL "" FORCE)
+    set(ARCXEL_THREADING_SERIAL OFF CACHE BOOL "" FORCE)
+endif()
 
 # Build options log
 message(STATUS "ARXCEL_DEBUG: ${ARCXEL_DEBUG}")
@@ -37,6 +51,7 @@ message(STATUS "ARXCEL_SANITIZERS: ${ARCXEL_SANITIZERS}")
 message(STATUS "ARXCEL_PHYSICS_DEBUG_RENDERER: ${ARCXEL_PHYSICS_DEBUG_RENDERER}")
 message(STATUS "ARXCEL_LOGGING: ${ARCXEL_LOGGING}")
 message(STATUS "ARXCEL_PROFILING: ${ARCXEL_PROFILING}")
+message(STATUS "ARCXEL_THREADING_MODEL: ${ARCXEL_THREADING_MODEL}")
 
 # ---- Dependencies ----
 include(FetchContent)
@@ -130,6 +145,9 @@ target_compile_definitions(
         ARCXEL_LOGGING=$<BOOL:${ARCXEL_LOGGING}>
         ARCXEL_PROFILING=$<BOOL:${ARCXEL_PROFILING}>
         ARCXEL_PHYSICS_DEBUG_RENDERER=$<BOOL:${ARCXEL_PHYSICS_DEBUG_RENDERER}>
+        ARCXEL_THREADING_SERIAL=$<BOOL:${ARCXEL_THREADING_SERIAL}>
+        ARCXEL_THREADING_BROAD=$<BOOL:${ARCXEL_THREADING_BROAD}>
+        ARCXEL_THREADING_FINE=$<BOOL:${ARCXEL_THREADING_FINE}>
 )
 
 target_link_libraries(arcxel_lib PUBLIC raylib ReactPhysics3D::reactphysics3d Threads::Threads)
