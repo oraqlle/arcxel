@@ -49,4 +49,9 @@ static constexpr ThreadingType threading_model = ThreadingType::Serial;
 #endif
 
 
+struct Config {
+    usize num_sim_objects = arcxel::default_num_sim_objects;
+}; // struct Config
+
+
 } // namespace arcxel

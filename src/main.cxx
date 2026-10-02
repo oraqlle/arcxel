@@ -1,13 +1,12 @@
-#include "broad/frame.h"
 #include "conf.h"
 #include "engine.h"
 #include "log.h"
 #include "physics.h"
 #include "rp3d.h"
 #include "scene.h"
-#include "serial/frame.h"
 #include "thread_pool.h"
 #include "timing.h"
+#include "game_loop.h"
 #include "types.h"
 #include "utils.h"
 #include "window_info.h"
@@ -42,8 +41,6 @@ using arcxel::f32;
 using arcxel::f64;
 
 using arcxel::LogLevel;
-using Label = arcxel::Sample::Label;
-using ThreadingType = arcxel::ThreadingType;
 // clang-format on
 
 
@@ -52,11 +49,6 @@ constexpr std::string_view DEFAULT_TRACES_DIR = "traces";
 
 constexpr i32 WIDTH = 1920;
 constexpr i32 HEIGHT = 1080;
-
-
-struct Config {
-    usize num_sim_objects = arcxel::default_num_sim_objects;
-}; // struct Config
 
 
 [[nodiscard]] static auto make_args(i32 argc, char* argv[]) -> std::vector<std::string> {
@@ -72,8 +64,8 @@ struct Config {
 
 
 [[nodiscard]] static auto parse_args(const std::vector<std::string> args)
-    -> std::expected<Config, std::string> {
-    auto config = Config{};
+    -> std::expected<arcxel::Config, std::string> {
+    auto config = arcxel::Config{};
 
     for (auto idx = 1U; idx < args.size(); idx++) {
         if (args[idx] == "-h") {
@@ -126,7 +118,7 @@ struct Config {
         }
     }
 
-    return config;
+    return { config };
 }
 
 
@@ -149,36 +141,7 @@ struct Config {
 }
 
 
-static inline auto game_loop(Config config) -> void {
-    auto& engine = arcxel::Engine::singleton({ arcxel::Scene(config.num_sim_objects) });
-
-    // get num threads
-    if (arcxel::threading_model == ThreadingType::Broad) {
-        auto& pool = arcxel::ThreadPool::singleton();
-        arcxel::log(LogLevel::Info, "thread pool started with {} workers", pool.size());
-    }
-
-    while (engine.is_running()) {
-
-        const auto frame_span = arcxel::Timespan(Label::Frame, engine.sample_record);
-
-        const f64 delta = GetFrameTime();
-
-        switch (arcxel::threading_model) {
-            case ThreadingType::Broad:
-                arcxel::broad::run_frame(engine, delta);
-                break;
-
-            case ThreadingType::Serial:
-            default:
-                arcxel::serial::run_frame(engine, delta);
-                break;
-        }
-    }
-}
-
-
-[[nodiscard]] static auto run(Config config) -> arcxel::Fallible {
+[[nodiscard]] static auto run(arcxel::Config config) -> arcxel::Fallible {
 
     // ---- WINDOW CREATION ----
     const auto winfo = arcxel::WindowInfo{ .width = WIDTH,
@@ -214,13 +177,14 @@ static inline auto game_loop(Config config) -> void {
         arcxel::log(LogLevel::Info, "debug renderer disabled for physics engine");
     }
 
+    auto& engine = arcxel::Engine::singleton({ arcxel::Scene(config.num_sim_objects) });
 
     // ---- GAME LOOP ----
     DisableCursor();
     game_loop(config);
     EnableCursor();
 
-    arcxel::Engine::singleton().stop();
+    engine.stop();
 
     return {};
 }
@@ -244,7 +208,7 @@ auto main(int argc, char* argv[]) -> int {
 
     // ---- ARG PARSING ----
     const auto args = make_args(argc, argv);
-    auto config = Config{};
+    auto config = arcxel::Config{};
 
     if (const auto r = parse_args(args); !r) {
         arcxel::raw_log("{}", r.error());
