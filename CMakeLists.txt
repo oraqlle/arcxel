@@ -84,6 +84,7 @@ FetchContent_Declare(
     GIT_TAG         master
     GIT_PROGRESS    TRUE
     GIT_SUBMODULES  ""
+    PATCH_COMMAND git apply "${CMAKE_CURRENT_SOURCE_DIR}/patches/reactphysics3d-chrono.patch"
 )
 
 FetchContent_MakeAvailable(reactphysics3d)

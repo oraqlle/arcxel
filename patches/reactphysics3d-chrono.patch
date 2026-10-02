@@ -1,0 +1,13 @@
+diff --git a/include/reactphysics3d/utils/DefaultLogger.h b/include/reactphysics3d/utils/DefaultLogger.h
+index 1088d1e9..cfdf70fa 100644
+--- a/include/reactphysics3d/utils/DefaultLogger.h
++++ b/include/reactphysics3d/utils/DefaultLogger.h
+@@ -38,6 +38,8 @@
+ #include <mutex>
+ #include <ctime>
+ 
++#include <chrono>
++
+ /// ReactPhysics3D namespace
+ namespace reactphysics3d {
+ 
