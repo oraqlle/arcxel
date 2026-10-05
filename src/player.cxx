@@ -1,4 +1,5 @@
 #include "player.h"
+#include "utils.h"
 
 #include <raylib.h>
 #include <raymath.h>
@@ -6,8 +7,22 @@
 
 namespace arcxel {
 
+    [[nodiscard]] static auto axis_vec3_to_mat4(
+        const Vector3& forward,
+        const Vector3& right,
+        const Vector3& up) -> Matrix {
+		return Matrix{
+            right.x,     right.y,     right.z,     0.0f,
+            up.x,        up.y,        up.z,        0.0f,
+            -forward.x,  -forward.y,  -forward.z,  0.0f,
+            0.0f,        0.0f,        0.0f,        1.0f
+        };
+	}
+
+
 Player::Player() noexcept
-    : speed(10.0f)
+    : GameObject(TransformIdentity)
+    , speed(10.0f)
     , sprint_speed_scale(3.75f)
     , look_sensitivity(0.0015f) {
     camera.position = Vector3{ 100.0f, 80.0f, 0.0f };
@@ -27,6 +42,14 @@ auto Player::handle_events() -> void {}
 auto Player::update(f64 delta) -> void {
     _look_controls(delta);
     _movement_controls(delta);
+
+    // Update transform for consistency
+    transform.translation = camera.position;
+
+    const auto forward = Vector3Normalize(camera.target - camera.position);
+    const auto right = Vector3Normalize(Vector3CrossProduct(forward, camera.up));
+    const auto up = Vector3CrossProduct(right, forward);
+    transform.rotation = QuaternionFromMatrix(axis_vec3_to_mat4(forward, right, up));
 }
 
 

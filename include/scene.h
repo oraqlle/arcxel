@@ -44,8 +44,8 @@ public:
     auto handle_events() -> void;
 
     auto update(f64 delta) -> void;
-    auto update_range(usize first, usize last, f64 delta) -> void; // update objects
-    auto update_player(f64 delta) -> void;
+
+    auto update_range(usize first, usize last, f64 delta) -> void;
 
     auto render(f64 delta) -> void;
 
@@ -65,7 +65,6 @@ public: // Scene objects
 
 private:
     Vector3 world_size;
-    Player player;
 
 }; // class Scene
 

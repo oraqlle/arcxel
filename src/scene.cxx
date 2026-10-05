@@ -20,6 +20,7 @@ static constexpr u32 SCENE_SEED = 20260913;
 Scene::Scene() noexcept {
     player = Player();
 
+    objects.push_back(std::make_unique<Player>());
     _M_create_floor(Vector2{ DEFAULT_BOX_SIZE.x, DEFAULT_BOX_SIZE.z });
     _M_create_walls(DEFAULT_BOX_SIZE);
     _M_generate_objects(1, DEFAULT_BOX_SIZE, Workload{});
@@ -35,6 +36,7 @@ Scene::Scene(usize num_objects, const Vector3 size, Workload workload) noexcept
 
     player = Player();
 
+    objects.push_back(std::make_unique<Player>());
     _M_create_floor(Vector2{ size.x, size.z });
     _M_create_walls(size);
     _M_generate_objects(num_objects, size, workload);
@@ -45,28 +47,18 @@ auto Scene::handle_events() -> void {
     for (auto& obj : objects) {
         obj->handle_events();
     }
-
-    player.handle_events();
 }
 
-// update order
-// range -> player
+
 auto Scene::update(f64 delta) -> void {
     update_range(0, objects.size(), delta);
-    update_player(delta);
 }
 
-// update objects
+
 auto Scene::update_range(usize first, usize last, f64 delta) -> void {
-    // (?)
-    for (auto i : std::views::iota(first, last)) {
-        objects[i]->update(delta);
+    for (auto idx : std::views::iota(first, last)) {
+        objects[idx]->update(delta);
     }
-}
-
-// update the player position
-auto Scene::update_player(f64 delta) -> void {
-    player.update(delta);
 }
 
 
@@ -85,11 +77,11 @@ auto Scene::render(f64 delta) -> void {
     for (auto& obj : objects) {
         obj->render(delta);
     }
-
-    player.render(delta);
 }
 
-[[nodiscard]] auto Scene::primary_camera() -> Camera3D { return player.get_camera(); }
+[[nodiscard]] auto Scene::primary_camera() -> Camera3D {
+    return dynamic_cast<Player*>(objects.front().get())->get_camera();
+}
 
 
 auto Scene::unload() -> void { objects.clear(); }
