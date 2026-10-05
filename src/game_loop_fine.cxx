@@ -33,13 +33,13 @@ auto game_loop([[maybe_unused]] Config config) -> void {
 		{
 			const auto _ = Timespan(Label::Update, Engine::singleton().sample_record);
 
-			const auto count = scene.objects.size() - 1; //< minus player
+			const auto count = scene.objects.size() - 1; //< skip last object (player)
 			const auto nchunks = pool.size();
 			const auto per_chunk = (count + nchunks - 1) / nchunks;
 
 			for (auto chunk : std::views::iota(usize{ 0 }, nchunks)) {
-				const auto first = (chunk * per_chunk) + 1;
-				const auto last = std::min(first + per_chunk, scene.objects.size()); //< Use true count to get final object
+				const auto first = (chunk * per_chunk);
+				const auto last = std::min(first + per_chunk, count);
 
 				if (first >= last) {
 					continue;
@@ -50,7 +50,7 @@ auto game_loop([[maybe_unused]] Config config) -> void {
 			}
 
 			pool.wait();
-			scene.update_range(0, 1, delta); //< update player
+			scene.update_range(count, scene.objects.size(), delta); //< update last object (player)
 		}
 
 		{

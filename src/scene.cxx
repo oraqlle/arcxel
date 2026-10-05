@@ -18,14 +18,8 @@ namespace arcxel {
 static constexpr u32 SCENE_SEED = 20260913;
 
 
-Scene::Scene() noexcept {
-    objects.reserve(BASE_OBJ_COUNT + 1);
-
-    objects.push_back(std::make_unique<Player>());
-    _M_create_floor(Vector2{ DEFAULT_BOX_SIZE.x, DEFAULT_BOX_SIZE.z });
-    _M_create_walls(DEFAULT_BOX_SIZE);
-    _M_generate_objects(1, DEFAULT_BOX_SIZE, Workload{});
-}
+Scene::Scene() noexcept
+: Scene(1) { }
 
 
 Scene::Scene(usize num_objects, const Vector3 size, Workload workload) noexcept
@@ -37,10 +31,10 @@ Scene::Scene(usize num_objects, const Vector3 size, Workload workload) noexcept
 
     objects.reserve(BASE_OBJ_COUNT + num_objects);
 
-    objects.push_back(std::make_unique<Player>());
     _M_create_floor(Vector2{ size.x, size.z });
     _M_create_walls(size);
     _M_generate_objects(num_objects, size, workload);
+    objects.push_back(std::make_unique<Player>());
 }
 
 
@@ -73,8 +67,8 @@ auto Scene::render(f64 delta) -> void {
     }
 }
 
-[[nodiscard]] auto Scene::primary_camera() -> Camera3D {
-    return dynamic_cast<Player*>(objects.front().get())->get_camera();
+[[nodiscard]] auto Scene::primary_camera() -> Camera3D& {
+    return dynamic_cast<Player*>(objects.back().get())->get_camera();
 }
 
 
