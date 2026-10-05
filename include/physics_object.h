@@ -35,8 +35,6 @@ public:
 
     virtual ~PhysicsObject() noexcept;
 
-    virtual auto handle_events() -> void override;
-
     virtual auto update(f64 delta) -> void override;
 
     virtual auto render(f64 delta) -> void override;

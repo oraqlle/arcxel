@@ -47,9 +47,6 @@ PhysicsObject::~PhysicsObject() noexcept {
 }
 
 
-auto PhysicsObject::handle_events() -> void {};
-
-
 auto PhysicsObject::update(f64) -> void {
     _M_sync_model_to_physics();
 

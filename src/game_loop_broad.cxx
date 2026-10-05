@@ -12,19 +12,30 @@ namespace arcxel {
 
 using Label = Sample::Label;
 
+
+static auto update_sim_worker() -> void {
+
+    while (Engine::singleton().is_running()) {
+    }
+}
+
+
+static auto physics_update_sim_worker() -> void {
+
+    while (Engine::singleton().is_running()) {
+    }
+}
+
+
 auto game_loop([[maybe_unused]] Config config) -> void {
 
    log(LogLevel::Info, "Starting [BROAD] game loop");
+
     
     while (Engine::singleton().is_running()) {
 
         const auto frame_span = arcxel::Timespan(Label::Frame, Engine::singleton().sample_record);
         const f64 delta = GetFrameTime();
-
-        {
-            const auto _ = Timespan(Label::Events, Engine::singleton().sample_record);
-            Engine::singleton().handle_events();
-        }
 
         {
             const auto _ = Timespan(Label::PhysicsUpdate, Engine::singleton().sample_record);

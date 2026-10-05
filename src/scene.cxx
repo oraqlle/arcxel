@@ -44,13 +44,6 @@ Scene::Scene(usize num_objects, const Vector3 size, Workload workload) noexcept
 }
 
 
-auto Scene::handle_events() -> void {
-    for (auto& obj : objects) {
-        obj->handle_events();
-    }
-}
-
-
 auto Scene::update(f64 delta) -> void {
     update_range(0, objects.size(), delta);
 }

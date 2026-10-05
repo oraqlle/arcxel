@@ -37,8 +37,6 @@ public:
 
     auto stop() -> void;
 
-    auto handle_events() -> void;
-
     auto update(f64 delta) -> void;
 
     auto render(f64 delta) -> void;

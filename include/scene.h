@@ -42,8 +42,6 @@ public:
         const Vector3 size = Scene::DEFAULT_BOX_SIZE,
         Workload workload = Workload{}) noexcept;
 
-    auto handle_events() -> void;
-
     auto update(f64 delta) -> void;
 
     auto update_range(usize first, usize last, f64 delta) -> void;

@@ -32,8 +32,6 @@ public:
 
     virtual ~GameObject() noexcept = default;
 
-    virtual auto handle_events() -> void = 0;
-
     virtual auto update(f64 delta) -> void = 0;
 
     virtual auto render(f64 delta) -> void = 0;

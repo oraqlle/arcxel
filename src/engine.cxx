@@ -36,9 +36,6 @@ auto Engine::stop() -> void {
 }
 
 
-auto Engine::handle_events() -> void { scene.handle_events(); }
-
-
 auto Engine::update(f64 delta) -> void { scene.update(delta); }
 
 

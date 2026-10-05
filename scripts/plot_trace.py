@@ -7,7 +7,6 @@ import os
 
 LABEL_NAMES = [
     'Frame',
-    'Events',
     'PhysicsUpdate',
     'Update',
     'PhysicsUpdate',

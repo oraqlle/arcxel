@@ -26,11 +26,6 @@ auto game_loop([[maybe_unused]] Config config) -> void {
 		auto& scene = Engine::singleton().get_scene();
 
 		{
-			const auto _ = Timespan(Label::Events, Engine::singleton().sample_record);
-			Engine::singleton().handle_events();
-		}
-
-		{
 			const auto _ = Timespan(Label::PhysicsUpdate, Engine::singleton().sample_record);
 			Physics::singleton().update(delta);
 		}

@@ -36,9 +36,6 @@ Player::Player() noexcept
 [[nodiscard]] auto Player::get_camera() -> Camera3D { return camera; }
 
 
-auto Player::handle_events() -> void {}
-
-
 auto Player::update(f64 delta) -> void {
     _look_controls(delta);
     _movement_controls(delta);
