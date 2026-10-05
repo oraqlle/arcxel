@@ -51,8 +51,6 @@ auto PhysicsObject::update(f64) -> void {
     _M_sync_model_to_physics();
 
     work_sink = Workload::synthetic_work(work_iterations, work_sink);
-    f32 abc = work_sink;
-    log(LogLevel::Info, "Object wsink: {}", abc);
 
 	if constexpr (highlight) {
 		tint = LIME;

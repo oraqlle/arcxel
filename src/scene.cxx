@@ -137,7 +137,6 @@ auto Scene::_M_generate_objects(
     const auto xdim = size.x * 0.5f;
     const auto zdim = size.z * 0.5f;
 
-    //auto rand = std::default_random_engine(std::random_device{}());
     auto rand = std::mt19937(SCENE_SEED);
     auto xdist = std::uniform_real_distribution<f32>(-xdim, xdim);
     auto ydist = std::uniform_real_distribution<f32>(10.0f, size.y);
@@ -147,23 +146,12 @@ auto Scene::_M_generate_objects(
     [[maybe_unused]] auto work_rand = std::mt19937(SCENE_SEED + 1);
     [[maybe_unused]] auto is_heavy = std::bernoulli_distribution(0.1);
 
-    // TODO
-    // 10% heavy, 90% light
-    // mean stays at magnitude whatever the variance
-    //
-    //   light = magnitude * (1 - variance)
-    //   heavy = magnitude * (1 - variance) + 10 * magnitude * variance
-    //
-    // check: 0.1 * heavy + 0.9 * light == magnitude
-    //
-    // otherwise variance changes total work too
-    // and a slowdown cant be blamed on imbalance
     [[maybe_unused]] const auto light = (double)workload.magnitude * (1.0 - workload.variance);
     [[maybe_unused]] const auto heavy = (double)workload.magnitude * (1.0 - workload.variance) + 10.0 * (double)workload.magnitude * workload.variance;
 
     assert((0.1 * heavy) + (0.9 * light) == workload.magnitude);
 
-    for (auto _ : std::views::iota(usize{ 0 }, num_objects)) {
+    for ([[maybe_unused]] auto _ : std::views::iota(usize{ 0 }, num_objects)) {
         auto translation = Vector3{ .x = xdist(rand),
                                     .y = ydist(rand),
                                     .z = zdist(rand) };

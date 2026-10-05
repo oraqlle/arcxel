@@ -40,8 +40,7 @@ auto Player::update(f64 delta) -> void {
     _look_controls(delta);
     _movement_controls(delta);
 
-    // Update transform for consistency
-    transform.translation = camera.position;
+    transform.translation = camera.position; //< Update transform for consistency
 
     const auto forward = Vector3Normalize(camera.target - camera.position);
     const auto right = Vector3Normalize(Vector3CrossProduct(forward, camera.up));
