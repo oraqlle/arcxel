@@ -167,7 +167,7 @@ auto Scene::_M_generate_objects(
     [[maybe_unused]] const auto light = u32{0};
     [[maybe_unused]] const auto heavy = u32{0};
 
-    for (auto _ : std::views::iota(num_objects) | std::views::take(num_objects)) {
+    for (auto _ : std::views::iota(usize{ 0 }, num_objects)) {
         auto translation = Vector3{ .x = xdist(rand),
                                     .y = ydist(rand),
                                     .z = zdist(rand) };
