@@ -132,7 +132,6 @@ add_library(
     src/plane.cxx
     src/game_object.cxx
     src/log.cxx
-    src/object.cxx
     src/physics.cxx
     src/physics_object.cxx
     src/player.cxx
@@ -140,9 +139,7 @@ add_library(
     src/sphere.cxx
     src/timing.cxx
     src/thread_pool.cxx
-    src/transform.cxx
     src/utils.cxx
-    src/window.cxx
 )
 
 target_include_directories(arcxel_lib PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
