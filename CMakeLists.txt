@@ -35,7 +35,7 @@ if(ARCXEL_THREADING_MODEL STREQUAL "BROAD")
 	set(ARCXEL_THREADING_SRC src/game_loop_broad.cxx)
 elseif(ARCXEL_THREADING_MODEL STREQUAL "FINE")
     set(ARCXEL_THREADING_FINE   ON CACHE BOOL "" FORCE)
-	set(ARCXEL_THREADING_SRC src/game_loop_fine.cxx)
+	set(ARCXEL_THREADING_SRC src/game_loop_fine.cxx src/thread_pool.cxx)
 else()
 	set(ARCXEL_THREADING_SERIAL ON CACHE BOOL "" FORCE)
 	set(ARCXEL_THREADING_SRC src/game_loop_serial.cxx)
@@ -48,6 +48,7 @@ message(STATUS "ARXCEL_PHYSICS_DEBUG_RENDERER: ${ARCXEL_PHYSICS_DEBUG_RENDERER}"
 message(STATUS "ARXCEL_LOGGING: ${ARCXEL_LOGGING}")
 message(STATUS "ARXCEL_PROFILING: ${ARCXEL_PROFILING}")
 message(STATUS "ARCXEL_THREADING_MODEL: ${ARCXEL_THREADING_MODEL}")
+message(STATUS "ARCXEL_THREADING_SRC: ${ARCXEL_THREADING_SRC}")
 
 # ---- Dependencies ----
 include(FetchContent)
@@ -138,7 +139,6 @@ add_library(
     src/scene.cxx
     src/sphere.cxx
     src/timing.cxx
-    src/thread_pool.cxx
     src/utils.cxx
 )
 
