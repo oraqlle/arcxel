@@ -40,7 +40,7 @@ auto Engine::update(f64 delta) -> void { scene.update(delta); }
 
 
 auto Engine::render(f64 delta) -> void {
-    auto camera = scene.primary_camera();
+    auto& camera = scene.primary_camera();
 
     {
         const auto span = Timespan(Sample::Label::Construct, sample_record);

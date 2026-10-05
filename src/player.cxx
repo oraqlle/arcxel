@@ -33,7 +33,7 @@ Player::Player() noexcept
 }
 
 
-[[nodiscard]] auto Player::get_camera() -> Camera3D { return camera; }
+[[nodiscard]] auto Player::get_camera() -> Camera3D& { return camera; }
 
 
 auto Player::update(f64 delta) -> void {

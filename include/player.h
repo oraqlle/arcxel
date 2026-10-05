@@ -34,7 +34,7 @@ public:
 
     virtual ~Player() noexcept = default;
 
-    [[nodiscard]] auto get_camera() -> Camera3D;
+    [[nodiscard]] auto get_camera() -> Camera3D&;
 
     virtual auto update(f64 delta) -> void override;
 

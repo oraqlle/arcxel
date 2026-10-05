@@ -48,7 +48,7 @@ public:
 
     auto render(f64 delta) -> void;
 
-    [[nodiscard]] auto primary_camera() -> Camera3D;
+    [[nodiscard]] auto primary_camera() -> Camera3D&;
 
     auto unload() -> void;
 
