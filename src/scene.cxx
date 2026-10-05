@@ -18,7 +18,7 @@ namespace arcxel {
 static constexpr u32 SCENE_SEED = 20260913;
 
 Scene::Scene() noexcept {
-    player = Player();
+    objects.reserve(BASE_OBJ_COUNT + 1);
 
     objects.push_back(std::make_unique<Player>());
     _M_create_floor(Vector2{ DEFAULT_BOX_SIZE.x, DEFAULT_BOX_SIZE.z });
@@ -34,7 +34,7 @@ Scene::Scene(usize num_objects, const Vector3 size, Workload workload) noexcept
     assert(size.y > 0.0f);
     assert(size.z > 0.0f);
 
-    player = Player();
+    objects.reserve(BASE_OBJ_COUNT + num_objects);
 
     objects.push_back(std::make_unique<Player>());
     _M_create_floor(Vector2{ size.x, size.z });

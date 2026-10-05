@@ -33,6 +33,7 @@ namespace arcxel {
 class Scene {
 public:
     static constexpr Vector3 DEFAULT_BOX_SIZE = Vector3{ 100.0f, 20.0f, 100.0f };
+    static constexpr u8 BASE_OBJ_COUNT = 6;
 
     Scene() noexcept;
 
