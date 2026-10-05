@@ -12,7 +12,7 @@ namespace arcxel {
 
 using Label = Sample::Label;
 
-auto game_loop(Config config) -> void {
+auto game_loop([[maybe_unused]] Config config) -> void {
 
    log(LogLevel::Info, "Starting [BROAD] game loop");
     
