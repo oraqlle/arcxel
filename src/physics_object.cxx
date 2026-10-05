@@ -6,6 +6,8 @@
 #include <raylib.h>
 #include <raymath.h>
 
+static constexpr bool highlight = false;
+
 namespace arcxel {
 
 PhysicsObject::PhysicsObject(
@@ -47,7 +49,13 @@ PhysicsObject::~PhysicsObject() noexcept {
 auto PhysicsObject::handle_events() -> void {};
 
 
-auto PhysicsObject::update(f64) -> void { _M_sync_model_to_physics(); }
+auto PhysicsObject::update(f64) -> void {
+    _M_sync_model_to_physics();
+
+	if constexpr (highlight) {
+		tint = LIME;
+	}
+}
 
 
 auto PhysicsObject::render(f64) -> void {
