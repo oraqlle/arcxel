@@ -61,7 +61,7 @@ private:
 
     auto _M_generate_objects(usize num_objects, const Vector3 size, Workload workload) -> void;
 
-public: // Scene objects
+public:
     std::vector<std::unique_ptr<GameObject>> objects;
 
 private:

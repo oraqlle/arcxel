@@ -6,16 +6,17 @@
 #include "sphere.h"
 #include "types.h"
 
-#include <cassert>
 #include <raylib.h>
 #include <raymath.h>
 
+#include <cassert>
 #include <random>
 #include <ranges>
 
 namespace arcxel {
 
 static constexpr u32 SCENE_SEED = 20260913;
+
 
 Scene::Scene() noexcept {
     objects.reserve(BASE_OBJ_COUNT + 1);
@@ -164,8 +165,10 @@ auto Scene::_M_generate_objects(
     //
     // otherwise variance changes total work too
     // and a slowdown cant be blamed on imbalance
-    [[maybe_unused]] const auto light = u32{0};
-    [[maybe_unused]] const auto heavy = u32{0};
+    [[maybe_unused]] const auto light = (double)workload.magnitude * (1.0 - workload.variance);
+    [[maybe_unused]] const auto heavy = (double)workload.magnitude * (1.0 - workload.variance) + 10.0 * (double)workload.magnitude * workload.variance;
+
+    assert((0.1 * heavy) + (0.9 * light) == workload.magnitude);
 
     for (auto _ : std::views::iota(usize{ 0 }, num_objects)) {
         auto translation = Vector3{ .x = xdist(rand),
@@ -193,9 +196,7 @@ auto Scene::_M_generate_objects(
                 break;
         }
 
-
-        // TODO
-        // cube->work_iterations = is_heavy(work_rand) ? heavy : light;
+		objects.back()->work_iterations = static_cast<u32>(is_heavy(work_rand) ? heavy : light);
     }
 }
 
