@@ -226,8 +226,9 @@ auto SampleRecord::operator+=(const SampleRecord& other) -> void {
 		log(LogLevel::Warning,
 		"SampleRecord::operator+=: Number of samples being added is greater than capacity, dropping {} samples",
 		other_dropped);
-
 		num_dropped_samples += other_dropped;
+	} else {
+		num_dropped_samples += other.num_dropped_samples;
 	}
 
 	// could use std::vector<T>::append_range() ??
@@ -236,6 +237,5 @@ auto SampleRecord::operator+=(const SampleRecord& other) -> void {
 		samples_store.push_back(x);
 	}
 }
-
 
 } // namespace arcxel

@@ -131,9 +131,4 @@ if __name__ == '__main__':
         ofname: str=os.path.basename(ifname.split('.')[-2])
         ofile: str=os.path.join(outdir, ofname)
 
-        print(ifname)
-        print(ifname.split('.'))
-        print(ofname)
-        print(ofile)
-
         plot_frametime_trace(df, ofile, ftypes)
