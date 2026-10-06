@@ -21,6 +21,7 @@
 
 #include "types.h"
 #include "conf.h"
+#include "log.h"
 
 #include <chrono>
 #include <format>
@@ -110,15 +111,17 @@ public:
 
     [[nodiscard]] constexpr auto dropped() const -> usize;
 
-    [[nodiscard]] constexpr auto max_num_samples() -> usize;
+    [[nodiscard]] constexpr auto sample_capacity() -> usize;
 
-    [[nodiscard]] constexpr auto max_num_samples() const -> usize;
+    [[nodiscard]] constexpr auto sample_capacity() const -> usize;
 
     [[nodiscard]] auto write_timings_to_csv(std::string_view pathstr) -> Fallible;
 
+    auto operator+=(const SampleRecord& other) -> void;
+
 private:
     std::vector<Sample> samples_store;
-    usize max_samples;
+    usize capacity;
     usize num_dropped_samples;
     Sample::ThreadId owner;
 }; // class SampleRecord

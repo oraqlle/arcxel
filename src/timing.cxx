@@ -5,6 +5,7 @@
 
 #include <algorithm>
 #include <array>
+#include <ranges>
 #include <chrono>
 #include <filesystem>
 #include <format>
@@ -97,7 +98,7 @@ auto log_trace_summary(const SampleRecord& store) -> void {
 
 
 SampleRecord::SampleRecord(usize max_num_samples) noexcept
-    : max_samples(max_num_samples)
+    : capacity(max_num_samples)
     , num_dropped_samples(0)
     , owner(std::this_thread::get_id()) {
     samples_store.reserve(max_num_samples);
@@ -109,7 +110,7 @@ auto SampleRecord::record(const Sample& sample) -> bool {
         assert(sample.tid == owner && "No timespan inside a task");
     }
 
-    if (samples_store.size() < max_samples) { 
+    if (samples_store.size() < capacity) {
         samples_store.emplace_back(sample);
         return true;
     }
@@ -139,13 +140,13 @@ auto SampleRecord::record(const Sample& sample) -> bool {
 }
 
 
-[[nodiscard]] constexpr auto SampleRecord::max_num_samples() -> usize {
-    return max_samples;
+[[nodiscard]] constexpr auto SampleRecord::sample_capacity() -> usize {
+    return capacity;
 }
 
 
-[[nodiscard]] constexpr auto SampleRecord::max_num_samples() const -> usize {
-    return max_samples;
+[[nodiscard]] constexpr auto SampleRecord::sample_capacity() const -> usize {
+    return capacity;
 }
 
 
@@ -202,5 +203,39 @@ auto SampleRecord::record(const Sample& sample) -> bool {
 
     return {};
 }
+
+
+auto SampleRecord::operator+=(const SampleRecord& other) -> void {
+	const auto size = samples_store.size();
+	const auto full_other_size = other.samples_store.size();
+
+	if (num_dropped_samples > 0) {
+		log(LogLevel::Warning,
+		"SampleRecord::operator+=: Samples already at capacity, dropping entire record of {} samples",
+		full_other_size);
+
+		num_dropped_samples += other.num_dropped_samples;
+		return;
+	}
+
+	const auto remaining = capacity - size;
+	auto other_dropped = usize{ 0 };
+
+	if (full_other_size > remaining) {
+		other_dropped = full_other_size - remaining;
+		log(LogLevel::Warning,
+		"SampleRecord::operator+=: Number of samples being added is greater than capacity, dropping {} samples",
+		other_dropped);
+
+		num_dropped_samples += other_dropped;
+	}
+
+	// could use std::vector<T>::append_range() ??
+	const auto other_size = full_other_size - other_dropped;
+	for (const auto& x : other.samples_store | std::views::take(other_size)) {
+		samples_store.push_back(x);
+	}
+}
+
 
 } // namespace arcxel
