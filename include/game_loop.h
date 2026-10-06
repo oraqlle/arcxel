@@ -20,9 +20,10 @@
 #pragma once
 
 #include "conf.h"
+#include "timing.h"
 
 namespace arcxel {
 
-auto game_loop(Config config) -> void;
+auto game_loop(Config config, SampleRecord& global_sample_record) -> void;
 
 } // namespace arcxel

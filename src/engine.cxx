@@ -6,8 +6,7 @@
 namespace arcxel {
 
 Engine::Engine(std::optional<Scene> opt_scene)
-    : sample_record()
-    , running(true) {
+    : running(true) {
     if (opt_scene) {
         scene = std::move(*opt_scene);
     } else {
@@ -39,7 +38,7 @@ auto Engine::stop() -> void {
 auto Engine::update(f64 delta) -> void { scene.update(delta); }
 
 
-auto Engine::render(f64 delta) -> void {
+auto Engine::render(f64 delta, SampleRecord& sample_record) -> void {
     auto& camera = scene.primary_camera();
 
     {

@@ -87,7 +87,7 @@ constexpr i32 HEIGHT = 1080;
 }
 
 
-[[nodiscard]] static auto run(arcxel::Config config) -> arcxel::Fallible {
+[[nodiscard]] static auto run(arcxel::Config config, arcxel::SampleRecord& global_sample_record) -> arcxel::Fallible {
 
     // ---- WINDOW CREATION ----
     const auto winfo = arcxel::WindowInfo{ .width = WIDTH,
@@ -127,7 +127,7 @@ constexpr i32 HEIGHT = 1080;
 
     // ---- GAME LOOP ----
     DisableCursor();
-    game_loop(config);
+    game_loop(config, global_sample_record);
     EnableCursor();
 
     engine.stop();
@@ -171,6 +171,8 @@ auto main(int argc, char* argv[]) -> int {
 
 
     // ---- CREATE PROFILE TRACE STORE ----
+    auto global_sample_record = arcxel::SampleRecord{};
+
     if constexpr (arcxel::profiling_enabled) {
         if (const auto r = arcxel::create_dir(config.trace_dir); !r) {
             arcxel::raw_log("{}", r.error());
@@ -180,17 +182,15 @@ auto main(int argc, char* argv[]) -> int {
 
 
     // ---- ENGINE ----
-    if (const auto r = run(config); !r) {
+    if (const auto r = run(config, global_sample_record); !r) {
         arcxel::raw_log("{}", r.error());
     }
 
 
     // ---- WRITE PROFILE TRACE ----
     if constexpr (arcxel::profiling_enabled) {
-        arcxel::log_trace_summary(arcxel::Engine::singleton().sample_record);
-        auto& sample_records = arcxel::Engine::singleton().sample_record;
-
-        if (const auto r = sample_records.write_timings_to_csv(config.trace_dir); !r) {
+        arcxel::log_trace_summary(global_sample_record);
+        if (const auto r = global_sample_record.write_timings_to_csv(config.trace_dir); !r) {
             arcxel::raw_log("{}", r.error());
         }
     }
