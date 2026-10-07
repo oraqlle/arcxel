@@ -71,7 +71,7 @@ auto game_loop([[maybe_unused]] Config config, SampleRecord& global_sample_recor
 
     log(LogLevel::Info, "Starting [BROAD] game loop");
 
-	//auto& pool = ThreadPool::singleton();
+	auto& pool = ThreadPool::singleton();
 	auto& scene = Engine::singleton().get_scene();
 
     auto simulation_queue = Queue<usize>{};
@@ -91,19 +91,15 @@ auto game_loop([[maybe_unused]] Config config, SampleRecord& global_sample_recor
 
         {
             const auto _ = Timespan(Label::Update, global_sample_record);
-            const unsigned workerCount = std::thread::hardware_concurrency();
-            std::vector<std::thread> workers;
 
-            for (unsigned i = 0; i < workerCount; ++i) {
-                workers.emplace_back([&] {
-                    while (auto idx = simulation_queue.pop()) {
-                        if (!idx.has_value()) {
-                            break;
-                        }
+            for ([[maybe_unused]] auto i : std::views::iota(usize{ 0 }, pool.size())) {
+                pool.submit([&] {
+                    while (auto obj_id = simulation_queue.pop()) {
+                        if (!obj_id.has_value()) { break; }
 
-                        //auto* p = dynamic_cast<PhysicsObject*>(scene.objects[*idx].get());
+                        //auto* p = dynamic_cast<PhysicsObject*>(scene.objects[*obj_id].get());
 						//if (p) { p->tint = RED; }
-                        scene.objects[*idx]->update(delta);
+                        scene.objects[*obj_id]->update(delta);
                     }
                 });
             }
@@ -113,12 +109,7 @@ auto game_loop([[maybe_unused]] Config config, SampleRecord& global_sample_recor
             }
 
             simulation_queue.close();
-
-            for (auto& worker : workers) {
-                worker.join();
-            }
-
-            workers.clear();
+            pool.wait();
         }
 		
 
