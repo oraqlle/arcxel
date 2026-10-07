@@ -15,7 +15,7 @@ using Label = Sample::Label;
 
 auto game_loop([[maybe_unused]] Config config, SampleRecord& global_sample_record) -> void {
 
-	log(LogLevel::Info, "Starting [FINE] game loop");
+	log(LogLevel::Info, "Starting [STATIC_PARTITIONING] game loop");
     
     while (Engine::singleton().is_running()) {
 

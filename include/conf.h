@@ -47,7 +47,7 @@ static constexpr usize default_num_sim_objects = 1000;
 
 enum class ThreadingType : u8 { Serial, Broad, Fine };
 
-#if ARCXEL_THREADING_BROAD
+#if ARCXEL_THREADING_TASK_BASED
 static constexpr ThreadingType threading_model = ThreadingType::Broad;
 static constexpr u8 min_threads_required = 3;
 

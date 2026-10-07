@@ -65,11 +65,11 @@ private:
 auto game_loop([[maybe_unused]] Config config, SampleRecord& global_sample_record) -> void {
 
     if (config.num_available_threads < config.num_required_threads) {
-        log(LogLevel::Info, "Starting [SERIAL] game loop [FALLBACK OF BROAD]");
+        log(LogLevel::Info, "Starting [SERIAL] game loop [FALLBACK OF TASK_BASED]");
         return serial_game_loop_fallback(config, global_sample_record);
     }
 
-    log(LogLevel::Info, "Starting [BROAD] game loop");
+    log(LogLevel::Info, "Starting [TASK_BASED] game loop");
 
 	auto& pool = ThreadPool::singleton();
 	auto& scene = Engine::singleton().get_scene();
@@ -119,7 +119,7 @@ auto game_loop([[maybe_unused]] Config config, SampleRecord& global_sample_recor
         }
     }
 
-		//log(LogLevel::Info, "[BROAD] update");
+		//log(LogLevel::Info, "[TASK_BASED] update");
         //{
         //    const auto _ = Timespan(Label::Update, global_sample_record);
 
@@ -127,7 +127,7 @@ auto game_loop([[maybe_unused]] Config config, SampleRecord& global_sample_recor
         //        simulation_queue.push(idx);
         //    }
 
-		//	log(LogLevel::Info, "[BROAD] update filled");
+		//	log(LogLevel::Info, "[TASK_BASED] update filled");
 		//	while (auto idx = simulation_queue.pop()) { // never breaks loop?
 		//		if (!idx.has_value()) {
 		//			break;
@@ -135,11 +135,11 @@ auto game_loop([[maybe_unused]] Config config, SampleRecord& global_sample_recor
 
 		//		pool.submit([&idx, &scene, delta] {
 		//			scene.objects[*idx]->update(delta);
-		//			log(LogLevel::Info, "[BROAD] idx: {}", *idx);
+		//			log(LogLevel::Info, "[TASK_BASED] idx: {}", *idx);
 		//		});
 		//	}
 
-		//	log(LogLevel::Info, "[BROAD] update wait");
+		//	log(LogLevel::Info, "[TASK_BASED] update wait");
         //    pool.wait();
         //}
 
