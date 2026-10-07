@@ -2,6 +2,7 @@
 #include "conf.h"
 #include "single_item_channel.h"
 #include "game_object.h"
+#include "physics_object.h"
 #include "engine.h"
 #include "physics.h"
 #include "thread_pool.h"
@@ -70,7 +71,7 @@ auto game_loop([[maybe_unused]] Config config, SampleRecord& global_sample_recor
 
     log(LogLevel::Info, "Starting [BROAD] game loop");
 
-	auto& pool = ThreadPool::singleton();
+	//auto& pool = ThreadPool::singleton();
 	auto& scene = Engine::singleton().get_scene();
 
     auto simulation_queue = Queue<usize>{};
@@ -81,41 +82,75 @@ auto game_loop([[maybe_unused]] Config config, SampleRecord& global_sample_recor
         const auto frame_span = arcxel::Timespan(Label::Frame, global_sample_record);
         const f64 delta = GetFrameTime();
 
-		log(LogLevel::Info, "[BROAD] physics");
-        {
-            const auto _ = Timespan(Label::PhysicsUpdate, global_sample_record);
-            Physics::singleton().update(delta);
-        }
 
-		log(LogLevel::Debug, "[BROAD] update");
+		{
+			const auto _ = Timespan(Label::PhysicsUpdate, global_sample_record);
+			Physics::singleton().update(delta);
+		}
+
+
         {
             const auto _ = Timespan(Label::Update, global_sample_record);
+            const unsigned workerCount = std::thread::hardware_concurrency();
+            std::vector<std::thread> workers;
+
+            for (unsigned i = 0; i < workerCount; ++i) {
+                workers.emplace_back([&] {
+                    while (auto idx = simulation_queue.pop()) {
+                        if (!idx.has_value()) {
+                            break;
+                        }
+
+                        //auto* p = dynamic_cast<PhysicsObject*>(scene.objects[*idx].get());
+						//if (p) { p->tint = RED; }
+                        scene.objects[*idx]->update(delta);
+                    }
+                });
+            }
 
             for (auto idx : std::views::iota(usize{ 0 }, scene.objects.size())) {
                 simulation_queue.push(idx);
             }
 
-			log(LogLevel::Debug, "[BROAD] update filled");
-			while (auto idx = simulation_queue.pop()) { // never breaks loop?
-				if (!idx.has_value()) {
-					break;
-				}
+            simulation_queue.close();
 
-				pool.submit([&idx, &scene, delta] {
-					scene.objects[*idx]->update(delta);
-					log(LogLevel::Info, "[BROAD] idx: {}", *idx);
-				});
-			}
+            for (auto& worker : workers) {
+                worker.join();
+            }
 
-			log(LogLevel::Debug, "[BROAD] update wait");
-            pool.wait();
+            workers.clear();
         }
+		
 
-		log(LogLevel::Debug, "[BROAD] render");
 		{
             const auto _ = Timespan(Label::Render, global_sample_record);
             Engine::singleton().render(delta, global_sample_record);
         }
+    }
+
+		//log(LogLevel::Info, "[BROAD] update");
+        //{
+        //    const auto _ = Timespan(Label::Update, global_sample_record);
+
+        //    for (auto idx : std::views::iota(usize{ 0 }, scene.objects.size())) {
+        //        simulation_queue.push(idx);
+        //    }
+
+		//	log(LogLevel::Info, "[BROAD] update filled");
+		//	while (auto idx = simulation_queue.pop()) { // never breaks loop?
+		//		if (!idx.has_value()) {
+		//			break;
+		//		}
+
+		//		pool.submit([&idx, &scene, delta] {
+		//			scene.objects[*idx]->update(delta);
+		//			log(LogLevel::Info, "[BROAD] idx: {}", *idx);
+		//		});
+		//	}
+
+		//	log(LogLevel::Info, "[BROAD] update wait");
+        //    pool.wait();
+        //}
 
         //{
 		//	const auto _ = Timespan(Label::Render, global_sample_record);
@@ -162,7 +197,6 @@ auto game_loop([[maybe_unused]] Config config, SampleRecord& global_sample_recor
 		//		EndDrawing();
 		//	}
 		//}
-    }
 }
 
 } // namespace arcxel
