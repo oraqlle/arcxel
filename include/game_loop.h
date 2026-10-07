@@ -24,6 +24,11 @@
 
 namespace arcxel {
 
+auto serial_game_loop_fallback(
+    [[maybe_unused]] Config config,
+    SampleRecord& global_sample_record) -> void;
+
+
 auto game_loop(Config config, SampleRecord& global_sample_record) -> void;
 
 } // namespace arcxel
