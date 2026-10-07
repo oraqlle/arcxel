@@ -54,6 +54,6 @@ protected:
     Model model;
 
     rp3d::RigidBody* body;
-}; // class Cube
+}; // class PhysicsObject
 
 } // namespace arcxel

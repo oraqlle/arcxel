@@ -19,6 +19,7 @@
 
 #pragma once
 
+#include "conf.h"
 #include "scene.h"
 #include "timing.h"
 #include "types.h"
@@ -37,11 +38,11 @@ public:
 
     auto stop() -> void;
 
+    [[nodiscard]] auto get_scene() -> Scene&;
+
     auto update(f64 delta) -> void;
 
     auto render(f64 delta, SampleRecord& sample_record) -> void;
-
-    [[nodiscard]] auto get_scene() -> Scene&;
 
 private:
     explicit Engine(std::optional<Scene> opt_scene);

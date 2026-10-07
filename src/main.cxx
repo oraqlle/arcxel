@@ -22,6 +22,7 @@
 #include <string_view>
 #include <system_error>
 #include <utility>
+#include <thread>
 
 
 // clang-format off
@@ -51,6 +52,30 @@ constexpr i32 HEIGHT = 1080;
 
 [[nodiscard]] static auto make_config_from_cli_opts(cxxopts::ParseResult opts) -> arcxel::Config {
     auto config = arcxel::Config{};
+
+    if (opts.count("jobs")) {
+        const auto req_threads = opts["jobs"].as<u32>();
+
+        if constexpr (arcxel::threading_model == arcxel::ThreadingType::Serial) {
+			config.num_available_threads = 1;
+        } else if constexpr (arcxel::threading_model == arcxel::ThreadingType::Broad) {
+			if (config.num_hw_threads < arcxel::min_threads_required) {
+                log(LogLevel::Warning,
+                    "Not enough threads to run game loop in [BROAD] mode");
+                config.num_available_threads = 1;
+			} else {
+				config.num_required_threads = std::min(req_threads, config.num_available_threads);
+			}
+        } else if constexpr (arcxel::threading_model == arcxel::ThreadingType::Fine) {
+			if (config.num_hw_threads < arcxel::min_threads_required) {
+                log(LogLevel::Warning,
+                    "Not enough threads to run game loop in [FINE] mode");
+                config.num_available_threads = 1;
+			} else {
+				config.num_required_threads = std::min(req_threads, config.num_available_threads);
+			}
+        }
+    }
 
     if (opts.count("num_objects")) {
         config.num_sim_objects = opts["num_objects"].as<usize>();
@@ -141,6 +166,7 @@ auto main(int argc, char* argv[]) -> int {
     auto cli_options = cxxopts::Options{ "arcxel", "Arcxel Testbed" };
     cli_options.add_options()
         ("n,num_objects", "Number of objects to run simulation with", cxxopts::value<usize>())
+        ("j,jobs", "Number of parallel jobs (threads) to run engine with", cxxopts::value<u32>())
         ("t,trace", "Output directory of trace file", cxxopts::value<std::string>())
         ("l,log", "Output directory of log file", cxxopts::value<std::string>())
         ("h,help", "Show help");

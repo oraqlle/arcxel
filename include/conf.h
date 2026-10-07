@@ -20,6 +20,13 @@
 #pragma once
 
 #include "types.h"
+#include "game_object.h"
+
+#include <string>
+#include <string_view>
+#include <thread>
+#include <memory>
+#include <vector>
 
 namespace arcxel {
 
@@ -42,21 +49,38 @@ enum class ThreadingType : u8 { Serial, Broad, Fine };
 
 #if ARCXEL_THREADING_BROAD
 static constexpr ThreadingType threading_model = ThreadingType::Broad;
+static constexpr u8 min_threads_required = 3;
+
+using ObjectsArray = std::vector<std::unique_ptr<GameObject>>;
+
+struct FramePacket {
+    ObjectsArray objects;
+    f64 delta = 0.0;
+}; // struct FramePacket
+
 #elif ARCXEL_THREADING_FINE
 static constexpr ThreadingType threading_model = ThreadingType::Fine;
+static constexpr u8 min_threads_required = 2;
 #else
 static constexpr ThreadingType threading_model = ThreadingType::Serial;
+static constexpr u8 min_threads_required = 1;
 #endif
 
 
 constexpr std::string_view DEFAULT_TRACES_DIR = "traces";
 constexpr std::string_view DEFAULT_LOGS_DIR = "logs";
 
+
 struct Config {
+    const u32 num_hw_threads = std::thread::hardware_concurrency();
+
+    u32 num_available_threads = num_hw_threads;
+    u32 num_required_threads = min_threads_required;
+
     usize num_sim_objects = arcxel::default_num_sim_objects;
+
     std::string trace_dir = static_cast<std::string>(DEFAULT_TRACES_DIR);
     std::string log_dir = static_cast<std::string>(DEFAULT_LOGS_DIR);
 }; // struct Config
-
 
 } // namespace arcxel

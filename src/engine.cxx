@@ -16,7 +16,6 @@ Engine::Engine(std::optional<Scene> opt_scene)
 
 
 [[nodiscard]] auto Engine::singleton(std::optional<Scene> init) -> Engine& {
-
     static auto engine = Engine(std::move(init));
     return engine;
 }
@@ -32,6 +31,11 @@ auto Engine::stop() -> void {
     running = false;
 
     scene.unload();
+}
+
+
+[[nodiscard]] auto Engine::get_scene() -> Scene& {
+    return scene;
 }
 
 
@@ -58,10 +62,6 @@ auto Engine::render(f64 delta, SampleRecord& sample_record) -> void {
         const auto span = Timespan(Sample::Label::Present, sample_record);
         EndDrawing();
     }
-}
-
-[[nodiscard]] auto Engine::get_scene() -> Scene& {
-    return scene;
 }
 
 } // namespace arcxel
