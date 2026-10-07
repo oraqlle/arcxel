@@ -36,6 +36,7 @@ if(ARCXEL_THREADING_MODEL STREQUAL "BROAD")
         ARCXEL_THREADING_SRC
         "${CMAKE_CURRENT_SOURCE_DIR}/src/game_loop.cxx"
         "${CMAKE_CURRENT_SOURCE_DIR}/src/game_loop_broad.cxx"
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/thread_pool.cxx"
     )
 elseif(ARCXEL_THREADING_MODEL STREQUAL "FINE")
     set(ARCXEL_THREADING_FINE   ON CACHE BOOL "" FORCE)
@@ -181,7 +182,7 @@ add_executable(arcxel src/main.cxx)
 target_compile_features(arcxel PUBLIC cxx_std_23)
 target_compile_options(arcxel PRIVATE ${ARCXEL_WARNINGS} ${ARCXEL_NO_EXCEPTIONS})
 target_compile_definitions(arcxel PRIVATE _HAS_EXCEPTIONS=0)
-target_link_libraries(arcxel PRIVATE arcxel_lib arcxel_gameloop cxxopts)
+target_link_libraries(arcxel PRIVATE arcxel_lib cxxopts)
 
 # ----  Enable Sanitizers ----
 if(ARCXEL_SANITIZERS)
