@@ -35,6 +35,7 @@
 **/build
 **/dbuild
 **/out
+**/build-*
 
 # User tooling
 .vscode
