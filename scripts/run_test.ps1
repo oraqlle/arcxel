@@ -8,6 +8,9 @@ $OBJECT_COUNTS    = if ($env:OBJECT_COUNTS)    { $env:OBJECT_COUNTS }    else { 
 $THREADING_METHOD = if ($env:THREADING_METHOD) { $env:THREADING_METHOD } else { "serial static task"}
 $SMT_LABEL        = if ($env:SMT_LABEL)        { $env:SMT_LABEL }        else { "off" }      # on off
 
+# One folder per batch, named by when the script started
+$BATCH_STAMP = Get-Date -Format "yyyy-MM-dd_HH-mm-ss"
+
 
 # Windows has no kill -INT. Sending Ctrl+C to the console is what arcxel sees as SIGINT.
 Add-Type -Namespace Win32 -Name Console -MemberDefinition @'
@@ -48,9 +51,8 @@ foreach ($n in $OBJECT_COUNTS.Split(" ")) {
         Write-Host ""
         # Write-Host "Writing to:       .log / .csv"
 
-        $RUN_SUBDIR = "round1\$t\smt-$SMT_LABEL\n$n"
-        $TRACE_DIR  = "traces\$RUN_SUBDIR"
-        $LOG_DIR    = "logs\$RUN_SUBDIR"
+        $TRACE_DIR = "$BATCH_STAMP\traces\$t\smt-$SMT_LABEL"
+        $LOG_DIR   = "$BATCH_STAMP\logs\$t\smt-$SMT_LABEL"
 
         $proc = Start-Process -FilePath "$ARCXEL" -ArgumentList "-n", $n, "-t", $TRACE_DIR, "-l", $LOG_DIR -NoNewWindow -PassThru
 
