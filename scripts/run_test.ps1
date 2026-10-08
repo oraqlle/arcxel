@@ -17,7 +17,7 @@ Add-Type -Namespace Win32 -Name Console -MemberDefinition @'
 
 
 # loop through all tests unless specified
-foreach ($n in $OBJECT_COUNTS.Split(" ")) {{
+foreach ($n in $OBJECT_COUNTS.Split(" ")) {
 
 
     foreach ($t in $THREADING_METHOD.Split(" ")) {
@@ -38,17 +38,21 @@ foreach ($n in $OBJECT_COUNTS.Split(" ")) {{
         Write-Host ""
         Write-Host "================================================== TEST RUNTIME = $TEST_RUNTIME SECONDS =================================================="
         Write-Host ""
-	Write-Host "PWD:              $pwd"
+        Write-Host "PWD:              $pwd"
         Write-Host "Object count:     $n"
         Write-Host "Threading method: $t"
         Write-Host "Hyperthreading:   $SMT_LABEL"
-	Write-Host "Program:          $ARCXEL"{
+        Write-Host "Program:          $ARCXEL"
         Write-Host ""
         Write-Host "==============================================================================================================================="
         Write-Host ""
         # Write-Host "Writing to:       .log / .csv"
 
-        $proc = Start-Process -FilePath "$ARCXEL" -ArgumentList "-n" "-t traces-round1-$t-$SMT_LABEL -l logs-round1-$t-$SMT_LABEL", $n -NoNewWindow -PassThru
+        $RUN_SUBDIR = "round1\$t\smt-$SMT_LABEL\n$n"
+        $TRACE_DIR  = "traces\$RUN_SUBDIR"
+        $LOG_DIR    = "logs\$RUN_SUBDIR"
+
+        $proc = Start-Process -FilePath "$ARCXEL" -ArgumentList "-n", $n, "-t", $TRACE_DIR, "-l", $LOG_DIR -NoNewWindow -PassThru
 
         if (-not $proc.WaitForExit($TEST_RUNTIME * 1000)) {
             # ignore the Ctrl+C ourselves so only arcxel reacts to it
