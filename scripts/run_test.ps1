@@ -1,8 +1,6 @@
 $TEST_RUNTIME = 10
 $PAUSE_BETWEEN_TESTS = 5
 
-# Override to run only some
-# e.g. $env:OBJECT_COUNTS = "500 1000"; .\scripts\run_test.ps1
 
 $OBJECT_COUNTS    = if ($env:OBJECT_COUNTS)    { $env:OBJECT_COUNTS }    else { "100 500" } # 1000 2500 5000 10000" }
 $THREADING_METHOD = if ($env:THREADING_METHOD) { $env:THREADING_METHOD } else { "serial static task"}
@@ -20,10 +18,10 @@ Add-Type -Namespace Win32 -Name Console -MemberDefinition @'
 
 
 # loop through all tests unless specified
-foreach ($n in $OBJECT_COUNTS.Split(" ")) {
+foreach ($t in $THREADING_METHOD.Split(" ")) {
 
 
-    foreach ($t in $THREADING_METHOD.Split(" ")) {
+    foreach ($n in $OBJECT_COUNTS.Split(" ")) {
 
         if ($t -eq "serial") {
             $ARCXEL = "$pwd\build-serial\Release\arcxel.exe"
@@ -49,10 +47,9 @@ foreach ($n in $OBJECT_COUNTS.Split(" ")) {
         Write-Host ""
         Write-Host "==============================================================================================================================="
         Write-Host ""
-        # Write-Host "Writing to:       .log / .csv"
 
-        $TRACE_DIR = "$BATCH_STAMP\traces\$t\smt-$SMT_LABEL"
-        $LOG_DIR   = "$BATCH_STAMP\logs\$t\smt-$SMT_LABEL"
+        $TRACE_DIR = "results\$BATCH_STAMP\traces\$t\smt-$SMT_LABEL"
+        $LOG_DIR   = "results\$BATCH_STAMP\logs\$t\smt-$SMT_LABEL"
 
         $proc = Start-Process -FilePath "$ARCXEL" -ArgumentList "-n", $n, "-t", $TRACE_DIR, "-l", $LOG_DIR -NoNewWindow -PassThru
 
