@@ -1,66 +1,62 @@
-$TEST_RUNTIME = 10
-$PAUSE_BETWEEN_TESTS = 5
+$WALL_TIME = 20
+$NUM_ROUNDS = 10
+$PAUSE_BETWEEN_RUNS = 30
 
+$OBJECT_COUNTS    = if ($env:OBJECT_COUNTS)    { $env:OBJECT_COUNTS }    else { "100 500 1000 2500 5000" }
+$THREADING_METHOD = if ($env:THREADING_METHOD) { $env:THREADING_METHOD } else { "serial static task" }
 
-$OBJECT_COUNTS    = if ($env:OBJECT_COUNTS)    { $env:OBJECT_COUNTS }    else { "100 500" } # 1000 2500 5000 10000" }
-$THREADING_METHOD = if ($env:THREADING_METHOD) { $env:THREADING_METHOD } else { "serial static task"}
-$SMT_LABEL        = if ($env:SMT_LABEL)        { $env:SMT_LABEL }        else { "off" }      # on off
+$cpus = Get-CimInstance Win32_Processor
+$cores    = ($cpus | Measure-Object -Property NumberOfCores -Sum).Sum
+$threads   = ($cpus | Measure-Object -Property NumberOfLogicalProcessors -Sum).Sum
+$smt_label = if ($threads -gt $cores) { 'on' } else { 'off' }
 
-# One folder per batch, named by when the script started
-$BATCH_STAMP = Get-Date -Format "yyyy-MM-dd_HH-mm-ss"
+$batch_stamp = Get-Date -Format "yyyy-MM-dd_HH-mm-ss"
 
+foreach ($round in 1..$NUM_ROUNDS) {
+	foreach ($tmodel in $THREADING_METHOD.Split(" ")) {
+		foreach ($num_objects in $OBJECT_COUNTS.Split(" ")) {
 
-# Windows has no kill -INT. Sending Ctrl+C to the console is what arcxel sees as SIGINT.
-Add-Type -Namespace Win32 -Name Console -MemberDefinition @'
-[DllImport("kernel32.dll")] public static extern bool GenerateConsoleCtrlEvent(uint ctrlEvent, uint processGroupId);
-[DllImport("kernel32.dll")] public static extern bool SetConsoleCtrlHandler(System.IntPtr handler, bool add);
-'@
+			if ($tmodel -eq "serial") {
+				$arcxel_prog = "$pwd\build-serial\Release\arcxel.exe"
+			} elseif ($tmodel -eq "static") {
+				$arcxel_prog = "$pwd\build-static\Release\arcxel.exe"
+			} elseif ($tmodel -eq "task") {
+				$arcxel_prog = "$pwd\build-task\Release\arcxel.exe"
+			} else {
+				Write-Host "Unknown threading method: $tmodel"
+				exit 1
+			}
 
+			Write-Host ""
+			Write-Host ""
+			Write-Host ""
+			Write-Host "================================================== TEST RUNTIME = $WALL_TIME SECONDS =================================================="
+			Write-Host ""
+			Write-Host "PWD:              $pwd"
+			Write-Host "Object count:     $num_objects"
+			Write-Host "Threading method: $tmodel"
+			Write-Host "Hyperthreading:   $smt_label"
+			Write-Host "Round:			  $round"
+			Write-Host "Program:          $arcxel_prog"
+			Write-Host ""
+			Write-Host "==============================================================================================================================="
+			Write-Host ""
 
-# loop through all tests unless specified
-foreach ($t in $THREADING_METHOD.Split(" ")) {
+			$TRACE_DIR = "results\$batch_stamp\traces\$tmodel\smt-$smt_label\$num_objects\round0$round"
+			$LOG_DIR   = "results\$batch_stamp\logs\$tmodel\smt-$smt_label\$num_objects\round0$round"
 
+			$proc = Start-Process -FilePath "$arcxel_prog" -ArgumentList "-n $num_objects -t $TRACE_DIR -l $LOG_DIR" -NoNewWindow -PassThru
 
-    foreach ($n in $OBJECT_COUNTS.Split(" ")) {
+			if (-not $proc.WaitForExit($WALL_TIME * 1000)) {
 
-        if ($t -eq "serial") {
-            $ARCXEL = "$pwd\build-serial\Release\arcxel.exe"
-        } elseif ($t -eq "static") {
-            $ARCXEL = "$pwd\build-static\Release\arcxel.exe"
-        } elseif ($t -eq "task") {
-            $ARCXEL = "$pwd\build-task\Release\arcxel.exe"
-        } else {
-            Write-Host "Unknown threading method: $t"
-            exit 1
-        }
+				$shell = New-Object -ComObject WScript.Shell
 
-        Write-Host ""
-        Write-Host ""
-        Write-Host ""
-        Write-Host "================================================== TEST RUNTIME = $TEST_RUNTIME SECONDS =================================================="
-        Write-Host ""
-        Write-Host "PWD:              $pwd"
-        Write-Host "Object count:     $n"
-        Write-Host "Threading method: $t"
-        Write-Host "Hyperthreading:   $SMT_LABEL"
-        Write-Host "Program:          $ARCXEL"
-        Write-Host ""
-        Write-Host "==============================================================================================================================="
-        Write-Host ""
+				if ($shell.AppActivate($proc.Id)) {
+					$shell.SendKeys("{ESC}")
+				}
+			}
 
-        $TRACE_DIR = "results\$BATCH_STAMP\traces\$t\smt-$SMT_LABEL"
-        $LOG_DIR   = "results\$BATCH_STAMP\logs\$t\smt-$SMT_LABEL"
-
-        $proc = Start-Process -FilePath "$ARCXEL" -ArgumentList "-n $n -t $TRACE_DIR -l $LOG_DIR" -NoNewWindow -PassThru
-
-        if (-not $proc.WaitForExit($TEST_RUNTIME * 1000)) {
-            # ignore the Ctrl+C ourselves so only arcxel reacts to it
-            [Win32.Console]::SetConsoleCtrlHandler([IntPtr]::Zero, $true) | Out-Null
-            [Win32.Console]::GenerateConsoleCtrlEvent(0, 0) | Out-Null
-            $proc.WaitForExit()
-            [Win32.Console]::SetConsoleCtrlHandler([IntPtr]::Zero, $false) | Out-Null
-        }
-        
-        Start-Sleep -Seconds $PAUSE_BETWEEN_TESTS
-    }
+			Start-Sleep -Seconds $PAUSE_BETWEEN_RUNS
+		}
+	}
 }
