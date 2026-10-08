@@ -89,6 +89,10 @@ constexpr i32 HEIGHT = 1080;
         config.log_dir = opts["log"].as<std::string>();
     }
 
+    if (opts.count("window-name")) {
+        config.window_name = opts["window-name"].as<std::string>();
+    }
+
 	return config;
 }
 
@@ -115,9 +119,11 @@ constexpr i32 HEIGHT = 1080;
 [[nodiscard]] static auto run(arcxel::Config config, arcxel::SampleRecord& global_sample_record) -> arcxel::Fallible {
 
     // ---- WINDOW CREATION ----
+    log(LogLevel::Info, "Window Name: \"{}\"", config.window_name);
     const auto winfo = arcxel::WindowInfo{ .width = WIDTH,
                                            .height = HEIGHT,
-                                           .target_fps = 0 };
+                                           .target_fps = 0,
+                                           .name = config.window_name };
 
     if (auto r = create_window(winfo); !r) {
         return r;
@@ -169,6 +175,7 @@ auto main(int argc, char* argv[]) -> int {
         ("j,jobs", "Number of parallel jobs (threads) to run engine with", cxxopts::value<u32>())
         ("t,trace", "Output directory of trace file", cxxopts::value<std::string>())
         ("l,log", "Output directory of log file", cxxopts::value<std::string>())
+        ("window-name", "Name of the window", cxxopts::value<std::string>())
         ("h,help", "Show help");
 
     auto parsed_cli_opts = cli_options.parse(argc, argv);

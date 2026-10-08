@@ -81,6 +81,8 @@ struct Config {
 
     std::string trace_dir = static_cast<std::string>(DEFAULT_TRACES_DIR);
     std::string log_dir = static_cast<std::string>(DEFAULT_LOGS_DIR);
+
+    std::string window_name = "Arcxel Window";
 }; // struct Config
 
 } // namespace arcxel
