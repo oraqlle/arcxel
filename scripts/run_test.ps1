@@ -27,6 +27,8 @@ foreach ($round in 1..$NUM_ROUNDS) {
 				exit 1
 			}
 
+            $WINDOW_NAME = "Arcxel Window - Model: $tmodel | NumObjects: $num_objects | Round: $round | SMT: $smt_label"
+
 			Write-Host ""
 			Write-Host ""
 			Write-Host ""
@@ -36,16 +38,19 @@ foreach ($round in 1..$NUM_ROUNDS) {
 			Write-Host "Object count:     $num_objects"
 			Write-Host "Threading method: $tmodel"
 			Write-Host "Hyperthreading:   $smt_label"
-			Write-Host "Round:			  $round"
+			Write-Host "Round:            $round"
 			Write-Host "Program:          $arcxel_prog"
+			Write-Host "Window Name:      $WINDOW_NAME"
 			Write-Host ""
 			Write-Host "==============================================================================================================================="
 			Write-Host ""
 
-			$TRACE_DIR = "results\$batch_stamp\traces\$tmodel\smt-$smt_label\$num_objects\round0$round"
-			$LOG_DIR   = "results\$batch_stamp\logs\$tmodel\smt-$smt_label\$num_objects\round0$round"
+			$TRACE_DIR   = "results\$batch_stamp\traces\$tmodel\smt-$smt_label\$num_objects\round0$round"
+			$LOG_DIR     = "results\$batch_stamp\logs\$tmodel\smt-$smt_label\$num_objects\round0$round"
+            $Args        = "-n $num_objects -t $TRACE_DIR -l $LOG_DIR --window-name `"$WINDOW_NAME`""
+            Write-Host "$Args"
 
-			$proc = Start-Process -FilePath "$arcxel_prog" -ArgumentList "-n $num_objects -t $TRACE_DIR -l $LOG_DIR" -NoNewWindow -PassThru
+			$proc = Start-Process -NoNewWindow -PassThru -FilePath "$arcxel_prog" -ArgumentList $Args 
 
 			if (-not $proc.WaitForExit($WALL_TIME * 1000)) {
 
