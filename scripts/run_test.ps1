@@ -51,7 +51,7 @@ foreach ($t in $THREADING_METHOD.Split(" ")) {
         $TRACE_DIR = "results\$BATCH_STAMP\traces\$t\smt-$SMT_LABEL"
         $LOG_DIR   = "results\$BATCH_STAMP\logs\$t\smt-$SMT_LABEL"
 
-        $proc = Start-Process -FilePath "$ARCXEL" -ArgumentList "-n", $n, "-t", $TRACE_DIR, "-l", $LOG_DIR -NoNewWindow -PassThru
+        $proc = Start-Process -FilePath "$ARCXEL" -ArgumentList "-n $n -t $TRACE_DIR -l $LOG_DIR" -NoNewWindow -PassThru
 
         if (-not $proc.WaitForExit($TEST_RUNTIME * 1000)) {
             # ignore the Ctrl+C ourselves so only arcxel reacts to it
