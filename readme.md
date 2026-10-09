@@ -4,66 +4,45 @@ Test bench for analysing different threading architectures for game engine workl
 
 ## Dependencies
 
-Arcxel relies on raylib, which lists its dependencies on its
-[wiki](https://github.com/raysan5/raylib/wiki/raylib-dependencies). raylib is
-fetched and built from source, and linked statically so that measured calls into
-it do not pay for cross-image dispatch.
+* [raylib](https://github.com/raysan5/raylib) [v6.0]
+* [reactphysics3d](https://github.com/DanielChappuis/reactphysics3d) [7000610a244ea85377e4f4c9bcdf68af0159b595]
+* [cxxopts](https://github.com/jarro2783/cxxopts) [v3.3.1]
+
+> Note:
+>
+> * raylib requires a number of dependencies, please install them according to raylibs
+>   [wiki](https://github.com/raysan5/raylib/wiki/raylib-dependencies).
+> * reactphysics3d has a build error on MSVC platforms. This is resolved by applying the
+>   patch 'patches/reactphysics3d-chrono.patch'.
 
 ## Building
 
 ```sh
-cmake -B build
+cmake -B build -DARCXEL_THREADING_MODEL=SERIAL
 cmake --build build
 ```
 
-Builds default to `Release` so measurements are never taken from an unoptimised
-binary. Override explicitly if needed:
-
-```sh
-cmake -B build -DCMAKE_BUILD_TYPE=Debug
-```
-
-Multi-config generators (Visual Studio, Xcode) pick the configuration when
-building rather than when configuring, so the default above does not apply and
-the configuration must be named explicitly:
-
-```sh
-cmake --build build --config Release
-```
-
-## Build options
-
-| Option | Default | Effect |
-| --- | --- | --- |
-| `ARCXEL_PROFILING` | `ON` | Records timing spans. `OFF` compiles every span away. |
-| `ARCXEL_LOGGING` | `ON` | `OFF` discards every level at compile time and leaves raylib's own output alone. |
-| `ARCXEL_DEBUG_SANITIZERS` | `OFF` | Builds with AddressSanitizer, on the library as well as the executable. |
-
-```sh
-cmake -B build -DARCXEL_PROFILING=OFF
-```
-
-Measuring the profiler's own cost means building both ways and comparing, so
-`ARCXEL_PROFILING` exists to make the second build possible.
+> Note: Threading model options
+>
+> * SERIAL
+> * STATIC_PARTITIONING
+> * TASK_BASED
 
 ## Running
 
-Each run writes its log and its timing samples side by side under `results/`:
-
-```
-results/2026-08-08/arcxel-timing-122933.log
-results/2026-08-08/arcxel-timing-122933.csv
-```
-
-Set `ARCXEL_LOG_LEVEL` to change how much is reported — `trace`, `debug`,
-`info` (the default), `warn`, `error`, `fatal` or `off`:
-
 ```sh
-ARCXEL_LOG_LEVEL=warn ./build/arcxel
-```
+arcxel --help
+Arcxel Testbed
+Usage:
+  arcxel [OPTION...]
 
-Release builds discard `trace` and `debug` when compiling, so those two cannot
-be re-enabled at runtime.
+  -n, --num_objects arg  Number of objects to run simulation with
+  -j, --jobs arg         Number of parallel jobs (threads) to run engine with
+  -t, --trace arg        Output directory of trace file
+  -l, --log arg          Output directory of log file
+      --window-name arg  Name of the window
+  -h, --help             Show help
+```
 
 ## Roadmap
 
@@ -75,7 +54,7 @@ be re-enabled at runtime.
 4. 3D Model Loading
 5. Rendering Pipeline
 6. Physics Simulation
-7. Multiple game objects via Entity Component System (ECS)
+7. Multiple game objects
 8. Test Bench Simulation Rules and Configuration
 9. Parallelisation of game loop
     a.  Static Partitioning Threading Architecture
