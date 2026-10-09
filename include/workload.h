@@ -30,8 +30,8 @@ namespace arcxel {
      * Synthetic workload for each object, run per object update
      */
     struct Workload {
-        u32 magnitude = 1000;  //< mean iterations per object, 0 is off
-        f32 variance = 0.75f;  //< 0 uniform, 1 maximally uneven
+        u32 magnitude = 5'000;  //< mean iterations per object, 0 is off
+        f32 variance = 0.75f;   //< 0 uniform, 1 maximally uneven
 
 		/**
 		 * Compute synthetic workload, seeded by the caller to prevent being precomputed
