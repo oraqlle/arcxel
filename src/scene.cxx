@@ -31,8 +31,9 @@ Scene::Scene(usize num_objects, const Vector3 size, Workload workload) noexcept
 
     objects.reserve(BASE_OBJ_COUNT + num_objects);
 
-    _M_create_floor(Vector2{ size.x, size.z });
-    _M_create_walls(size);
+    //_M_create_floor(Vector2{ size.x, size.z });
+    //_M_create_walls(size);
+    _M_create_scene();
     _M_generate_objects(num_objects, size, workload);
     objects.push_back(std::make_unique<Player>());
 }
@@ -73,6 +74,137 @@ auto Scene::render(f64 delta) -> void {
 
 
 auto Scene::unload() -> void { objects.clear(); }
+
+
+/**
+ * @brief Creates a box of various levels which game objects fall through, similar to a "falling sand/oil toy".
+ *        The box has ramps or inclines, spinning rotors and different pathways to for objects to fall through.
+ *        Objects spawn in a containing box or funnel that "feeds" them into the box with a few different
+ *        exists for objects to fall out of. Below this box is another to collect every object that falls.
+ *        Front face/plane of box is transparent to allow the user to see inside the box. The box is a 3D.
+ */
+auto Scene::_M_create_scene() -> void {
+    const auto width = world_size.x;
+    const auto height = world_size.y;
+    const auto depth = world_size.z;
+
+    // ---- FEEDER FUNNEL ----
+    const auto feeder_left_transform = Transform{
+        .translation = Vector3{ -width * 0.18f, height * 0.88f, 0.0f },
+        .rotation = QuaternionFromAxisAngle(Vector3UnitZ, 25.0f * DEG2RAD),
+        .scale = Vector3Ones
+    };
+    auto feeder_left = std::make_unique<Plane>(width * 0.38f, depth * 0.68f, feeder_left_transform);
+    objects.push_back(std::move(feeder_left));
+
+    const auto feeder_right_transform = Transform{
+        .translation = Vector3{ width * 0.18f, height * 0.88f, 0.0f },
+        .rotation = QuaternionFromAxisAngle(Vector3UnitZ, -25.0f * DEG2RAD),
+        .scale = Vector3Ones
+    };
+    auto feeder_right = std::make_unique<Plane>(width * 0.38f, depth * 0.68f, feeder_right_transform);
+    objects.push_back(std::move(feeder_right));
+
+    // ---- UPPER LEVEL ----
+    const auto upper_ramp_transform = Transform{
+        .translation = Vector3{ 0.0f, height * 0.68f, -depth * 0.12f },
+        .rotation = QuaternionFromAxisAngle(Vector3UnitZ, -12.0f * DEG2RAD),
+        .scale = Vector3Ones
+    };
+    auto upper_ramp = std::make_unique<Plane>(width * 0.72f, depth * 0.42f, upper_ramp_transform);
+    objects.push_back(std::move(upper_ramp));
+
+    const auto upper_rotor_transform = Transform{
+        .translation = Vector3{ width * 0.16f, height * 0.60f, depth * 0.10f },
+        .rotation = QuaternionFromAxisAngle(Vector3UnitY, 35.0f * DEG2RAD),
+        .scale = Vector3{ width * 0.14f, height * 0.025f, depth * 0.06f }
+    };
+    auto upper_rotor = std::make_unique<Cube>(upper_rotor_transform, DARKGRAY);
+    objects.push_back(std::move(upper_rotor));
+
+    // ---- MIDDLE LEVEL AND ALTERNATING PATHWAYS ----
+    const auto middle_ramp_left_transform = Transform{
+        .translation = Vector3{ -width * 0.18f, height * 0.43f, -depth * 0.18f },
+        .rotation = QuaternionFromAxisAngle(Vector3UnitZ, 15.0f * DEG2RAD),
+        .scale = Vector3Ones
+    };
+    auto middle_ramp_left = std::make_unique<Plane>(width * 0.48f, depth * 0.36f, middle_ramp_left_transform);
+    objects.push_back(std::move(middle_ramp_left));
+
+    const auto middle_ramp_right_transform = Transform{
+        .translation = Vector3{ width * 0.18f, height * 0.43f, depth * 0.18f },
+        .rotation = QuaternionFromAxisAngle(Vector3UnitZ, -15.0f * DEG2RAD),
+        .scale = Vector3Ones
+    };
+    auto middle_ramp_right = std::make_unique<Plane>(width * 0.48f, depth * 0.36f, middle_ramp_right_transform);
+    objects.push_back(std::move(middle_ramp_right));
+
+    const auto middle_rotor_transform = Transform{
+        .translation = Vector3{ -width * 0.12f, height * 0.34f, 0.0f },
+        .rotation = QuaternionFromAxisAngle(Vector3UnitY, -25.0f * DEG2RAD),
+        .scale = Vector3{ width * 0.14f, height * 0.025f, depth * 0.06f }
+    };
+    auto middle_rotor = std::make_unique<Cube>(middle_rotor_transform, DARKGRAY);
+    objects.push_back(std::move(middle_rotor));
+
+    // ---- LOWER EXITS ----
+    const auto exit_left_transform = Transform{
+        .translation = Vector3{ -width * 0.24f, height * 0.20f, -depth * 0.20f },
+        .rotation = QuaternionFromAxisAngle(Vector3UnitZ, -10.0f * DEG2RAD),
+        .scale = Vector3Ones
+    };
+    auto exit_left = std::make_unique<Plane>(width * 0.34f, depth * 0.30f, exit_left_transform);
+    objects.push_back(std::move(exit_left));
+
+    const auto exit_center_transform = Transform{
+        .translation = Vector3{ 0.0f, height * 0.20f, 0.0f },
+        .rotation = QuaternionFromAxisAngle(Vector3UnitX, 8.0f * DEG2RAD),
+        .scale = Vector3Ones
+    };
+    auto exit_center = std::make_unique<Plane>(width * 0.30f, depth * 0.30f, exit_center_transform);
+    objects.push_back(std::move(exit_center));
+
+    const auto exit_right_transform = Transform{
+        .translation = Vector3{ width * 0.24f, height * 0.20f, depth * 0.20f },
+        .rotation = QuaternionFromAxisAngle(Vector3UnitZ, 10.0f * DEG2RAD),
+        .scale = Vector3Ones
+    };
+    auto exit_right = std::make_unique<Plane>(width * 0.34f, depth * 0.30f, exit_right_transform);
+    objects.push_back(std::move(exit_right));
+
+    // ---- LOWER COLLECTION BOX ----
+    const auto collector_floor_transform = Transform{
+        .translation = Vector3{ 0.0f, height * 0.035f, 0.0f },
+        .rotation = QuaternionUnitX,
+        .scale = Vector3Ones
+    };
+    auto collector_floor = std::make_unique<Plane>(width * 0.82f, depth * 0.82f, collector_floor_transform);
+    objects.push_back(std::move(collector_floor));
+
+    const auto collector_wall_left_transform = Transform{
+        .translation = Vector3{ -width * 0.41f, height * 0.10f, 0.0f },
+        .rotation = QuaternionFromAxisAngle(Vector3UnitZ, 90.0f * DEG2RAD),
+        .scale = Vector3Ones
+    };
+    auto collector_wall_left = std::make_unique<Plane>(height * 0.14f, depth * 0.82f, collector_wall_left_transform);
+    objects.push_back(std::move(collector_wall_left));
+
+    const auto collector_wall_right_transform = Transform{
+        .translation = Vector3{ width * 0.41f, height * 0.10f, 0.0f },
+        .rotation = QuaternionFromAxisAngle(Vector3UnitZ, 90.0f * DEG2RAD),
+        .scale = Vector3Ones
+    };
+    auto collector_wall_right = std::make_unique<Plane>(height * 0.14f, depth * 0.82f, collector_wall_right_transform);
+    objects.push_back(std::move(collector_wall_right));
+
+    const auto collector_wall_back_transform = Transform{
+        .translation = Vector3{ 0.0f, height * 0.10f, -depth * 0.41f },
+        .rotation = QuaternionFromAxisAngle(Vector3UnitX, 90.0f * DEG2RAD),
+        .scale = Vector3Ones
+    };
+    auto collector_wall_back = std::make_unique<Plane>(width * 0.82f, height * 0.14f, collector_wall_back_transform);
+    objects.push_back(std::move(collector_wall_back));
+}
 
 
 auto Scene::_M_create_floor(const Vector2 size) -> void {
