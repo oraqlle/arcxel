@@ -1,0 +1,32 @@
+# Build with Ninja
+
+Must open a MSVC Developer Powershell Console. Can be done by clicking the down arrow in
+the tab toolbar of Windows Terminal and selecting the Powershell with the MSVC (purple)
+logo on the Powershell logo or by pressing `Ctrl+Shift+6`.
+
+Then change to the projects directory.
+
+```sh
+cd C:\Users\frog\Downloads\arcxel
+```
+
+## Serial
+
+```sh
+cmake -B build-serial -G "Ninja Multi-Config" -DARCXEL_THREADING_MODEL=SERIAL
+cmake --build .\build-serial\ --config Release --parallel
+```
+
+## Serial
+
+```sh
+cmake -B build-static -G "Ninja Multi-Config" -DARCXEL_THREADING_MODEL=STATIC_PARTITIONING
+cmake --build .\build-static\ --config Release --parallel
+```
+
+## Serial
+
+```sh
+cmake -B build-task -G "Ninja Multi-Config" -DARCXEL_THREADING_MODEL=TASK_BASED
+cmake --build .\build-task\ --config Release --parallel
+```
