@@ -1,3 +1,9 @@
+param (
+    [Parameter()]
+    [string]$tag
+ )
+
+$TAG="-$tag"
 $WALL_TIME = 20
 $NUM_ROUNDS = 10
 $PAUSE_BETWEEN_RUNS = 30
@@ -9,8 +15,6 @@ $cpus = Get-CimInstance Win32_Processor
 $cores    = ($cpus | Measure-Object -Property NumberOfCores -Sum).Sum
 $threads   = ($cpus | Measure-Object -Property NumberOfLogicalProcessors -Sum).Sum
 $smt_label = if ($threads -gt $cores) { 'on' } else { 'off' }
-
-$batch_stamp = Get-Date -Format "yyyy-MM-dd_HH-mm-ss"
 
 foreach ($round in 1..$NUM_ROUNDS) {
 	foreach ($tmodel in $THREADING_METHOD.Split(" ")) {
@@ -45,9 +49,8 @@ foreach ($round in 1..$NUM_ROUNDS) {
 			Write-Host "==============================================================================================================================="
 			Write-Host ""
 
-			$TRACE_DIR   = "results\$batch_stamp\traces\$tmodel\smt-$smt_label\$num_objects\round0$round"
-			$LOG_DIR     = "results\$batch_stamp\logs\$tmodel\smt-$smt_label\$num_objects\round0$round"
-            $Args        = "-n $num_objects -t $TRACE_DIR -l $LOG_DIR --window-name `"$WINDOW_NAME`""
+            $OUTDIR      = "results$TAG\$tmodel\smt-$smt_label\$num_objects\round0$round"
+            $Args        = "-n $num_objects -t $OUTDIR -l $OUTDIR --window-name `"$WINDOW_NAME`""
             Write-Host "$Args"
 
 			$proc = Start-Process -NoNewWindow -PassThru -FilePath "$arcxel_prog" -ArgumentList $Args 
