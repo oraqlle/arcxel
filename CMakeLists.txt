@@ -7,16 +7,13 @@ project(
     LANGUAGES CXX C
 )
 
+
 # ---- Global Defines ----
 set(CMAKE_EXPORT_COMPILE_COMMANDS     ON  CACHE BOOL "" FORCE)
 set(CMAKE_CXX_STANDARD_REQUIRED       ON  CACHE BOOL "" FORCE)
 set(CMAKE_CXX_EXTENSIONS              OFF CACHE BOOL "" FORCE)
+set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
 
-if(MSVC)
-	set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
-else ()
-	set(BUILD_SHARED_LIBS ON  CACHE BOOL "" FORCE)
-endif ()
 
 # ---- Build Options ----
 include(CMakeDependentOption)
@@ -27,7 +24,7 @@ cmake_dependent_option(ARCXEL_PHYSICS_DEBUG_RENDERER "Enable sanitizers"    OFF 
 option(ARCXEL_LOGGING          "Log program traces"    ON)
 option(ARCXEL_PROFILING        "Record profile traces" ON)
 
-# ---- Threading Model To Use ----
+# -- Threading Model To Use --
 set(ARCXEL_THREADING_MODEL "SERIAL" CACHE STRING "Threading Model Used")
 
 if(ARCXEL_THREADING_MODEL STREQUAL "TASK_BASED")
@@ -55,7 +52,7 @@ else()
     )
 endif()
 
-# Build options log
+# - Build options log -
 message(STATUS "ARXCEL_DEBUG: ${ARCXEL_DEBUG}")
 message(STATUS "ARXCEL_SANITIZERS: ${ARCXEL_SANITIZERS}")
 message(STATUS "ARXCEL_PHYSICS_DEBUG_RENDERER: ${ARCXEL_PHYSICS_DEBUG_RENDERER}")
@@ -63,6 +60,7 @@ message(STATUS "ARXCEL_LOGGING: ${ARCXEL_LOGGING}")
 message(STATUS "ARXCEL_PROFILING: ${ARCXEL_PROFILING}")
 message(STATUS "ARCXEL_THREADING_MODEL: ${ARCXEL_THREADING_MODEL}")
 message(STATUS "ARCXEL_THREADING_SRC: ${ARCXEL_THREADING_SRC}")
+
 
 # ---- Dependencies ----
 include(FetchContent)
@@ -95,7 +93,7 @@ set_target_properties(raylib PROPERTIES SYSTEM TRUE)
 FetchContent_Declare(
     reactphysics3d
     GIT_REPOSITORY  https://github.com/DanielChappuis/reactphysics3d.git
-    GIT_TAG         master
+    GIT_TAG         7000610a244ea85377e4f4c9bcdf68af0159b595
     GIT_PROGRESS    TRUE
     GIT_SUBMODULES  ""
     PATCH_COMMAND git apply "${CMAKE_CURRENT_SOURCE_DIR}/patches/reactphysics3d-chrono.patch"
