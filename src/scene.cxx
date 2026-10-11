@@ -324,7 +324,7 @@ auto Scene::_M_create_maze() -> void {
     constexpr auto ypos = 100.0f;
     constexpr auto height = 75.0f;
     constexpr auto width = 50.0f;
-    constexpr auto depth = 4.0f;
+    constexpr auto depth = 7.0f;
 
     constexpr auto CONTAINER_COLOUR = GRAY;
 
@@ -354,8 +354,51 @@ auto Scene::_M_create_maze() -> void {
     const auto r1_pos = Vector3{ .x = 0.0f , .y = ypos + 10.0f, .z = 5.0f };
     const auto r1_tilt = QuaternionFromAxisAngle(Vector3UnitX, 10.0f * DEG2RAD);
     const auto r1_rot = QuaternionMultiply(r1_tilt, rot_y_90);
-    const auto r1_length = 10.0f;
+    const auto r1_length = 17.0f;
     _M_add_plane(r1_length, depth, r1_pos, r1_rot, BLUE);
+
+    const auto r2_pos = Vector3{ .x = 0.0f , .y = ypos + 35.0f, .z = -15.0f };
+    const auto r2_tilt = QuaternionFromAxisAngle(Vector3UnitX, 15.0f * DEG2RAD);
+    const auto r2_rot = QuaternionMultiply(r2_tilt, rot_y_90);
+    const auto r2_length = 20.0f;
+    _M_add_plane(r2_length, depth, r2_pos, r2_rot, GREEN);
+
+    const auto r3_pos = Vector3{ .x = 0.0f , .y = ypos - 12.0f, .z = 9.0f };
+    const auto r3_tilt = QuaternionFromAxisAngle(Vector3UnitX, 20.0f * DEG2RAD);
+    const auto r3_rot = QuaternionMultiply(r3_tilt, rot_y_90);
+    const auto r3_length = 19.0f;
+    _M_add_plane(r3_length, depth, r3_pos, r3_rot, MAGENTA);
+
+    const auto r4_pos = Vector3{ .x = 0.0f , .y = ypos + 5.0f, .z = 20.0f };
+    const auto r4_tilt = QuaternionFromAxisAngle(Vector3UnitX, -30.0f * DEG2RAD);
+    const auto r4_rot = QuaternionMultiply(r4_tilt, rot_y_90);
+    const auto r4_length = 10.0f;
+    _M_add_plane(r4_length, depth, r4_pos, r4_rot, ORANGE);
+
+    const auto r5_pos = Vector3{ .x = 0.0f , .y = ypos - 23.0f, .z = -8.0f };
+    const auto r5_tilt = QuaternionFromAxisAngle(Vector3UnitX, -17.0f * DEG2RAD);
+    const auto r5_rot = QuaternionMultiply(r5_tilt, rot_y_90);
+    const auto r5_length = 22.0f;
+    _M_add_plane(r5_length, depth, r5_pos, r5_rot, PURPLE);
+
+    const auto r6_pos = Vector3{ .x = 0.0f , .y = ypos + 10.0f, .z = -16.0f };
+    const auto r6_tilt = QuaternionFromAxisAngle(Vector3UnitX, 41.0f * DEG2RAD);
+    const auto r6_rot = QuaternionMultiply(r6_tilt, rot_y_90);
+    const auto r6_length = 21.0f;
+    _M_add_plane(r6_length, depth, r6_pos, r6_rot, PINK);
+
+    const auto r7_pos = Vector3{ .x = 0.0f , .y = ypos + 20.0f, .z = -5.0f };
+    const auto r7_tilt = QuaternionFromAxisAngle(Vector3UnitX, -25.0f * DEG2RAD);
+    const auto r7_rot = QuaternionMultiply(r7_tilt, rot_y_90);
+    const auto r7_length = 14.0f;
+    _M_add_plane(r7_length, depth, r7_pos, r7_rot, SKYBLUE);
+
+    const auto r8_pos = Vector3{ .x = 0.0f , .y = ypos + 20.0f, .z = 10.0f };
+    const auto r8_tilt = QuaternionFromAxisAngle(Vector3UnitX, 25.0f * DEG2RAD);
+    const auto r8_rot = QuaternionMultiply(r8_tilt, rot_y_90);
+    const auto r8_length = 14.0f;
+    _M_add_plane(r8_length, depth, r8_pos, r8_rot, YELLOW);
+
 
     // --- SINKS ---
     const auto sinks_ypos = ypos - (height / 2.0f) - 4.0f;
@@ -424,7 +467,7 @@ auto Scene::_M_create_catchment_box() -> void {
 auto Scene::_M_generate_transparent_face() -> void {
     const auto height = 75.0f;
     const auto width = 50.0f;
-    const auto depth = 4.0f;
+    const auto depth = 7.0f;
     const auto position = Vector3{ .x = depth / 2 , .y = 100.0f, .z = 0.0f };
     const auto rotation = QuaternionFromAxisAngle(Vector3UnitZ, -90 * DEG2RAD);
     _M_add_plane(
@@ -438,12 +481,12 @@ auto Scene::_M_generate_transparent_face() -> void {
 auto Scene::_M_generate_objects(
     usize num_objects,
     [[maybe_unused]] Workload workload) -> void {
-    const auto xdim = world_size.x * 0.5f;
-    const auto zdim = world_size.z * 0.5f;
+    const auto xdim = 4.0f;
+    const auto zdim = 22.0f;
 
     auto rand = std::mt19937(SCENE_SEED);
     auto xdist = std::uniform_real_distribution<f32>(-xdim, xdim);
-    auto ydist = std::uniform_real_distribution<f32>(10.0f, world_size.y);
+    auto ydist = std::uniform_real_distribution<f32>(200.0f, 500.0f);
     auto zdist = std::uniform_real_distribution<f32>(-zdim, zdim);
     auto shape_type_dist = std::uniform_int_distribution<u32>{};
 
