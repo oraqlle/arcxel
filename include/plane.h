@@ -32,7 +32,8 @@ public:
     Plane(
         f32 length = 100.0f,
         f32 width = 100.0f,
-        Transform transform = TransformIdentity) noexcept;
+        Transform transform = TransformIdentity,
+        Color tint = LIGHTGRAY) noexcept;
 
     ~Plane() noexcept override;
 

@@ -20,7 +20,6 @@
 #pragma once
 
 #include "game_object.h"
-#include "player.h"
 #include "types.h"
 #include "workload.h"
 

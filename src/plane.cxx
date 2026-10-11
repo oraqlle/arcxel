@@ -8,8 +8,8 @@
 
 namespace arcxel {
 
-Plane::Plane(f32 length, f32 width, Transform transform) noexcept
-    : PhysicsObject(rp3d::BodyType::STATIC, transform, LIGHTGRAY)
+Plane::Plane(f32 length, f32 width, Transform transform, Color tint) noexcept
+    : PhysicsObject(rp3d::BodyType::STATIC, transform, tint)
     , length(length * transform.scale.x)
     , width(width * transform.scale.z) {
     body->enableGravity(false);
