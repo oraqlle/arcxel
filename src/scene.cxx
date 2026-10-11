@@ -98,7 +98,7 @@ auto Scene::_M_create_maze() -> void {
 
     // ---- CREATE CONTAINING BOX ----
     constexpr auto ypos = 100.0f;
-    constexpr auto height = 75.0f;
+    constexpr auto height = 100.0f;
     constexpr auto width = 50.0f;
     constexpr auto depth = 7.0f;
 
@@ -258,7 +258,7 @@ auto Scene::_M_create_catchment_box() -> void {
 auto Scene::_M_generate_objects(
     usize num_objects,
     [[maybe_unused]] Workload workload) -> void {
-    const auto xdim = 4.0f;
+    const auto xdim = 1.0f;
     const auto zdim = 22.0f;
 
     auto rand = std::mt19937(SCENE_SEED);
