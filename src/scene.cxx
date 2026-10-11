@@ -321,7 +321,33 @@ auto _M_create_funnel() -> void {
 auto Scene::_M_create_maze() -> void {
 
     // ---- CREATE CONTAINING BOX ----
+    constexpr auto ypos = 100.0f;
+    constexpr auto height = 75.0f;
+    constexpr auto width = 50.0f;
+    constexpr auto depth = 20.0f;
 
+    constexpr auto CONTAINER_COLOUR = GRAY;
+
+    const auto rot_z_90 = QuaternionFromAxisAngle(Vector3UnitZ, 90 * DEG2RAD);
+    const auto rot_y_90 = QuaternionFromAxisAngle(Vector3UnitY, 90 * DEG2RAD);
+    const auto rot_y_neg90 = QuaternionFromAxisAngle(Vector3UnitY, -90 * DEG2RAD);
+
+    // --- BACK WALL ---
+    const auto back_pos = Vector3{ .x = -depth / 2.0f , .y = ypos, .z = 0.0f };
+    const auto back_rot = rot_z_90;
+    _M_add_plane(height, width, back_pos, back_rot, CONTAINER_COLOUR);
+
+
+    // --- LEFT WALL ----
+    const auto left_pos = Vector3{ .x = 0.0f , .y = ypos, .z = -width / 2.0f };
+    const auto left_rot = QuaternionMultiply(rot_y_90, rot_z_90);
+    _M_add_plane(height, depth, left_pos, left_rot, CONTAINER_COLOUR);
+
+
+    // --- RIGHT WALL ---
+    const auto right_pos = Vector3{ .x = 0.0f , .y = ypos, .z = width / 2.0f };
+    const auto right_rot = QuaternionMultiply(rot_y_neg90, rot_z_90);
+    _M_add_plane(height, depth, right_pos, right_rot, CONTAINER_COLOUR);
 
     // ---- CREATE RAMPS ----
 }
@@ -377,14 +403,14 @@ auto Scene::_M_create_catchment_box() -> void {
 auto Scene::_M_generate_transparent_face() -> void {
     const auto height = 75.0f;
     const auto width = 50.0f;
-    const auto position = Vector3{ .x = 10.0f , .y = height / 2.0f, .z = 0.0f };
-    const auto rotation = QuaternionFromAxisAngle(Vector3UnitX, -80 * DEG2RAD);
+    const auto position = Vector3{ .x = 10.0f , .y = 100.0f, .z = 0.0f };
+    const auto rotation = QuaternionFromAxisAngle(Vector3UnitZ, -90 * DEG2RAD);
     _M_add_plane(
         height,
         width,
         position,
         rotation,
-        Fade(BLACK, 0.2f)); //< BLACK colour, 20% opaque
+        Fade(BLACK, 0.50f)); //< BLACK colour, 50% opaque
 }
 
 auto Scene::_M_generate_objects(
