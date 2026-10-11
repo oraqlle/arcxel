@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 3.31)
 
+
 project(
     arcxel_engine
     VERSION 0.1.0
@@ -69,8 +70,10 @@ if(MSVC)
     set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS  ON  CACHE BOOL "" FORCE)
 endif()
 
+
 # -- Native Threads --
 find_package(Threads REQUIRED)
+
 
 # -- raylib Defines --
 set(BUILD_EXAMPLES  OFF CACHE BOOL "" FORCE) # don't build the supplied examples
@@ -83,11 +86,9 @@ FetchContent_Declare(
     GIT_TAG         6.0
     GIT_PROGRESS    TRUE
 )
-
 FetchContent_MakeAvailable(raylib)
-
-# raylib's headers trip -Wextra in so consumers treat them as system headers
 set_target_properties(raylib PROPERTIES SYSTEM TRUE)
+
 
 # -- reactphysics3d --
 FetchContent_Declare(
@@ -98,10 +99,9 @@ FetchContent_Declare(
     GIT_SUBMODULES  ""
     PATCH_COMMAND git apply "${CMAKE_CURRENT_SOURCE_DIR}/patches/reactphysics3d-chrono.patch"
 )
-
 FetchContent_MakeAvailable(reactphysics3d)
-
 set_target_properties(reactphysics3d PROPERTIES SYSTEM TRUE)
+
 
 # -- cxxopts --
 FetchContent_Declare(
@@ -115,6 +115,8 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(cxxopts)
 
 set_target_properties(cxxopts PROPERTIES SYSTEM TRUE)
+target_compile_definitions(cxxopts INTERFACE CXXOPTS_NO_EXCEPTIONS) # disable exceptions for cxxopts
+
 
 # ---- Exceptions and Warnings ----
 if (MSVC)
@@ -131,11 +133,11 @@ if (MSVC)
     )
         string(REPLACE "/EHsc" "" ${flag_var} "${${flag_var}}")
     endforeach()
-
 else ()
     set(ARCXEL_NO_EXCEPTIONS -fno-exceptions)
     set(ARCXEL_WARNINGS -Wall -Wextra -Wpedantic)
 endif ()
+
 
 # ---- Arcxel Internal Object Library ----
 add_library(
@@ -175,12 +177,12 @@ target_link_libraries(arcxel_lib PUBLIC raylib ReactPhysics3D::reactphysics3d Th
 
 
 # ---- Entrypoint ----
-
 add_executable(arcxel src/main.cxx)
 target_compile_features(arcxel PUBLIC cxx_std_23)
 target_compile_options(arcxel PRIVATE ${ARCXEL_WARNINGS} ${ARCXEL_NO_EXCEPTIONS})
 target_compile_definitions(arcxel PRIVATE _HAS_EXCEPTIONS=0)
 target_link_libraries(arcxel PRIVATE arcxel_lib cxxopts)
+
 
 # ----  Enable Sanitizers ----
 if(ARCXEL_SANITIZERS)
@@ -195,6 +197,7 @@ if(ARCXEL_SANITIZERS)
 
     target_link_options(arcxel PRIVATE ${ARCXEL_SANITIZERS_FLAGS})
 endif()
+
 
 # ---- Installation ----
 #install(TARGETS arcxel RUNTIME COMPONENT runtime)
