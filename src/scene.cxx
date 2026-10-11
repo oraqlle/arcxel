@@ -32,9 +32,9 @@ Scene::Scene(usize num_objects, const Vector3 size, Workload workload) noexcept
     objects.reserve(BASE_OBJ_COUNT + num_objects);
 
     //_M_create_floor(Vector2{ size.x, size.z });
-    //_M_create_walls(size);
+    //_M_create_walls();
     _M_create_scene();
-    _M_generate_objects(num_objects, size, workload);
+    _M_generate_objects(num_objects, workload);
     objects.push_back(std::make_unique<Player>());
 }
 
@@ -206,59 +206,58 @@ auto Scene::_M_create_floor(const Vector2 size) -> void {
 }
 
 
-auto Scene::_M_create_walls(const Vector3 size) -> void {
+auto Scene::_M_create_walls() -> void {
     // ---- LEFT WALL ----
     const auto left_transform = Transform{
-        .translation = Vector3{ 0.0f, size.y * 0.5f, size.z * 0.5f },
+        .translation = Vector3{ 0.0f, world_size.y * 0.5f, world_size.z * 0.5f },
         .rotation = QuaternionFromAxisAngle(Vector3UnitX, 90 * DEG2RAD),
         .scale = Vector3Ones
     };
 
-    auto left = std::make_unique<Plane>(size.x, size.y, left_transform);
+    auto left = std::make_unique<Plane>(world_size.x, world_size.y, left_transform);
     objects.push_back(std::move(left));
 
     // ---- RIGHT WALL ----
     const auto right_transform = Transform{
-        .translation = Vector3{ 0.0f, size.y * 0.5f, size.z * -0.5f },
+        .translation = Vector3{ 0.0f, world_size.y * 0.5f, world_size.z * -0.5f },
         .rotation = QuaternionFromAxisAngle(Vector3UnitX, 90 * DEG2RAD),
         .scale = Vector3Ones
     };
 
-    auto right = std::make_unique<Plane>(size.x, size.y, right_transform);
+    auto right = std::make_unique<Plane>(world_size.x, world_size.y, right_transform);
     objects.push_back(std::move(right));
 
     // ---- TOP WALL ----
     const auto top_transform = Transform{
-        .translation = Vector3{ size.x * -0.5f, size.y * 0.5f, 0.0f },
+        .translation = Vector3{ world_size.x * -0.5f, world_size.y * 0.5f, 0.0f },
         .rotation = QuaternionFromAxisAngle(Vector3UnitZ, 90 * DEG2RAD),
         .scale = Vector3Ones
     };
 
-    auto top = std::make_unique<Plane>(size.y, size.z, top_transform);
+    auto top = std::make_unique<Plane>(world_size.y, world_size.z, top_transform);
     objects.push_back(std::move(top));
 
     // ---- BOTTOM WALL ----
     const auto bottom_transform = Transform{
-        .translation = Vector3{ size.x * 0.5f, size.y * 0.5f, 0.0f },
+        .translation = Vector3{ world_size.x * 0.5f, world_size.y * 0.5f, 0.0f },
         .rotation = QuaternionFromAxisAngle(Vector3UnitZ, 90 * DEG2RAD),
         .scale = Vector3Ones
     };
 
-    auto bottom = std::make_unique<Plane>(size.y, size.z, bottom_transform);
+    auto bottom = std::make_unique<Plane>(world_size.y, world_size.z, bottom_transform);
     objects.push_back(std::move(bottom));
 }
 
 
 auto Scene::_M_generate_objects(
     usize num_objects,
-    const Vector3 size,
     [[maybe_unused]] Workload workload) -> void {
-    const auto xdim = size.x * 0.5f;
-    const auto zdim = size.z * 0.5f;
+    const auto xdim = world_size.x * 0.5f;
+    const auto zdim = world_size.z * 0.5f;
 
     auto rand = std::mt19937(SCENE_SEED);
     auto xdist = std::uniform_real_distribution<f32>(-xdim, xdim);
-    auto ydist = std::uniform_real_distribution<f32>(10.0f, size.y);
+    auto ydist = std::uniform_real_distribution<f32>(10.0f, world_size.y);
     auto zdist = std::uniform_real_distribution<f32>(-zdim, zdim);
     auto shape_type_dist = std::uniform_int_distribution<u32>{};
 
@@ -281,7 +280,7 @@ auto Scene::_M_generate_objects(
 
         auto colour = Color{
             .r = static_cast<unsigned char>(std::abs(translation.x / xdim) * 255.0f),
-            .g = static_cast<unsigned char>(std::abs(translation.y / size.y) * 255.0f),
+            .g = static_cast<unsigned char>(std::abs(translation.y / world_size.y) * 255.0f),
             .b = static_cast<unsigned char>(std::abs(translation.z / zdim) * 255.0f),
             .a = 255
         };

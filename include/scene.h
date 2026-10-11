@@ -53,13 +53,13 @@ public:
     auto unload() -> void;
 
 private:
-    auto _M_create_scene() -> void;
-
     auto _M_create_floor(const Vector2 size) -> void;
 
-    auto _M_create_walls(const Vector3 size) -> void;
+    auto _M_create_walls() -> void;
 
-    auto _M_generate_objects(usize num_objects, const Vector3 size, Workload workload) -> void;
+    auto _M_create_scene() -> void;
+
+    auto _M_generate_objects(usize num_objects, Workload workload) -> void;
 
 public:
     std::vector<std::unique_ptr<GameObject>> objects;
