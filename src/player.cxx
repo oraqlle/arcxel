@@ -25,8 +25,8 @@ Player::Player() noexcept
     , speed(10.0f)
     , sprint_speed_scale(3.75f)
     , look_sensitivity(0.0015f) {
-    camera.position = Vector3{ 100.0f, 80.0f, 0.0f };
-    camera.target = Vector3{ 0.0f, 0.0f, -1.0f };
+    camera.position = Vector3{ 150.0f, 180.0f, 0.0f };
+    camera.target = Vector3{ 0.0f, 125.0f, -1.0f };
     camera.up = Vector3UnitY;
     camera.fovy = 45.0;
     camera.projection = CameraProjection::CAMERA_PERSPECTIVE;
