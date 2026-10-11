@@ -76,13 +76,6 @@ auto Scene::render(f64 delta) -> void {
 auto Scene::unload() -> void { objects.clear(); }
 
 
-/**
- * @brief Creates a box of various levels which game objects fall through, similar to a "falling sand/oil toy".
- *        The box has ramps or inclines, spinning rotors and different pathways to for objects to fall through.
- *        Objects spawn in a containing box or funnel that "feeds" them into the box with a few different
- *        exists for objects to fall out of. Below this box is another to collect every object that falls.
- *        Front face/plane of box is transparent to allow the user to see inside the box. The box is a 3D.
- */
 auto Scene::_M_create_scene() -> void {
     const auto width = world_size.x;
     const auto height = world_size.y;
