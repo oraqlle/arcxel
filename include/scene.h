@@ -52,11 +52,17 @@ public:
     auto unload() -> void;
 
 private:
-    auto _M_create_floor(const Vector2 size) -> void;
+    auto
+    _M_add_plane(f32 length, f32 width, Vector3 position, Quaternion rotation, Color tint)
+        -> void;
 
-    auto _M_create_walls() -> void;
+    auto _M_create_funnel() -> void;
 
-    auto _M_create_scene() -> void;
+    auto _M_create_maze() -> void;
+
+    auto _M_create_catchment_box() -> void;
+
+    auto _M_generate_transparent_face() -> void;
 
     auto _M_generate_objects(usize num_objects, Workload workload) -> void;
 
