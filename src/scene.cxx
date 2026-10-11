@@ -94,230 +94,6 @@ auto Scene::_M_add_plane(
 }
 
 
-auto _M_create_funnel() -> void {
-    // ---- LEFT SLOPE ----
-    //_M_add_plane();
-
-    // ---- LEFT UPPER SIDE ----
-
-
-    // ---- LEFT LOWER SIDE ----
-
-
-    // ---- RIGHT SLOPE ----
-
-
-    // ---- RIGHT UPPER SIDE ----
-
-
-    // ---- RIGHT LOWER SIDE ----
-
-
-    // ---- FRONT SLOPE ----
-
-
-    // ---- FRONT UPPER SIDE ----
-
-
-    // ---- FRONT LOWER SIDE ----
-
-
-    // ---- BACK SLOPE ----
-
-
-    // ---- BACK UPPER SIDE ----
-
-
-    // ---- BACK LOWER SIDE ----
-
-
-    //const Quaternion horizontal =
-    //    QuaternionFromAxisAngle(Vector3UnitY, 0.0f);
-
-    //// Rotates the default XZ plane into an XY plane.
-    //const Quaternion backWallRotation = QuaternionFromAxisAngle(Vector3UnitX, 90.0f * DEG2RAD);
-
-    //// Rotates the default XZ plane into a YZ plane.
-    //const Quaternion sideWallRotation =
-    //    QuaternionFromAxisAngle(Vector3UnitZ, 90.0f * DEG2RAD);
-
-    //// Chamber walls. The front is mostly transparent, with an open strip
-    //// at the bottom so exits can feed into the collection bin.
-    //addPlane(W, H,
-    //         Vector3{ W * 0.5f, H * 0.5f, D },
-    //         backWallRotation, frameColor);
-
-    //addPlane(H, D,
-    //         Vector3{ 0.0f, H * 0.5f, D * 0.5f },
-    //         sideWallRotation, frameColor);
-
-    //addPlane(H, D,
-    //         Vector3{ W, H * 0.5f, D * 0.5f },
-    //         sideWallRotation, frameColor);
-
-    //addPlane(W, D,
-    //         Vector3{ W * 0.5f, H, D * 0.5f },
-    //         horizontal, frameColor);
-
-    //addPlane(W, D,
-    //         Vector3{ W * 0.5f, 0.0f, D * 0.5f },
-    //         horizontal, frameColor);
-
-    //// Transparent front panel. It begins above the exit level, leaving
-    //// the bottom openings unobstructed. Alpha transparency also depends
-    //// on the renderer's blending/material settings.
-    //constexpr f32 frontPanelBottom = 2.5f;
-    //const f32 frontPanelHeight = H - frontPanelBottom;
-    //const auto tuv = Vector3RotateByQuaternion(Vector3UnitY, backWallRotation);
-    //const auto xyz = QuaternionFromAxisAngle(Vector3UnitZ, 80 * DEG2RAD);
-    //const auto frontRot = QuaternionFromAxisAngle(Vector3UnitX, -90 * DEG2RAD);
-
-    //addPlane(W, frontPanelHeight,
-    //         Vector3{ W * 0.5f,
-    //                  frontPanelBottom + frontPanelHeight * 0.5f,
-    //                  0.0f },
-    //         frontRot, glassColor);
-
-    //// Hopper sides and a broad entry shelf.
-    //// Their different slopes help spread objects into separate routes.
-    //addPlane(7.0f, D - 1.0f,
-    //         Vector3{ 8.0f, 25.0f, D * 0.5f },
-    //         QuaternionFromAxisAngle(Vector3UnitZ, -28.0f * DEG2RAD),
-    //         rampA);
-
-    //addPlane(7.0f, D - 1.0f,
-    //         Vector3{ 16.0f, 25.0f, D * 0.5f },
-    //         QuaternionFromAxisAngle(Vector3UnitZ, 28.0f * DEG2RAD),
-    //         rampA);
-
-    //addPlane(8.0f, 4.0f,
-    //         Vector3{ 12.0f, 22.2f, 3.5f },
-    //         horizontal, rampB);
-
-    //// Long, staggered ramps. Their varied depths, angles, and gaps form
-    //// a branching maze instead of one continuous back-and-forth path.
-    //addPlane(7.0f, 3.5f,
-    //         Vector3{ 5.0f, 19.5f, 1.8f },
-    //         QuaternionFromAxisAngle(Vector3UnitZ, -18.0f * DEG2RAD),
-    //         rampA);
-
-    //addPlane(6.5f, 3.5f,
-    //         Vector3{ 18.0f, 18.6f, 5.8f },
-    //         QuaternionFromAxisAngle(Vector3UnitZ, 22.0f * DEG2RAD),
-    //         rampB);
-
-    //addPlane(6.0f, 3.0f,
-    //         Vector3{ 11.0f, 16.5f, 4.0f },
-    //         QuaternionFromAxisAngle(Vector3UnitZ, 12.0f * DEG2RAD),
-    //         rampC);
-
-    //addPlane(7.0f, 3.5f,
-    //         Vector3{ 18.5f, 13.9f, 1.8f },
-    //         QuaternionFromAxisAngle(Vector3UnitZ, -24.0f * DEG2RAD),
-    //         rampA);
-
-    //addPlane(7.0f, 3.5f,
-    //         Vector3{ 5.0f, 12.5f, 5.9f },
-    //         QuaternionFromAxisAngle(Vector3UnitZ, 20.0f * DEG2RAD),
-    //         rampB);
-
-    //addPlane(6.0f, 3.0f,
-    //         Vector3{ 12.5f, 10.5f, 3.7f },
-    //         QuaternionFromAxisAngle(Vector3UnitZ, -10.0f * DEG2RAD),
-    //         rampC);
-
-    //addPlane(7.0f, 3.5f,
-    //         Vector3{ 18.0f, 8.3f, 5.7f },
-    //         QuaternionFromAxisAngle(Vector3UnitZ, 18.0f * DEG2RAD),
-    //         rampA);
-
-    //addPlane(7.0f, 3.5f,
-    //         Vector3{ 5.0f, 6.8f, 1.7f },
-    //         QuaternionFromAxisAngle(Vector3UnitZ, -16.0f * DEG2RAD),
-    //         rampB);
-
-    //addPlane(6.0f, 3.0f,
-    //         Vector3{ 12.0f, 4.8f, 4.0f },
-    //         QuaternionFromAxisAngle(Vector3UnitZ, 12.0f * DEG2RAD),
-    //         rampC);
-
-    //// Short branch/reconnect ledges, separated from the main ramps.
-    //addPlane(3.5f, 2.5f,
-    //         Vector3{ 11.0f, 19.7f, 6.5f },
-    //         QuaternionFromAxisAngle(Vector3UnitZ, 10.0f * DEG2RAD),
-    //         rampC);
-
-    //addPlane(3.5f, 2.5f,
-    //         Vector3{ 7.0f, 14.2f, 3.7f },
-    //         QuaternionFromAxisAngle(Vector3UnitZ, -12.0f * DEG2RAD),
-    //         rampA);
-
-    //addPlane(3.5f, 2.5f,
-    //         Vector3{ 15.5f, 7.8f, 2.5f },
-    //         QuaternionFromAxisAngle(Vector3UnitZ, 14.0f * DEG2RAD),
-    //         rampB);
-
-    //// Static crossed-blade rotor geometry. Rotate these objects in your
-    //// update loop if you want them to spin during play.
-    //auto addRotor = [&](Vector3 center, f32 bladeLength)
-    //{
-    //    addPlane(bladeLength, 0.45f, center,
-    //             QuaternionFromAxisAngle(Vector3UnitY, 35.0f * DEG2RAD),
-    //             rotorColor);
-
-    //    addPlane(bladeLength, 0.45f, center,
-    //             QuaternionFromAxisAngle(Vector3UnitY, 125.0f * DEG2RAD),
-    //             rotorColor);
-    //};
-
-    //addRotor(Vector3{ 12.0f, 20.3f, 4.0f }, 3.0f);
-    //addRotor(Vector3{ 12.0f, 14.3f, 3.5f }, 3.0f);
-    //addRotor(Vector3{ 12.0f, 8.8f, 4.2f }, 3.2f);
-
-    //// Three low exit guides lead toward separate openings.
-    //addPlane(3.5f, 3.0f,
-    //         Vector3{ 3.0f, 2.0f, 2.0f },
-    //         QuaternionFromAxisAngle(Vector3UnitZ, -12.0f * DEG2RAD),
-    //         rampA);
-
-    //addPlane(3.5f, 3.0f,
-    //         Vector3{ 12.0f, 2.0f, 4.0f },
-    //         QuaternionFromAxisAngle(Vector3UnitZ, 8.0f * DEG2RAD),
-    //         rampB);
-
-    //addPlane(3.5f, 3.0f,
-    //         Vector3{ 21.0f, 2.0f, 6.0f },
-    //         QuaternionFromAxisAngle(Vector3UnitZ, 15.0f * DEG2RAD),
-    //         rampC);
-
-    //// Collection bin below the chamber: floor, front/back walls, and ends.
-    //constexpr f32 binWidth = W + 2.0f;
-    //constexpr f32 binDepth = D + 1.0f;
-    //constexpr f32 binWallHeight = 2.5f;
-    //constexpr f32 binCenterY = -2.0f;
-
-    //addPlane(binWidth, binDepth,
-    //         Vector3{ W * 0.5f, -3.2f, D * 0.5f },
-    //         horizontal, binColor);
-
-    //addPlane(binWidth, binWallHeight,
-    //         Vector3{ W * 0.5f, binCenterY, -0.5f },
-    //         backWallRotation, binColor);
-
-    //addPlane(binWidth, binWallHeight,
-    //         Vector3{ W * 0.5f, binCenterY, D + 0.5f },
-    //         backWallRotation, binColor);
-
-    //addPlane(binWallHeight, binDepth,
-    //         Vector3{ -1.0f, binCenterY, D * 0.5f },
-    //         sideWallRotation, binColor);
-
-    //addPlane(binWallHeight, binDepth,
-    //         Vector3{ W + 1.0f, binCenterY, D * 0.5f },
-    //         sideWallRotation, binColor);
-}
-
-
 auto Scene::_M_create_maze() -> void {
 
     // ---- CREATE CONTAINING BOX ----
@@ -417,6 +193,21 @@ auto Scene::_M_create_maze() -> void {
 }
 
 
+auto Scene::_M_generate_transparent_face() -> void {
+    const auto height = 100.0f;
+    const auto width = 50.0f;
+    const auto depth = 7.0f;
+    const auto position = Vector3{ .x = depth / 2 , .y = 100.0f, .z = 0.0f };
+    const auto rotation = QuaternionFromAxisAngle(Vector3UnitZ, -90 * DEG2RAD);
+    _M_add_plane(
+        height,
+        width,
+        position,
+        rotation,
+        Fade(BLACK, 0.50f)); //< BLACK colour, 50% opaque
+}
+
+
 auto Scene::_M_create_catchment_box() -> void {
     // ---- FLOOR ----
     auto floor = std::make_unique<Plane>(world_size.x, world_size.z);
@@ -463,20 +254,6 @@ auto Scene::_M_create_catchment_box() -> void {
     objects.push_back(std::move(bottom));
 }
 
-
-auto Scene::_M_generate_transparent_face() -> void {
-    const auto height = 75.0f;
-    const auto width = 50.0f;
-    const auto depth = 7.0f;
-    const auto position = Vector3{ .x = depth / 2 , .y = 100.0f, .z = 0.0f };
-    const auto rotation = QuaternionFromAxisAngle(Vector3UnitZ, -90 * DEG2RAD);
-    _M_add_plane(
-        height,
-        width,
-        position,
-        rotation,
-        Fade(BLACK, 0.50f)); //< BLACK colour, 50% opaque
-}
 
 auto Scene::_M_generate_objects(
     usize num_objects,

@@ -32,7 +32,7 @@ namespace arcxel {
 class Scene {
 public:
     static constexpr Vector3 DEFAULT_BOX_SIZE = Vector3{ 100.0f, 20.0f, 100.0f };
-    static constexpr u8 BASE_OBJ_COUNT = 6;
+    static constexpr u8 BASE_OBJ_COUNT = 20;
 
     Scene() noexcept;
 
@@ -56,13 +56,11 @@ private:
     _M_add_plane(f32 length, f32 width, Vector3 position, Quaternion rotation, Color tint)
         -> void;
 
-    auto _M_create_funnel() -> void;
-
     auto _M_create_maze() -> void;
 
-    auto _M_create_catchment_box() -> void;
-
     auto _M_generate_transparent_face() -> void;
+
+    auto _M_create_catchment_box() -> void;
 
     auto _M_generate_objects(usize num_objects, Workload workload) -> void;
 
