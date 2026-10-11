@@ -352,10 +352,25 @@ auto Scene::_M_create_maze() -> void {
 
     // ---- CREATE RAMPS ----
     const auto r1_pos = Vector3{ .x = 0.0f , .y = ypos + 10.0f, .z = 5.0f };
-    const auto r1_rot = rot_y_90;
-    //const auto r1_rot = QuaternionMultiply(rot_y_90, QuaternionIdentity());
+    const auto r1_tilt = QuaternionFromAxisAngle(Vector3UnitX, 10.0f * DEG2RAD);
+    const auto r1_rot = QuaternionMultiply(r1_tilt, rot_y_90);
     const auto r1_length = 10.0f;
     _M_add_plane(r1_length, depth, r1_pos, r1_rot, BLUE);
+
+    // --- SINKS ---
+    const auto sinks_ypos = ypos - (height / 2.0f) - 4.0f;
+    const auto sinks_length = 0.48f * width;
+    const auto sinks_zpos = 0.28f * width;
+
+    const auto r9_pos = Vector3{ .x = 0.0f , .y = sinks_ypos, .z = -sinks_zpos };
+    const auto r9_tilt = QuaternionFromAxisAngle(Vector3UnitX, 20.0f * DEG2RAD);
+    const auto r9_rot = QuaternionMultiply(r9_tilt, rot_y_90);
+    _M_add_plane(sinks_length, depth, r9_pos, r9_rot, RED);
+
+    const auto r10_pos = Vector3{ .x = 0.0f , .y = sinks_ypos, .z = sinks_zpos };
+    const auto r10_tilt = QuaternionFromAxisAngle(Vector3UnitX, -20.0f * DEG2RAD);
+    const auto r10_rot = QuaternionMultiply(r10_tilt, rot_y_90);
+    _M_add_plane(sinks_length, depth, r10_pos, r10_rot, RED);
 }
 
 
