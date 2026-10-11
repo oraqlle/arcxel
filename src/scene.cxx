@@ -324,7 +324,7 @@ auto Scene::_M_create_maze() -> void {
     constexpr auto ypos = 100.0f;
     constexpr auto height = 75.0f;
     constexpr auto width = 50.0f;
-    constexpr auto depth = 20.0f;
+    constexpr auto depth = 4.0f;
 
     constexpr auto CONTAINER_COLOUR = GRAY;
 
@@ -349,7 +349,13 @@ auto Scene::_M_create_maze() -> void {
     const auto right_rot = QuaternionMultiply(rot_y_neg90, rot_z_90);
     _M_add_plane(height, depth, right_pos, right_rot, CONTAINER_COLOUR);
 
+
     // ---- CREATE RAMPS ----
+    const auto r1_pos = Vector3{ .x = 0.0f , .y = ypos + 10.0f, .z = 5.0f };
+    const auto r1_rot = rot_y_90;
+    //const auto r1_rot = QuaternionMultiply(rot_y_90, QuaternionIdentity());
+    const auto r1_length = 10.0f;
+    _M_add_plane(r1_length, depth, r1_pos, r1_rot, BLUE);
 }
 
 
@@ -403,7 +409,8 @@ auto Scene::_M_create_catchment_box() -> void {
 auto Scene::_M_generate_transparent_face() -> void {
     const auto height = 75.0f;
     const auto width = 50.0f;
-    const auto position = Vector3{ .x = 10.0f , .y = 100.0f, .z = 0.0f };
+    const auto depth = 4.0f;
+    const auto position = Vector3{ .x = depth / 2 , .y = 100.0f, .z = 0.0f };
     const auto rotation = QuaternionFromAxisAngle(Vector3UnitZ, -90 * DEG2RAD);
     _M_add_plane(
         height,
