@@ -5,7 +5,7 @@ param (
 
 $WALL_TIME = 30
 $NUM_ROUNDS = 6
-$PAUSE_BETWEEN_RUNS = 20
+$PAUSE_BETWEEN_RUNS = 12
 
 $OBJECT_COUNTS    = if ($env:OBJECT_COUNTS)    { $env:OBJECT_COUNTS }    else { "100 500 1000 2500 5000" }
 $WORK_VAR         = if ($env:WORK_VAR)         { $env:WORK_VAR }         else { "0.0 0.75" }
@@ -19,7 +19,7 @@ $smt_label = if ($threads -gt $cores) { 'on' } else { 'off' }
 
 $total = ($OBJECT_COUNTS.Split(" ") | Measure-Object).Count * ($THREADING_METHOD.Split(" ") | Measure-Object).Count * ($WORK_VAR.Split(" ") | Measure-Object).Count * $NUM_ROUNDS
 $num   = 0
-$time_left = $WALL_TIME * $total
+$time_left = ($WALL_TIME + $PAUSE_BETWEEN_RUNS) * $total
 
 foreach ($round in 1..$NUM_ROUNDS) {
 	foreach ($tmodel in $THREADING_METHOD.Split(" ")) {
