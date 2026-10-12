@@ -261,13 +261,14 @@ auto Scene::_M_generate_objects(
     const auto xdim = 1.0f;
     const auto zdim = 22.0f;
 
-    auto rand = std::mt19937(SCENE_SEED);
+    auto rd = std::random_device{};
+    auto rand = std::mt19937(rd());
     auto xdist = std::uniform_real_distribution<f32>(-xdim, xdim);
     auto ydist = std::uniform_real_distribution<f32>(200.0f, 500.0f);
     auto zdist = std::uniform_real_distribution<f32>(-zdim, zdim);
     auto shape_type_dist = std::uniform_int_distribution<u32>{};
 
-    [[maybe_unused]] auto work_rand = std::mt19937(SCENE_SEED + 1);
+    [[maybe_unused]] auto work_rand = std::mt19937(rd());
     [[maybe_unused]] auto is_heavy = std::bernoulli_distribution(0.1);
 
     [[maybe_unused]] const auto light = (double)workload.magnitude * (1.0 - workload.variance);
