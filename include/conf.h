@@ -83,6 +83,8 @@ struct Config {
     std::string log_dir = static_cast<std::string>(DEFAULT_LOGS_DIR);
 
     std::string window_name = "Arcxel Window";
+
+    f32 workload_variance = 0.5f;
 }; // struct Config
 
 } // namespace arcxel

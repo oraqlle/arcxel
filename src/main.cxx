@@ -93,6 +93,10 @@ constexpr i32 HEIGHT = 1080;
         config.window_name = opts["window-name"].as<std::string>();
     }
 
+	if (opts.count("workload-variance")) {
+		config.workload_variance = opts["workload-variance"].as<f32>();
+	}
+
 	return config;
 }
 
@@ -154,7 +158,11 @@ constexpr i32 HEIGHT = 1080;
         arcxel::log(LogLevel::Info, "debug renderer disabled for physics engine");
     }
 
-    auto& engine = arcxel::Engine::singleton({ arcxel::Scene(config.num_sim_objects) });
+    const auto workload = arcxel::Workload{ .variance = config.workload_variance };
+    arcxel::log(LogLevel::Info, "ARCXEL: Workload variance set to {}", workload.variance);
+
+    auto& engine = arcxel::Engine::singleton({ arcxel::Scene(
+		config.num_sim_objects, arcxel::Scene::DEFAULT_BOX_SIZE, workload) });
 
     // ---- GAME LOOP ----
     DisableCursor();
@@ -176,6 +184,7 @@ auto main(int argc, char* argv[]) -> int {
         ("t,trace", "Output directory of trace file", cxxopts::value<std::string>())
         ("l,log", "Output directory of log file", cxxopts::value<std::string>())
         ("window-name", "Name of the window", cxxopts::value<std::string>())
+        ("workload-variance", "Variance in workload distribution", cxxopts::value<f32>())
         ("h,help", "Show help");
 
     auto parsed_cli_opts = cli_options.parse(argc, argv);
