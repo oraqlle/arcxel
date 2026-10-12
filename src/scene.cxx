@@ -94,10 +94,10 @@ auto Scene::_M_add_plane(
 auto Scene::_M_create_maze() -> void {
 
     // ---- CREATE CONTAINING BOX ----
-    constexpr auto ypos = 100.0f;
-    constexpr auto height = 125.0f;
-    constexpr auto width = 50.0f;
-    constexpr auto depth = 7.0f;
+    constexpr auto MAZE_CENTRE_YPOS = 100.0f;
+    constexpr auto MAZE_HEIGHT = 125.0f;
+    constexpr auto MAZE_WIDTH = 50.0f;
+    constexpr auto MAZE_DEPTH = 7.0f;
 
     constexpr auto CONTAINER_COLOUR = GRAY;
 
@@ -106,99 +106,99 @@ auto Scene::_M_create_maze() -> void {
     const auto rot_y_neg90 = QuaternionFromAxisAngle(Vector3UnitY, -90 * DEG2RAD);
 
     // --- BACK WALL ---
-    const auto back_pos = Vector3{ .x = -depth / 2.0f , .y = ypos, .z = 0.0f };
+    const auto back_pos = Vector3{ .x = -MAZE_DEPTH / 2.0f , .y = MAZE_CENTRE_YPOS, .z = 0.0f };
     const auto back_rot = rot_z_90;
-    _M_add_plane(height, width, back_pos, back_rot, CONTAINER_COLOUR);
+    _M_add_plane(MAZE_HEIGHT, MAZE_WIDTH, back_pos, back_rot, CONTAINER_COLOUR);
 
 
     // --- LEFT WALL ----
-    const auto left_pos = Vector3{ .x = 0.0f , .y = ypos, .z = -width / 2.0f };
+    const auto left_pos = Vector3{ .x = 0.0f , .y = MAZE_CENTRE_YPOS, .z = -MAZE_WIDTH / 2.0f };
     const auto left_rot = QuaternionMultiply(rot_y_90, rot_z_90);
-    _M_add_plane(height, depth, left_pos, left_rot, CONTAINER_COLOUR);
+    _M_add_plane(MAZE_HEIGHT, MAZE_DEPTH, left_pos, left_rot, CONTAINER_COLOUR);
 
 
     // --- RIGHT WALL ---
-    const auto right_pos = Vector3{ .x = 0.0f , .y = ypos, .z = width / 2.0f };
+    const auto right_pos = Vector3{ .x = 0.0f , .y = MAZE_CENTRE_YPOS, .z = MAZE_WIDTH / 2.0f };
     const auto right_rot = QuaternionMultiply(rot_y_neg90, rot_z_90);
-    _M_add_plane(height, depth, right_pos, right_rot, CONTAINER_COLOUR);
+    _M_add_plane(MAZE_HEIGHT, MAZE_DEPTH, right_pos, right_rot, CONTAINER_COLOUR);
 
 
     // ---- CREATE RAMPS ----
-    const auto r1_pos = Vector3{ .x = 0.0f , .y = ypos + 40.0f, .z = 19.0f };
+    const auto r1_pos = Vector3{ .x = 0.0f , .y = MAZE_CENTRE_YPOS + 40.0f, .z = 19.0f };
     const auto r1_tilt = QuaternionFromAxisAngle(Vector3UnitX, -18.0f * DEG2RAD);
     const auto r1_rot = QuaternionMultiply(r1_tilt, rot_y_90);
     const auto r1_length = 17.0f;
-    _M_add_plane(r1_length, depth, r1_pos, r1_rot, BLUE);
+    _M_add_plane(r1_length, MAZE_DEPTH, r1_pos, r1_rot, BLUE);
 
-    const auto r2_pos = Vector3{ .x = 0.0f , .y = ypos + 35.0f, .z = -15.0f };
+    const auto r2_pos = Vector3{ .x = 0.0f , .y = MAZE_CENTRE_YPOS + 35.0f, .z = -15.0f };
     const auto r2_tilt = QuaternionFromAxisAngle(Vector3UnitX, 15.0f * DEG2RAD);
     const auto r2_rot = QuaternionMultiply(r2_tilt, rot_y_90);
     const auto r2_length = 20.0f;
-    _M_add_plane(r2_length, depth, r2_pos, r2_rot, GREEN);
+    _M_add_plane(r2_length, MAZE_DEPTH, r2_pos, r2_rot, GREEN);
 
-    const auto r3_pos = Vector3{ .x = 0.0f , .y = ypos - 12.0f, .z = 9.0f };
+    const auto r3_pos = Vector3{ .x = 0.0f , .y = MAZE_CENTRE_YPOS - 12.0f, .z = 9.0f };
     const auto r3_tilt = QuaternionFromAxisAngle(Vector3UnitX, 20.0f * DEG2RAD);
     const auto r3_rot = QuaternionMultiply(r3_tilt, rot_y_90);
     const auto r3_length = 19.0f;
-    _M_add_plane(r3_length, depth, r3_pos, r3_rot, MAGENTA);
+    _M_add_plane(r3_length, MAZE_DEPTH, r3_pos, r3_rot, MAGENTA);
 
-    const auto r4_pos = Vector3{ .x = 0.0f , .y = ypos + 5.0f, .z = 20.0f };
+    const auto r4_pos = Vector3{ .x = 0.0f , .y = MAZE_CENTRE_YPOS + 5.0f, .z = 20.0f };
     const auto r4_tilt = QuaternionFromAxisAngle(Vector3UnitX, -30.0f * DEG2RAD);
     const auto r4_rot = QuaternionMultiply(r4_tilt, rot_y_90);
     const auto r4_length = 10.0f;
-    _M_add_plane(r4_length, depth, r4_pos, r4_rot, ORANGE);
+    _M_add_plane(r4_length, MAZE_DEPTH, r4_pos, r4_rot, ORANGE);
 
-    const auto r5_pos = Vector3{ .x = 0.0f , .y = ypos - 23.0f, .z = -8.0f };
+    const auto r5_pos = Vector3{ .x = 0.0f , .y = MAZE_CENTRE_YPOS - 23.0f, .z = -8.0f };
     const auto r5_tilt = QuaternionFromAxisAngle(Vector3UnitX, -17.0f * DEG2RAD);
     const auto r5_rot = QuaternionMultiply(r5_tilt, rot_y_90);
     const auto r5_length = 22.0f;
-    _M_add_plane(r5_length, depth, r5_pos, r5_rot, PURPLE);
+    _M_add_plane(r5_length, MAZE_DEPTH, r5_pos, r5_rot, PURPLE);
 
-    const auto r6_pos = Vector3{ .x = 0.0f , .y = ypos + 10.0f, .z = -20.0f };
+    const auto r6_pos = Vector3{ .x = 0.0f , .y = MAZE_CENTRE_YPOS + 10.0f, .z = -20.0f };
     const auto r6_tilt = QuaternionFromAxisAngle(Vector3UnitX, 71.0f * DEG2RAD);
     const auto r6_rot = QuaternionMultiply(r6_tilt, rot_y_90);
     const auto r6_length = 21.0f;
-    _M_add_plane(r6_length, depth, r6_pos, r6_rot, PINK);
+    _M_add_plane(r6_length, MAZE_DEPTH, r6_pos, r6_rot, PINK);
 
-    const auto r7_pos = Vector3{ .x = 0.0f , .y = ypos + 20.0f, .z = -5.0f };
+    const auto r7_pos = Vector3{ .x = 0.0f , .y = MAZE_CENTRE_YPOS + 20.0f, .z = -5.0f };
     const auto r7_tilt = QuaternionFromAxisAngle(Vector3UnitX, -25.0f * DEG2RAD);
     const auto r7_rot = QuaternionMultiply(r7_tilt, rot_y_90);
     const auto r7_length = 14.0f;
-    _M_add_plane(r7_length, depth, r7_pos, r7_rot, SKYBLUE);
+    _M_add_plane(r7_length, MAZE_DEPTH, r7_pos, r7_rot, SKYBLUE);
 
-    const auto r8_pos = Vector3{ .x = 0.0f , .y = ypos + 20.0f, .z = 10.0f };
+    const auto r8_pos = Vector3{ .x = 0.0f , .y = MAZE_CENTRE_YPOS + 20.0f, .z = 10.0f };
     const auto r8_tilt = QuaternionFromAxisAngle(Vector3UnitX, 25.0f * DEG2RAD);
     const auto r8_rot = QuaternionMultiply(r8_tilt, rot_y_90);
     const auto r8_length = 14.0f;
-    _M_add_plane(r8_length, depth, r8_pos, r8_rot, YELLOW);
+    _M_add_plane(r8_length, MAZE_DEPTH, r8_pos, r8_rot, YELLOW);
 
 
     // --- SINKS ---
-    const auto sinks_ypos = ypos - (height / 2.0f) + 5.0f;
-    const auto sinks_length = 0.45f * width;
-    const auto sinks_zpos = 0.29f * width;
+    const auto sinks_ypos = MAZE_CENTRE_YPOS - (MAZE_HEIGHT / 2.0f) + 5.0f;
+    const auto sinks_length = 0.45f * MAZE_WIDTH;
+    const auto sinks_zpos = 0.29f * MAZE_WIDTH;
 
     const auto r9_pos = Vector3{ .x = 0.0f , .y = sinks_ypos, .z = -sinks_zpos };
     const auto r9_tilt = QuaternionFromAxisAngle(Vector3UnitX, 20.0f * DEG2RAD);
     const auto r9_rot = QuaternionMultiply(r9_tilt, rot_y_90);
-    _M_add_plane(sinks_length, depth, r9_pos, r9_rot, RED);
+    _M_add_plane(sinks_length, MAZE_DEPTH, r9_pos, r9_rot, RED);
 
     const auto r10_pos = Vector3{ .x = 0.0f , .y = sinks_ypos, .z = sinks_zpos };
     const auto r10_tilt = QuaternionFromAxisAngle(Vector3UnitX, -20.0f * DEG2RAD);
     const auto r10_rot = QuaternionMultiply(r10_tilt, rot_y_90);
-    _M_add_plane(sinks_length, depth, r10_pos, r10_rot, RED);
+    _M_add_plane(sinks_length, MAZE_DEPTH, r10_pos, r10_rot, RED);
 }
 
 
 auto Scene::_M_generate_transparent_face() -> void {
-    const auto height = 125.0f;
-    const auto width = 50.0f;
-    const auto depth = 7.0f;
-    const auto position = Vector3{ .x = depth / 2 , .y = 100.0f, .z = 0.0f };
+    const auto MAZE_HEIGHT = 125.0f;
+    const auto MAZE_WIDTH = 50.0f;
+    const auto MAZE_DEPTH = 7.0f;
+    const auto position = Vector3{ .x = MAZE_DEPTH / 2 , .y = 100.0f, .z = 0.0f };
     const auto rotation = QuaternionFromAxisAngle(Vector3UnitZ, -90 * DEG2RAD);
     _M_add_plane(
-        height,
-        width,
+        MAZE_HEIGHT,
+        MAZE_WIDTH,
         position,
         rotation,
         Fade(BLACK, 0.50f)); //< BLACK colour, 50% opaque
