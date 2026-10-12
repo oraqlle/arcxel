@@ -93,19 +93,19 @@ auto Scene::_M_create_maze() -> void {
     const auto rot_y_neg90 = QuaternionFromAxisAngle(Vector3UnitY, -90 * DEG2RAD);
 
     // --- BACK WALL ---
-    const auto back_pos = Vector3{ .x = -MAZE_DEPTH / 2.0f , .y = MAZE_CENTRE_YPOS, .z = 0.0f };
+    const auto back_pos = Vector3{ .x = -MAZE_DEPTH * 0.5f , .y = MAZE_CENTRE_YPOS, .z = 0.0f };
     const auto back_rot = rot_z_90;
     _M_add_plane(MAZE_HEIGHT, MAZE_WIDTH, back_pos, back_rot, CONTAINER_COLOUR);
 
 
     // --- LEFT WALL ----
-    const auto left_pos = Vector3{ .x = 0.0f , .y = MAZE_CENTRE_YPOS, .z = -MAZE_WIDTH / 2.0f };
+    const auto left_pos = Vector3{ .x = 0.0f , .y = MAZE_CENTRE_YPOS, .z = -MAZE_WIDTH * 0.5f };
     const auto left_rot = QuaternionMultiply(rot_y_90, rot_z_90);
     _M_add_plane(MAZE_HEIGHT, MAZE_DEPTH, left_pos, left_rot, CONTAINER_COLOUR);
 
 
     // --- RIGHT WALL ---
-    const auto right_pos = Vector3{ .x = 0.0f , .y = MAZE_CENTRE_YPOS, .z = MAZE_WIDTH / 2.0f };
+    const auto right_pos = Vector3{ .x = 0.0f , .y = MAZE_CENTRE_YPOS, .z = MAZE_WIDTH * 0.5f };
     const auto right_rot = QuaternionMultiply(rot_y_neg90, rot_z_90);
     _M_add_plane(MAZE_HEIGHT, MAZE_DEPTH, right_pos, right_rot, CONTAINER_COLOUR);
 
@@ -161,7 +161,7 @@ auto Scene::_M_create_maze() -> void {
 
 
     // --- SINKS ---
-    const auto sinks_ypos = MAZE_CENTRE_YPOS - (MAZE_HEIGHT / 2.0f) + 5.0f;
+    const auto sinks_ypos = MAZE_CENTRE_YPOS - (MAZE_HEIGHT * 0.5f) + 5.0f;
     const auto sinks_length = 0.45f * MAZE_WIDTH;
     const auto sinks_zpos = 0.29f * MAZE_WIDTH;
 
@@ -178,7 +178,7 @@ auto Scene::_M_create_maze() -> void {
 
 
 auto Scene::_M_generate_transparent_face() -> void {
-    const auto position = Vector3{ .x = MAZE_DEPTH / 2 , .y = 100.0f, .z = 0.0f };
+    const auto position = Vector3{ .x = MAZE_DEPTH * 0.5f, .y = MAZE_CENTRE_YPOS, .z = 0.0f };
     const auto rotation = QuaternionFromAxisAngle(Vector3UnitZ, -90 * DEG2RAD);
     _M_add_plane(
         MAZE_HEIGHT,
