@@ -94,8 +94,6 @@ auto game_loop([[maybe_unused]] Config config, SampleRecord& global_sample_recor
                     while (auto obj_id = simulation_queue.pop()) {
                         if (!obj_id.has_value()) { break; }
 
-                        //auto* p = dynamic_cast<PhysicsObject*>(scene.objects[*obj_id].get());
-						//if (p) { p->tint = RED; }
                         scene.objects[*obj_id]->update(delta);
                     }
                 });
