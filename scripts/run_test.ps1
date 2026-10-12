@@ -17,6 +17,10 @@ $cores    = ($cpus | Measure-Object -Property NumberOfCores -Sum).Sum
 $threads   = ($cpus | Measure-Object -Property NumberOfLogicalProcessors -Sum).Sum
 $smt_label = if ($threads -gt $cores) { 'on' } else { 'off' }
 
+$total = ($OBJECT_COUNTS.Split(" ") | Measure-Object).Count * ($THREADING_METHOD.Split(" ") | Measure-Object).Count * ($WORK_VAR.Split(" ") | Measure-Object).Count * $NUM_ROUNDS
+$num   = 0
+$time_left = $WALL_TIME * $total
+
 foreach ($round in 1..$NUM_ROUNDS) {
 	foreach ($tmodel in $THREADING_METHOD.Split(" ")) {
 		foreach ($num_objects in $OBJECT_COUNTS.Split(" ")) {
@@ -32,7 +36,8 @@ foreach ($round in 1..$NUM_ROUNDS) {
 					exit 1
 				}
 
-				$WINDOW_NAME = "Arcxel Window - Model: $tmodel | NumObjects: $num_objects | Round: $round | SMT: $smt_label"
+				$num++
+				$WINDOW_NAME = "Arcxel Window - Sim ($num / $total) | Time Left: $time_left s | Model: $tmodel | NumObjects: $num_objects | Workload Var: $work_var | Round: $round | SMT: $smt_label"
 
 				Write-Host ""
 				Write-Host ""
@@ -51,7 +56,8 @@ foreach ($round in 1..$NUM_ROUNDS) {
 				Write-Host "==============================================================================================================================="
 				Write-Host ""
 
-				$OUTDIR      = "results$TAG\$tmodel\smt-$smt_label\$num_objects\round0$round"
+				$var_str     = if ($work_var -eq "0.0") { "uniform" } else { "varied" }
+				$OUTDIR      = "results$TAG\$tmodel\smt-$smt_label\$num_objects\round0$round\var-$var_str"
 				$Args        = "-n $num_objects -t $OUTDIR -l $OUTDIR --workload-variance $work_var --window-name `"$WINDOW_NAME`""
 				Write-Host "$Args"
 
@@ -66,6 +72,7 @@ foreach ($round in 1..$NUM_ROUNDS) {
 					}
 				}
 
+				$time_left -= $WALL_TIME + $PAUSE_BETWEEN_RUNS
 				Start-Sleep -Seconds $PAUSE_BETWEEN_RUNS
 			}
 		}
