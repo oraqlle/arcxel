@@ -127,8 +127,8 @@ auto Scene::_M_create_maze() -> void {
 
 
     // ---- CREATE RAMPS ----
-    const auto r1_pos = Vector3{ .x = 0.0f , .y = ypos + 10.0f, .z = 5.0f };
-    const auto r1_tilt = QuaternionFromAxisAngle(Vector3UnitX, 10.0f * DEG2RAD);
+    const auto r1_pos = Vector3{ .x = 0.0f , .y = ypos + 40.0f, .z = 19.0f };
+    const auto r1_tilt = QuaternionFromAxisAngle(Vector3UnitX, -18.0f * DEG2RAD);
     const auto r1_rot = QuaternionMultiply(r1_tilt, rot_y_90);
     const auto r1_length = 17.0f;
     _M_add_plane(r1_length, depth, r1_pos, r1_rot, BLUE);
@@ -157,8 +157,8 @@ auto Scene::_M_create_maze() -> void {
     const auto r5_length = 22.0f;
     _M_add_plane(r5_length, depth, r5_pos, r5_rot, PURPLE);
 
-    const auto r6_pos = Vector3{ .x = 0.0f , .y = ypos + 10.0f, .z = -16.0f };
-    const auto r6_tilt = QuaternionFromAxisAngle(Vector3UnitX, 41.0f * DEG2RAD);
+    const auto r6_pos = Vector3{ .x = 0.0f , .y = ypos + 10.0f, .z = -20.0f };
+    const auto r6_tilt = QuaternionFromAxisAngle(Vector3UnitX, 71.0f * DEG2RAD);
     const auto r6_rot = QuaternionMultiply(r6_tilt, rot_y_90);
     const auto r6_length = 21.0f;
     _M_add_plane(r6_length, depth, r6_pos, r6_rot, PINK);
@@ -302,7 +302,7 @@ auto Scene::_M_generate_objects(
                 break;
         }
 
-		objects.back()->work_iterations = static_cast<u32>(is_heavy(work_rand) ? heavy : light);
+        objects.back()->work_iterations = static_cast<u32>(is_heavy(work_rand) ? heavy : light);
     }
 }
 
