@@ -61,7 +61,7 @@ constexpr i32 HEIGHT = 1080;
         } else if constexpr (arcxel::threading_model == arcxel::ThreadingType::Broad) {
 			if (config.num_hw_threads < arcxel::min_threads_required) {
                 log(LogLevel::Warning,
-                    "Not enough threads to run game loop in [BROAD] mode");
+                    "ARCXEL: Not enough threads to run game loop in [BROAD] mode");
                 config.num_available_threads = 1;
 			} else {
 				config.num_required_threads = std::min(req_threads, config.num_available_threads);
@@ -69,7 +69,7 @@ constexpr i32 HEIGHT = 1080;
         } else if constexpr (arcxel::threading_model == arcxel::ThreadingType::Fine) {
 			if (config.num_hw_threads < arcxel::min_threads_required) {
                 log(LogLevel::Warning,
-                    "Not enough threads to run game loop in [FINE] mode");
+                    "ARCXEL: Not enough threads to run game loop in [FINE] mode");
                 config.num_available_threads = 1;
 			} else {
 				config.num_required_threads = std::min(req_threads, config.num_available_threads);
@@ -110,11 +110,11 @@ constexpr i32 HEIGHT = 1080;
 
     if (!IsWindowReady()) {
         CloseWindow();
-        return std::unexpected("arcxel: window failed to initialise");
+        return std::unexpected("ARCXEL: Window failed to initialise");
     }
 
     SetTargetFPS(winfo.target_fps); // 0 leaves the frame rate uncapped
-    arcxel::log(LogLevel::Info, "window opened {}x{}", winfo.width, winfo.height);
+    arcxel::log(LogLevel::Info, "ARCXEL: Window opened {}x{}", winfo.width, winfo.height);
 
     return {};
 }
@@ -123,7 +123,7 @@ constexpr i32 HEIGHT = 1080;
 [[nodiscard]] static auto run(arcxel::Config config, arcxel::SampleRecord& global_sample_record) -> arcxel::Fallible {
 
     // ---- WINDOW CREATION ----
-    log(LogLevel::Info, "Window Name: \"{}\"", config.window_name);
+    log(LogLevel::Info, "ARCXEL: Window Name: \"{}\"", config.window_name);
     const auto winfo = arcxel::WindowInfo{ .width = WIDTH,
                                            .height = HEIGHT,
                                            .target_fps = 0,
@@ -139,7 +139,7 @@ constexpr i32 HEIGHT = 1080;
     phys_info.gravity = rp3d::Vector3(0, -9.81f, 0);
 
     auto& phys_sys = arcxel::Physics::singleton(std::make_optional(std::move(phys_info)));
-    arcxel::log(LogLevel::Info, "physics world created");
+    arcxel::log(LogLevel::Info, "ARCXEL: Physics world created");
 
     if constexpr (arcxel::physics_debug_renderer_enabled) {
         phys_sys.world->setIsDebugRenderingEnabled(true);
@@ -153,9 +153,9 @@ constexpr i32 HEIGHT = 1080;
             rp3d::DebugRenderer::DebugItem::COLLISION_SHAPE_NORMAL,
             true);
 
-        arcxel::log(LogLevel::Info, "debug renderer enabled for physics engine");
+        arcxel::log(LogLevel::Info, "ARCXEL: Debug renderer enabled for physics engine");
     } else {
-        arcxel::log(LogLevel::Info, "debug renderer disabled for physics engine");
+        arcxel::log(LogLevel::Info, "ARCXEL: Debug renderer disabled for physics engine");
     }
 
     const auto workload = arcxel::Workload{ .variance = config.workload_variance };
