@@ -19,16 +19,10 @@ Scene::Scene() noexcept
 : Scene(1) { }
 
 
-Scene::Scene(usize num_objects, const Vector3 size, Workload workload) noexcept
-    : world_size(size) {
-
-    assert(size.x > 0.0f);
-    assert(size.y > 0.0f);
-    assert(size.z > 0.0f);
+Scene::Scene(usize num_objects, Workload workload) noexcept {
 
     objects.reserve(BASE_OBJ_COUNT + num_objects);
 
-    //_M_create_funnel();
     _M_create_maze();
     _M_create_catchment_box();
     _M_generate_objects(num_objects, workload);
@@ -94,13 +88,6 @@ auto Scene::_M_add_plane(
 auto Scene::_M_create_maze() -> void {
 
     // ---- CREATE CONTAINING BOX ----
-    constexpr auto MAZE_CENTRE_YPOS = 100.0f;
-    constexpr auto MAZE_HEIGHT = 125.0f;
-    constexpr auto MAZE_WIDTH = 50.0f;
-    constexpr auto MAZE_DEPTH = 7.0f;
-
-    constexpr auto CONTAINER_COLOUR = GRAY;
-
     const auto rot_z_90 = QuaternionFromAxisAngle(Vector3UnitZ, 90 * DEG2RAD);
     const auto rot_y_90 = QuaternionFromAxisAngle(Vector3UnitY, 90 * DEG2RAD);
     const auto rot_y_neg90 = QuaternionFromAxisAngle(Vector3UnitY, -90 * DEG2RAD);
@@ -191,9 +178,6 @@ auto Scene::_M_create_maze() -> void {
 
 
 auto Scene::_M_generate_transparent_face() -> void {
-    const auto MAZE_HEIGHT = 125.0f;
-    const auto MAZE_WIDTH = 50.0f;
-    const auto MAZE_DEPTH = 7.0f;
     const auto position = Vector3{ .x = MAZE_DEPTH / 2 , .y = 100.0f, .z = 0.0f };
     const auto rotation = QuaternionFromAxisAngle(Vector3UnitZ, -90 * DEG2RAD);
     _M_add_plane(
@@ -207,47 +191,47 @@ auto Scene::_M_generate_transparent_face() -> void {
 
 auto Scene::_M_create_catchment_box() -> void {
     // ---- FLOOR ----
-    auto floor = std::make_unique<Plane>(world_size.x, world_size.z);
+    auto floor = std::make_unique<Plane>(BOX_SIZE.x, BOX_SIZE.z);
     objects.push_back(std::move(floor));
 
     // ---- LEFT WALL ----
     const auto left_transform = Transform{
-        .translation = Vector3{ 0.0f, world_size.y * 0.5f, world_size.z * 0.5f },
+        .translation = Vector3{ 0.0f, BOX_SIZE.y * 0.5f, BOX_SIZE.z * 0.5f },
         .rotation = QuaternionFromAxisAngle(Vector3UnitX, 90 * DEG2RAD),
         .scale = Vector3Ones
     };
 
-    auto left = std::make_unique<Plane>(world_size.x, world_size.y, left_transform);
+    auto left = std::make_unique<Plane>(BOX_SIZE.x, BOX_SIZE.y, left_transform);
     objects.push_back(std::move(left));
 
     // ---- RIGHT WALL ----
     const auto right_transform = Transform{
-        .translation = Vector3{ 0.0f, world_size.y * 0.5f, world_size.z * -0.5f },
+        .translation = Vector3{ 0.0f, BOX_SIZE.y * 0.5f, BOX_SIZE.z * -0.5f },
         .rotation = QuaternionFromAxisAngle(Vector3UnitX, 90 * DEG2RAD),
         .scale = Vector3Ones
     };
 
-    auto right = std::make_unique<Plane>(world_size.x, world_size.y, right_transform);
+    auto right = std::make_unique<Plane>(BOX_SIZE.x, BOX_SIZE.y, right_transform);
     objects.push_back(std::move(right));
 
     // ---- TOP WALL ----
     const auto top_transform = Transform{
-        .translation = Vector3{ world_size.x * -0.5f, world_size.y * 0.5f, 0.0f },
+        .translation = Vector3{ BOX_SIZE.x * -0.5f, BOX_SIZE.y * 0.5f, 0.0f },
         .rotation = QuaternionFromAxisAngle(Vector3UnitZ, 90 * DEG2RAD),
         .scale = Vector3Ones
     };
 
-    auto top = std::make_unique<Plane>(world_size.y, world_size.z, top_transform);
+    auto top = std::make_unique<Plane>(BOX_SIZE.y, BOX_SIZE.z, top_transform);
     objects.push_back(std::move(top));
 
     // ---- BOTTOM WALL ----
     const auto bottom_transform = Transform{
-        .translation = Vector3{ world_size.x * 0.5f, world_size.y * 0.5f, 0.0f },
+        .translation = Vector3{ BOX_SIZE.x * 0.5f, BOX_SIZE.y * 0.5f, 0.0f },
         .rotation = QuaternionFromAxisAngle(Vector3UnitZ, 90 * DEG2RAD),
         .scale = Vector3Ones
     };
 
-    auto bottom = std::make_unique<Plane>(world_size.y, world_size.z, bottom_transform);
+    auto bottom = std::make_unique<Plane>(BOX_SIZE.y, BOX_SIZE.z, bottom_transform);
     objects.push_back(std::move(bottom));
 }
 
@@ -284,7 +268,7 @@ auto Scene::_M_generate_objects(
 
         auto colour = Color{
             .r = static_cast<unsigned char>(std::abs(translation.x / xdim) * 255.0f),
-            .g = static_cast<unsigned char>(std::abs(translation.y / world_size.y) * 255.0f),
+            .g = static_cast<unsigned char>(std::abs(translation.y / BOX_SIZE.y) * 255.0f),
             .b = static_cast<unsigned char>(std::abs(translation.z / zdim) * 255.0f),
             .a = 255
         };

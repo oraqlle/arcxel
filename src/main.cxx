@@ -160,9 +160,7 @@ constexpr i32 HEIGHT = 1080;
 
     const auto workload = arcxel::Workload{ .variance = config.workload_variance };
     arcxel::log(LogLevel::Info, "ARCXEL: Workload variance set to {}", workload.variance);
-
-    auto& engine = arcxel::Engine::singleton({ arcxel::Scene(
-		config.num_sim_objects, arcxel::Scene::DEFAULT_BOX_SIZE, workload) });
+    auto& engine = arcxel::Engine::singleton({ arcxel::Scene(config.num_sim_objects, workload) });
 
     // ---- GAME LOOP ----
     DisableCursor();

@@ -31,14 +31,25 @@ namespace arcxel {
 
 class Scene {
 public:
-    static constexpr Vector3 DEFAULT_BOX_SIZE = Vector3{ 100.0f, 20.0f, 100.0f };
     static constexpr u8 BASE_OBJ_COUNT = 20;
 
+    static constexpr f32 MAZE_CENTRE_YPOS = 100.0f;
+    static constexpr f32 MAZE_HEIGHT = 125.0f;
+    static constexpr f32 MAZE_WIDTH = 50.0f;
+    static constexpr f32 MAZE_DEPTH = 7.0f;
+
+    static constexpr Color CONTAINER_COLOUR = GRAY;
+
+    static constexpr Vector3 BOX_SIZE = Vector3{ 100.0f, 20.0f, 100.0f };
+    static_assert(BOX_SIZE.x > 0.0f);
+    static_assert(BOX_SIZE.y > 0.0f);
+    static_assert(BOX_SIZE.z > 0.0f);
+
+public:
     Scene() noexcept;
 
     explicit Scene(
         usize num_objects,
-        const Vector3 size = Scene::DEFAULT_BOX_SIZE,
         Workload workload = Workload{}) noexcept;
 
     auto update(f64 delta) -> void;
@@ -66,9 +77,6 @@ private:
 
 public:
     std::vector<std::unique_ptr<GameObject>> objects;
-
-private:
-    Vector3 world_size;
 
 }; // class Scene
 
