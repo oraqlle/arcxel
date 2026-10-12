@@ -15,9 +15,6 @@
 
 namespace arcxel {
 
-static constexpr u32 SCENE_SEED = 20260913;
-
-
 Scene::Scene() noexcept
 : Scene(1) { }
 
@@ -35,7 +32,7 @@ Scene::Scene(usize num_objects, const Vector3 size, Workload workload) noexcept
     _M_create_maze();
     _M_create_catchment_box();
     _M_generate_objects(num_objects, workload);
-    _M_generate_transparent_face();
+    _M_generate_transparent_face(); //< Created last as transparent objects must be rendered back-to-front
     objects.push_back(std::make_unique<Player>());
 }
 
@@ -98,7 +95,7 @@ auto Scene::_M_create_maze() -> void {
 
     // ---- CREATE CONTAINING BOX ----
     constexpr auto ypos = 100.0f;
-    constexpr auto height = 100.0f;
+    constexpr auto height = 125.0f;
     constexpr auto width = 50.0f;
     constexpr auto depth = 7.0f;
 
@@ -177,9 +174,9 @@ auto Scene::_M_create_maze() -> void {
 
 
     // --- SINKS ---
-    const auto sinks_ypos = ypos - (height / 2.0f) - 4.0f;
-    const auto sinks_length = 0.48f * width;
-    const auto sinks_zpos = 0.28f * width;
+    const auto sinks_ypos = ypos - (height / 2.0f) + 5.0f;
+    const auto sinks_length = 0.45f * width;
+    const auto sinks_zpos = 0.29f * width;
 
     const auto r9_pos = Vector3{ .x = 0.0f , .y = sinks_ypos, .z = -sinks_zpos };
     const auto r9_tilt = QuaternionFromAxisAngle(Vector3UnitX, 20.0f * DEG2RAD);
@@ -194,7 +191,7 @@ auto Scene::_M_create_maze() -> void {
 
 
 auto Scene::_M_generate_transparent_face() -> void {
-    const auto height = 100.0f;
+    const auto height = 125.0f;
     const auto width = 50.0f;
     const auto depth = 7.0f;
     const auto position = Vector3{ .x = depth / 2 , .y = 100.0f, .z = 0.0f };
