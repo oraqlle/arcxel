@@ -7,17 +7,17 @@
 
 namespace arcxel {
 
-    [[nodiscard]] static auto axis_vec3_to_mat4(
-        const Vector3& forward,
-        const Vector3& right,
-        const Vector3& up) -> Matrix {
-		return Matrix{
-            right.x,     right.y,     right.z,     0.0f,
-            up.x,        up.y,        up.z,        0.0f,
-            -forward.x,  -forward.y,  -forward.z,  0.0f,
-            0.0f,        0.0f,        0.0f,        1.0f
-        };
-	}
+[[nodiscard]] static auto axis_vec3_to_mat4(
+	const Vector3& forward,
+	const Vector3& right,
+	const Vector3& up) -> Matrix {
+	return Matrix{
+		right.x,     right.y,     right.z,     0.0f,
+		up.x,        up.y,        up.z,        0.0f,
+		-forward.x,  -forward.y,  -forward.z,  0.0f,
+		0.0f,        0.0f,        0.0f,        1.0f
+	};
+}
 
 
 Player::Player() noexcept
@@ -26,9 +26,9 @@ Player::Player() noexcept
     , sprint_speed_scale(3.75f)
     , look_sensitivity(0.0015f) {
     camera.position = Vector3{ 150.0f, 180.0f, 0.0f };
-    camera.target = Vector3{ 0.0f, 125.0f, -1.0f };
+    camera.target = Vector3{ 0.0f, 115.0f, -1.0f };
     camera.up = Vector3UnitY;
-    camera.fovy = 45.0;
+    camera.fovy = 50.0;
     camera.projection = CameraProjection::CAMERA_PERSPECTIVE;
 }
 
