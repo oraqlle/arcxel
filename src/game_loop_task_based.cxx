@@ -74,14 +74,10 @@ auto game_loop([[maybe_unused]] Config config, SampleRecord& global_sample_recor
 	auto& pool = ThreadPool::singleton();
 	auto& scene = Engine::singleton().get_scene();
 
-    auto simulation_queue = Queue<usize>{};
-    auto render_queue = Queue<usize>{};
-
     while (Engine::singleton().is_running()) {
 
         const auto frame_span = arcxel::Timespan(Label::Frame, global_sample_record);
         const f64 delta = GetFrameTime();
-
 
 		{
 			const auto _ = Timespan(Label::PhysicsUpdate, global_sample_record);
@@ -91,6 +87,7 @@ auto game_loop([[maybe_unused]] Config config, SampleRecord& global_sample_recor
 
         {
             const auto _ = Timespan(Label::Update, global_sample_record);
+			auto simulation_queue = Queue<usize>{};
 
             for ([[maybe_unused]] auto i : std::views::iota(usize{ 0 }, pool.size())) {
                 pool.submit([&] {
@@ -119,75 +116,6 @@ auto game_loop([[maybe_unused]] Config config, SampleRecord& global_sample_recor
         }
     }
 
-		//log(LogLevel::Info, "[TASK_BASED] update");
-        //{
-        //    const auto _ = Timespan(Label::Update, global_sample_record);
-
-        //    for (auto idx : std::views::iota(usize{ 0 }, scene.objects.size())) {
-        //        simulation_queue.push(idx);
-        //    }
-
-		//	log(LogLevel::Info, "[TASK_BASED] update filled");
-		//	while (auto idx = simulation_queue.pop()) { // never breaks loop?
-		//		if (!idx.has_value()) {
-		//			break;
-		//		}
-
-		//		pool.submit([&idx, &scene, delta] {
-		//			scene.objects[*idx]->update(delta);
-		//			log(LogLevel::Info, "[TASK_BASED] idx: {}", *idx);
-		//		});
-		//	}
-
-		//	log(LogLevel::Info, "[TASK_BASED] update wait");
-        //    pool.wait();
-        //}
-
-        //{
-		//	const auto _ = Timespan(Label::Render, global_sample_record);
-		//	auto& camera = scene.primary_camera();
-
-		//	{
-		//		const auto span = Timespan(Sample::Label::Construct, global_sample_record);
-		//		BeginDrawing();
-		//		ClearBackground(RAYWHITE);
-		//	}
-
-		//	{
-		//		const auto span = Timespan(Sample::Label::Draw, global_sample_record);
-		//		BeginMode3D(camera);
-
-		//		DrawGrid(200, 1.0f);
-
-		//		auto x_axis = Vector3{ 1000.0f, 0.0f, 0.0f };
-		//		auto y_axis = Vector3{ 0.0f, 1000.0f, 0.0f };
-		//		auto z_axis = Vector3{ 0.0f, 0.0f, 1000.0f };
-
-		//		DrawLine3D(x_axis, Vector3Zeros - x_axis, RED);
-		//		DrawLine3D(y_axis, Vector3Zeros - y_axis, GREEN);
-		//		DrawLine3D(z_axis, Vector3Zeros - z_axis, BLUE);
-
-		//		while (auto opt = render_queue.pop()) {
-		//			if (!opt) {
-		//				break;
-		//			}
-
-		//			auto idx = *opt;
-		//			pool.submit([&scene, idx, delta] {
-		//				scene.objects[idx]->render(delta);
-		//			});
-		//		}
-
-		//		pool.wait();
-
-		//		EndMode3D();
-		//	}
-
-		//	{
-		//		const auto span = Timespan(Sample::Label::Present, global_sample_record);
-		//		EndDrawing();
-		//	}
-		//}
 }
 
 } // namespace arcxel
