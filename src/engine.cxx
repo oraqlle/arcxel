@@ -5,17 +5,12 @@
 
 namespace arcxel {
 
-Engine::Engine(std::optional<Scene> opt_scene)
-    : running(true) {
-    if (opt_scene) {
-        scene = std::move(*opt_scene);
-    } else {
-        scene = Scene();
-    }
-}
+Engine::Engine(std::optional<Config> init)
+    : running(true)
+    , scene(std::move(init.value_or(Config{}))) { }
 
 
-[[nodiscard]] auto Engine::singleton(std::optional<Scene> init) -> Engine& {
+[[nodiscard]] auto Engine::singleton(std::optional<Config> init) -> Engine& {
     static auto engine = Engine(std::move(init));
     return engine;
 }

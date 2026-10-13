@@ -17,10 +17,6 @@
 
 namespace arcxel {
 
-Scene::Scene() noexcept
-    : Scene(Config{ .num_sim_objects = 1 }) {}
-
-
 Scene::Scene(Config config) noexcept {
 
     objects.reserve(BASE_OBJ_COUNT + config.num_sim_objects);
@@ -260,7 +256,6 @@ auto Scene::_M_generate_objects(Config config) -> void {
         return work_dist(work_rand);
     });
     std::ranges::sort(heavy_work_indices, std::greater<>{});
-    std::println("{}", heavy_work_indices);
 
     const auto iters = static_cast<f64>(config.workload_mean_iterations);
     const auto inv_factor = 1.0 - config.workload_factor;

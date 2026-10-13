@@ -49,8 +49,6 @@ public:
     static_assert(BOX_SIZE.z > 0.0f);
 
 public:
-    Scene() noexcept;
-
     explicit Scene(Config config) noexcept;
 
     auto update(f64 delta) -> void;

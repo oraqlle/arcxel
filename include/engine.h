@@ -31,7 +31,7 @@ namespace arcxel {
 
 class Engine {
 public:
-    [[nodiscard]] static auto singleton(std::optional<Scene> init = std::nullopt)
+    [[nodiscard]] static auto singleton(std::optional<Config> init = std::nullopt)
         -> Engine&;
 
     [[nodiscard]] auto is_running() -> bool;
@@ -45,7 +45,7 @@ public:
     auto render(f64 delta, SampleRecord& sample_record) -> void;
 
 private:
-    explicit Engine(std::optional<Scene> opt_scene);
+    explicit Engine(std::optional<Config> init);
 
     ~Engine() noexcept = default;
 

@@ -164,7 +164,7 @@ constexpr i32 HEIGHT = 1080;
     }
 
     arcxel::log(LogLevel::Info, "ARCXEL: Heavy workload factor set to {}", config.workload_factor);
-    auto& engine = arcxel::Engine::singleton({ arcxel::Scene(config) });
+    auto& engine = arcxel::Engine::singleton({ config });
 
     // ---- GAME LOOP ----
     DisableCursor();
