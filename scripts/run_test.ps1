@@ -21,11 +21,11 @@ $total = ($OBJECT_COUNTS.Split(" ") | Measure-Object).Count * ($THREADING_METHOD
 $num   = 0
 $time_left = ($WALL_TIME + $PAUSE_BETWEEN_RUNS) * $total
 
-$SEEDS_PATH = "$results$TAG\seeds.csv"
+$SEEDS_PATH = "results$TAG\seeds.csv"
 $seeds_list = @()
 $new_seeds = $true
 
-New-Item -Path "$results$TAG" -ItemType Directory
+New-Item -Path "results$TAG" -ItemType Directory
 
 if (Test-Path -Path "$SEEDS_PATH") {
     $seeds_list = Get-Content -Path "$SEEDS_PATH"
@@ -61,7 +61,7 @@ foreach ($round in 1..$NUM_ROUNDS) {
 				}
 
 				$num++
-				$WINDOW_NAME = "Arcxel Window - Sim ($num / $total) | Time Left: $time_left s | Model: $tmodel | NumObjects: $num_objects | Workload Var: $var | Round: $round | SMT: $smt_label"
+				$WINDOW_NAME = "Arcxel Window - Sim ($num / $total) | Time Left: $time_left s | Model: $tmodel | NumObjects: $num_objects | Workload Var: $var | Seed: $seed | Round: $round | SMT: $smt_label"
 
 				Write-Host ""
 				Write-Host ""
@@ -75,6 +75,7 @@ foreach ($round in 1..$NUM_ROUNDS) {
 				Write-Host "Round:            $round"
 				Write-Host "Workload Var:     $var"
 				Write-Host "Program:          $arcxel_prog"
+				Write-Host "Seed:             $seed"
 				Write-Host "Window Name:      $WINDOW_NAME"
 				Write-Host ""
 				Write-Host "==============================================================================================================================="
