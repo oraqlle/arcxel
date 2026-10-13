@@ -174,7 +174,7 @@ auto SampleRecord::record(const Sample& sample) -> bool {
             fname));
     }
 
-    std::println(file, "label,depth,thread,start (ns),end (ns),duration (ns)");
+    std::println(file, "label,depth,thread,start (us),end (us),duration (us)");
 
     std::ranges::sort(samples_store, {}, [](const auto& s) { return s.start; });
 
