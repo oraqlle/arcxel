@@ -50,7 +50,7 @@ PhysicsObject::~PhysicsObject() noexcept {
 auto PhysicsObject::update(f64) -> void {
     _M_sync_model_to_physics();
 
-    work_sink = Workload::synthetic_work(work_iterations, work_sink);
+    work_sink = synthetic_work(work_iterations, work_sink);
 
 	if constexpr (highlight) {
 		tint = LIME;

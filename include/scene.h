@@ -19,12 +19,15 @@
 
 #pragma once
 
+#include "conf.h"
 #include "game_object.h"
 #include "types.h"
 #include "workload.h"
 
-#include <memory>
 #include <raylib.h>
+
+#include <memory>
+#include <random>
 #include <vector>
 
 namespace arcxel {
@@ -48,9 +51,7 @@ public:
 public:
     Scene() noexcept;
 
-    explicit Scene(
-        usize num_objects,
-        Workload workload = Workload{}) noexcept;
+    explicit Scene(Config config) noexcept;
 
     auto update(f64 delta) -> void;
 
@@ -73,7 +74,7 @@ private:
 
     auto _M_create_catchment_box() -> void;
 
-    auto _M_generate_objects(usize num_objects, Workload workload) -> void;
+    auto _M_generate_objects(Config config) -> void;
 
 public:
     std::vector<std::unique_ptr<GameObject>> objects;

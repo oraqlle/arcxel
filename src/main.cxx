@@ -10,7 +10,6 @@
 #include "types.h"
 #include "utils.h"
 #include "window_info.h"
-#include "workload.h"
 
 #include <raylib.h>
 #include <cxxopts.hpp>
@@ -93,8 +92,14 @@ constexpr i32 HEIGHT = 1080;
         config.window_name = opts["window-name"].as<std::string>();
     }
 
-	if (opts.count("workload-variance")) {
-		config.workload_variance = opts["workload-variance"].as<f32>();
+	if (opts.count("workload-factor")) {
+		config.workload_factor = opts["workload-factor"].as<f32>();
+		log(LogLevel::Info, "ARCXEL: Using workload factor {}", config.workload_factor);
+	}
+
+	if (opts.count("seed")) {
+		config.seed = opts["seed"].as<u32>();
+		log(LogLevel::Info, "ARCXEL: Using seed {}", config.seed);
 	}
 
 	return config;
@@ -158,9 +163,8 @@ constexpr i32 HEIGHT = 1080;
         arcxel::log(LogLevel::Info, "ARCXEL: Debug renderer disabled for physics engine");
     }
 
-    const auto workload = arcxel::Workload{ .variance = config.workload_variance };
-    arcxel::log(LogLevel::Info, "ARCXEL: Workload variance set to {}", workload.variance);
-    auto& engine = arcxel::Engine::singleton({ arcxel::Scene(config.num_sim_objects, workload) });
+    arcxel::log(LogLevel::Info, "ARCXEL: Heavy workload factor set to {}", config.workload_factor);
+    auto& engine = arcxel::Engine::singleton({ arcxel::Scene(config) });
 
     // ---- GAME LOOP ----
     DisableCursor();
@@ -181,8 +185,9 @@ auto main(int argc, char* argv[]) -> int {
         ("j,jobs", "Number of parallel jobs (threads) to run engine with", cxxopts::value<u32>())
         ("t,trace", "Output directory of trace file", cxxopts::value<std::string>())
         ("l,log", "Output directory of log file", cxxopts::value<std::string>())
+        ("s,seed", "Seed used for random location generation for objects", cxxopts::value<u32>())
         ("window-name", "Name of the window", cxxopts::value<std::string>())
-        ("workload-variance", "Variance in workload distribution", cxxopts::value<f32>())
+        ("workload-factor", "Factor for heavy workload", cxxopts::value<f32>())
         ("h,help", "Show help");
 
     auto parsed_cli_opts = cli_options.parse(argc, argv);

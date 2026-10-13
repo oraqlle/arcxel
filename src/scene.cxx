@@ -1,4 +1,5 @@
 #include "scene.h"
+#include "conf.h"
 #include "cube.h"
 #include "game_object.h"
 #include "plane.h"
@@ -12,20 +13,21 @@
 #include <cassert>
 #include <random>
 #include <ranges>
+#include <print>
 
 namespace arcxel {
 
 Scene::Scene() noexcept
-: Scene(1) { }
+    : Scene(Config{ .num_sim_objects = 1 }) {}
 
 
-Scene::Scene(usize num_objects, Workload workload) noexcept {
+Scene::Scene(Config config) noexcept {
 
-    objects.reserve(BASE_OBJ_COUNT + num_objects);
+    objects.reserve(BASE_OBJ_COUNT + config.num_sim_objects);
 
     _M_create_maze();
     _M_create_catchment_box();
-    _M_generate_objects(num_objects, workload);
+    _M_generate_objects(config);
     _M_generate_transparent_face(); //< Created last as transparent objects must be rendered back-to-front
     objects.push_back(std::make_unique<Player>());
 }
@@ -236,30 +238,38 @@ auto Scene::_M_create_catchment_box() -> void {
 }
 
 
-auto Scene::_M_generate_objects(usize num_objects, Workload workload) -> void {
+auto Scene::_M_generate_objects(Config config) -> void {
     const auto xdim = MAZE_DEPTH * 0.5f * 0.29f;
     const auto ydim_low = MAZE_CENTRE_YPOS + (MAZE_HEIGHT * 0.5f) + 50.0f;
     const auto ydim_high = MAZE_CENTRE_YPOS + (MAZE_HEIGHT * 0.5f) + 350.0f;
     const auto zdim = MAZE_WIDTH * 0.5f * 0.88f;
 
-    auto rd = std::random_device{};
-    auto rand = std::mt19937(rd());
+    auto rand = std::mt19937(config.seed);
     auto xdist = std::uniform_real_distribution<f32>(-xdim, xdim);
     auto ydist = std::uniform_real_distribution<f32>(ydim_low, ydim_high);
     auto zdist = std::uniform_real_distribution<f32>(-zdim, zdim);
     auto shape_type_dist = std::uniform_int_distribution<u32>{};
 
-    auto work_rand = std::mt19937(rd());
-    auto is_heavy = std::bernoulli_distribution(0.1);
+    const auto num_with_heavy_work = config.num_sim_objects / 10; //< guaranteed to actuallly be 10% of
+													   //< objects as num_objects is divisible
+                                                       //< by 10
+    auto work_rand = std::mt19937(config.seed);
+	auto work_dist = std::uniform_int_distribution<usize>(0, config.num_sim_objects - 1);
+    auto heavy_work_indices = std::vector<usize>(num_with_heavy_work);
+    std::ranges::generate(heavy_work_indices, [&work_rand, &work_dist]() {
+        return work_dist(work_rand);
+    });
+    std::ranges::sort(heavy_work_indices, std::greater<>{});
+    std::println("{}", heavy_work_indices);
 
-    const auto mag = static_cast<f64>(workload.magnitude);
-    const auto inv_var = 1.0 - workload.variance;
-    const auto light = mag * inv_var;
-    const auto heavy = mag * inv_var + 10.0 * mag * workload.variance;
+    const auto iters = static_cast<f64>(config.workload_mean_iterations);
+    const auto inv_factor = 1.0 - config.workload_factor;
+    const auto light = iters * inv_factor;
+	const auto heavy = light + (10.0 * iters * config.workload_factor);
 
-    assert((0.1 * heavy) + (0.9 * light) == workload.magnitude);
+    assert((0.1 * heavy) + (0.9 * light) == iters);
 
-    for ([[maybe_unused]] auto _ : std::views::iota(usize{ 0 }, num_objects)) {
+    for ([[maybe_unused]] auto idx : std::views::iota(usize{ 0 }, config.num_sim_objects)) {
         auto translation = Vector3{ .x = xdist(rand),
                                     .y = ydist(rand),
                                     .z = zdist(rand) };
@@ -285,7 +295,12 @@ auto Scene::_M_generate_objects(usize num_objects, Workload workload) -> void {
                 break;
         }
 
-        objects.back()->work_iterations = static_cast<u32>(is_heavy(work_rand) ? heavy : light);
+        if (idx == heavy_work_indices.back()) {
+            objects.back()->work_iterations = static_cast<u32>(heavy);
+            heavy_work_indices.pop_back();
+        } else {
+            objects.back()->work_iterations = static_cast<u32>(light);
+        }
     }
 }
 

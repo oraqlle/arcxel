@@ -26,25 +26,9 @@
 
 namespace arcxel {
 
-    /**
-     * Synthetic workload for each object, run per object update
-     */
-    struct Workload {
-        u32 magnitude = 5'000; //< mean iterations per object, 0 is off
-        f32 variance = 0.5f;   //< 0 uniform, 1 maximally uneven
-
-		/**
-		 * Compute synthetic workload, seeded by the caller to prevent being precomputed
-		 */
-		[[nodiscard]] static auto synthetic_work(u32 iterations, f32 seed) -> f32 {
-			f32 acc = seed;
-
-			for ([[maybe_unused]] const auto _ : std::views::iota(u32{ 0 }, iterations)) {
-				acc = fmaf(acc, 1.0000001f, 0.0000001f);
-			}
-
-			return acc;
-		}
-    }; // struct Workload
+/**
+ * Compute synthetic workload, seeded by the caller to prevent being precomputed
+ */
+[[nodiscard]] auto synthetic_work(u32 iterations, f32 seed) -> f32;
 
 } // namespace arcxel

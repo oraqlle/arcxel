@@ -26,6 +26,7 @@
 #include <string_view>
 #include <thread>
 #include <memory>
+#include <random>
 #include <vector>
 
 namespace arcxel {
@@ -84,7 +85,10 @@ struct Config {
 
     std::string window_name = "Arcxel Window";
 
-    f32 workload_variance = 0.5f;
+    u32 workload_mean_iterations = 5'000;
+    f32 workload_factor = 0.5f;
+
+    u32 seed = 230973573;
 }; // struct Config
 
 } // namespace arcxel

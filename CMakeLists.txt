@@ -154,6 +154,7 @@ add_library(
     src/sphere.cxx
     src/timing.cxx
     src/utils.cxx
+    src/workload.cxx
     ${ARCXEL_THREADING_SRC}
 )
 
