@@ -21,30 +21,32 @@ $total = ($OBJECT_COUNTS.Split(" ") | Measure-Object).Count * ($THREADING_METHOD
 $num   = 0
 $time_left = ($WALL_TIME + $PAUSE_BETWEEN_RUNS) * $total
 
-$SEEDS_PATH = "results$TAG\seeds.csv"
-$seeds_list = @()
-$new_seeds = $true
-
-New-Item -Path "results$TAG" -ItemType Directory
-
-if (Test-Path -Path "$SEEDS_PATH") {
-    $seeds_list = Get-Content -Path "$SEEDS_PATH"
-    $new_seeds = $false
-} else {
-    Add-Content -Path "$SEEDS_PATH" -Value "round,seed"
-    $seeds_list += "round,seed"
-}
+$seeds = @(
+	627021565,
+	1546680700,
+	620258840,
+	1982160271,
+	1226463059,
+	847734046,
+	1416446803,
+	1057905602,
+	263117640,
+	23224136,
+	446048275,
+	2124977774,
+	1500573722,
+	990395657,
+	961730844,
+	1233457332,
+	402725129,
+	1112492081,
+	630551760,
+	1854739442,
+	69992408
+)
 
 foreach ($round in 1..$NUM_ROUNDS) {
-    $seed = $null
-
-    if ($new_seeds) {
-        $seed = Get-Random -Minimum 0 -Maximum 2147483647
-        Add-Content -Path "$SEEDS_PATH" -Value "$round,$seed"
-        $seeds_list += "$round,$seed"
-    } else {
-        $seed = $seeds_list[$round].Split(",")[1]
-    }
+    $seed = $seeds[$round - 1]
 
 	foreach ($tmodel in $THREADING_METHOD.Split(" ")) {
                 foreach ($num_objects in $OBJECT_COUNTS.Split(" ")) {
