@@ -10,6 +10,7 @@
 #include <raylib.h>
 #include <raymath.h>
 
+#include <algorithm>
 #include <cassert>
 #include <random>
 #include <ranges>
@@ -246,16 +247,10 @@ auto Scene::_M_generate_objects(Config config) -> void {
     auto zdist = std::uniform_real_distribution<f32>(-zdim, zdim);
     auto shape_type_dist = std::uniform_int_distribution<u32>{};
 
-    const auto num_with_heavy_work = config.num_sim_objects / 10; //< guaranteed to actuallly be 10% of
-													   //< objects as num_objects is divisible
-                                                       //< by 10
     auto work_rand = std::mt19937(config.seed);
-	auto work_dist = std::uniform_int_distribution<usize>(0, config.num_sim_objects - 1);
-    auto heavy_work_indices = std::vector<usize>(num_with_heavy_work);
-    std::ranges::generate(heavy_work_indices, [&work_rand, &work_dist]() {
-        return work_dist(work_rand);
-    });
-    std::ranges::sort(heavy_work_indices, std::greater<>{});
+    auto is_heavy = std::vector<bool>(config.num_sim_objects, false);
+	std::ranges::fill_n(is_heavy.begin(), config.num_sim_objects / 10, true);
+    std::ranges::shuffle(is_heavy, work_rand);
 
     const auto iters = static_cast<f64>(config.workload_mean_iterations);
     const auto inv_factor = 1.0 - config.workload_factor;
@@ -290,12 +285,7 @@ auto Scene::_M_generate_objects(Config config) -> void {
                 break;
         }
 
-        if (idx == heavy_work_indices.back()) {
-            objects.back()->work_iterations = static_cast<u32>(heavy);
-            heavy_work_indices.pop_back();
-        } else {
-            objects.back()->work_iterations = static_cast<u32>(light);
-        }
+		objects.back()->work_iterations = static_cast<u32>(is_heavy[idx] ? heavy : light);
     }
 }
 
