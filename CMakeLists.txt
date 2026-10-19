@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 3.31)
 
+
 project(
     arcxel_engine
     VERSION 0.1.0
@@ -7,92 +8,182 @@ project(
     LANGUAGES CXX C
 )
 
-# ---- Global Defines ----
-set(CMAKE_EXPORT_COMPILE_COMMANDS   ON  CACHE BOOL "" FORCE)
-set(BUILD_SHARED_LIBS               ON  CACHE BOOL "" FORCE)
-set(CMAKE_CXX_STANDARD_REQUIRED     ON  CACHE BOOL "" FORCE)
-set(CMAKE_CXX_EXTENSIONS            OFF CACHE BOOL "" FORCE)
 
-# ---- raylib Defines ----
-set(BUILD_EXAMPLES  OFF CACHE BOOL "" FORCE) # don't build the supplied examples
-set(BUILD_GAMES     OFF CACHE BOOL "" FORCE) # don't build the supplied example games
+# ---- Global Defines ----
+set(CMAKE_EXPORT_COMPILE_COMMANDS     ON  CACHE BOOL "" FORCE)
+set(CMAKE_CXX_STANDARD_REQUIRED       ON  CACHE BOOL "" FORCE)
+set(CMAKE_CXX_EXTENSIONS              OFF CACHE BOOL "" FORCE)
+set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
+
 
 # ---- Build Options ----
 include(CMakeDependentOption)
-cmake_dependent_option(ARCXEL_DEBUG      "Enable debug options" ON  [[CMAKE_BUILD_TYPE STREQUAL "Debug"]] OFF)
-cmake_dependent_option(ARCXEL_SANITIZERS "Enable sanitizers"    OFF [[CMAKE_BUILD_TYPE STREQUAL "Debug"]] OFF)
+cmake_dependent_option(ARCXEL_DEBUG                  "Enable debug options" ON  [[CMAKE_BUILD_TYPE STREQUAL "Debug"]] OFF)
+cmake_dependent_option(ARCXEL_SANITIZERS             "Enable sanitizers"    OFF [[CMAKE_BUILD_TYPE STREQUAL "Debug"]] OFF)
+cmake_dependent_option(ARCXEL_PHYSICS_DEBUG_RENDERER "Enable sanitizers"    OFF [[CMAKE_BUILD_TYPE STREQUAL "Debug"]] OFF)
 
-option(ARCXEL_LOGGING    "Log program traces"    ON)
-option(ARCXEL_PROFILING  "Record profile traces" ON)
+option(ARCXEL_LOGGING          "Log program traces"    ON)
+option(ARCXEL_PROFILING        "Record profile traces" ON)
 
-# Build options log
+# -- Threading Model To Use --
+set(ARCXEL_THREADING_MODEL "SERIAL" CACHE STRING "Threading Model Used")
+
+if(ARCXEL_THREADING_MODEL STREQUAL "TASK_BASED")
+	set(ARCXEL_THREADING_TASK_BASED  ON CACHE BOOL "" FORCE)
+	set(
+        ARCXEL_THREADING_SRC
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/game_loop.cxx"
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/game_loop_task_based.cxx"
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/thread_pool.cxx"
+    )
+elseif(ARCXEL_THREADING_MODEL STREQUAL "STATIC_PARTITIONING")
+    set(ARCXEL_THREADING_STATIC_PARTITIONING   ON CACHE BOOL "" FORCE)
+	set(
+        ARCXEL_THREADING_SRC
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/game_loop.cxx"
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/game_loop_static_partitioning.cxx"
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/thread_pool.cxx"
+    )
+else()
+	set(ARCXEL_THREADING_SERIAL ON CACHE BOOL "" FORCE)
+	set(
+        ARCXEL_THREADING_SRC
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/game_loop.cxx"
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/game_loop_serial.cxx"
+    )
+endif()
+
+# - Build options log -
 message(STATUS "ARXCEL_DEBUG: ${ARCXEL_DEBUG}")
 message(STATUS "ARXCEL_SANITIZERS: ${ARCXEL_SANITIZERS}")
+message(STATUS "ARXCEL_PHYSICS_DEBUG_RENDERER: ${ARCXEL_PHYSICS_DEBUG_RENDERER}")
 message(STATUS "ARXCEL_LOGGING: ${ARCXEL_LOGGING}")
 message(STATUS "ARXCEL_PROFILING: ${ARCXEL_PROFILING}")
+message(STATUS "ARCXEL_THREADING_MODEL: ${ARCXEL_THREADING_MODEL}")
+message(STATUS "ARCXEL_THREADING_SRC: ${ARCXEL_THREADING_SRC}")
+
 
 # ---- Dependencies ----
 include(FetchContent)
+
+if(MSVC)
+    set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS  ON  CACHE BOOL "" FORCE)
+endif()
+
+
+# -- Native Threads --
+find_package(Threads REQUIRED)
+
+
+# -- raylib Defines --
+set(BUILD_EXAMPLES  OFF CACHE BOOL "" FORCE) # don't build the supplied examples
+set(BUILD_GAMES     OFF CACHE BOOL "" FORCE) # don't build the supplied example games
+
+# -- raylib --
 FetchContent_Declare(
     raylib
     GIT_REPOSITORY  https://github.com/raysan5/raylib.git
     GIT_TAG         6.0
-    GIT_PROGRESS    true
+    GIT_PROGRESS    TRUE
 )
-
 FetchContent_MakeAvailable(raylib)
-
-# raylib's headers trip -Wextra in ways we cannot fix, so consumers treat them
-# as system headers and stay quiet about them.
 set_target_properties(raylib PROPERTIES SYSTEM TRUE)
 
-# ---- Find Packages ----
-#find_package(glm 1.0.1 REQUIRED)
-#find_package(tinyobjloader 2.0.0 REQUIRED)
+
+# -- reactphysics3d --
+FetchContent_Declare(
+    reactphysics3d
+    GIT_REPOSITORY  https://github.com/DanielChappuis/reactphysics3d.git
+    GIT_TAG         7000610a244ea85377e4f4c9bcdf68af0159b595
+    GIT_PROGRESS    TRUE
+    GIT_SUBMODULES  ""
+    PATCH_COMMAND git apply "${CMAKE_CURRENT_SOURCE_DIR}/patches/reactphysics3d-chrono.patch"
+)
+FetchContent_MakeAvailable(reactphysics3d)
+set_target_properties(reactphysics3d PROPERTIES SYSTEM TRUE)
+
+
+# -- cxxopts --
+FetchContent_Declare(
+    cxxopts
+    GIT_REPOSITORY  https://github.com/jarro2783/cxxopts.git
+    GIT_TAG         v3.3.1
+    GIT_PROGRESS    TRUE
+    GIT_SUBMODULES  ""
+)
+
+FetchContent_MakeAvailable(cxxopts)
+
+set_target_properties(cxxopts PROPERTIES SYSTEM TRUE)
+target_compile_definitions(cxxopts INTERFACE CXXOPTS_NO_EXCEPTIONS) # disable exceptions for cxxopts
+
 
 # ---- Exceptions and Warnings ----
 if (MSVC)
-    set(ARCXEL_NO_EXCEPTIONS /EHs-c-)
+	set(ARCXEL_NO_EXCEPTIONS /EHs-c-)
     set(ARCXEL_WARNINGS /W4)
+
+    # Remove /EHsc flag to disbale exceptions
+    foreach(flag_var 
+        CMAKE_CXX_FLAGS 
+        CMAKE_CXX_FLAGS_DEBUG 
+        CMAKE_CXX_FLAGS_RELEASE 
+        CMAKE_CXX_FLAGS_MINSIZEREL 
+        CMAKE_CXX_FLAGS_RELWITHDEBINFO
+    )
+        string(REPLACE "/EHsc" "" ${flag_var} "${${flag_var}}")
+    endforeach()
 else ()
     set(ARCXEL_NO_EXCEPTIONS -fno-exceptions)
     set(ARCXEL_WARNINGS -Wall -Wextra -Wpedantic)
 endif ()
 
-# ---- Library ----
+
+# ---- Arcxel Internal Object Library ----
 add_library(
     arcxel_lib OBJECT
     src/cube.cxx
     src/engine.cxx
+    src/plane.cxx
     src/game_object.cxx
     src/log.cxx
-    src/object.cxx
+    src/physics.cxx
+    src/physics_object.cxx
     src/player.cxx
     src/scene.cxx
+    src/sphere.cxx
     src/timing.cxx
-    src/transform.cxx
     src/utils.cxx
-    src/window.cxx
+    src/workload.cxx
+    ${ARCXEL_THREADING_SRC}
 )
 
 target_include_directories(arcxel_lib PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 target_compile_features(arcxel_lib PUBLIC cxx_std_23)
 target_compile_options(arcxel_lib PRIVATE ${ARCXEL_WARNINGS} ${ARCXEL_NO_EXCEPTIONS})
+target_compile_definitions(arcxel_lib PRIVATE _HAS_EXCEPTIONS=0)
 target_compile_definitions(
     arcxel_lib
     PUBLIC
         ARCXEL_DEBUG=$<BOOL:${ARCXEL_DEBUG}>
         ARCXEL_LOGGING=$<BOOL:${ARCXEL_LOGGING}>
         ARCXEL_PROFILING=$<BOOL:${ARCXEL_PROFILING}>
+        ARCXEL_PHYSICS_DEBUG_RENDERER=$<BOOL:${ARCXEL_PHYSICS_DEBUG_RENDERER}>
+        ARCXEL_THREADING_SERIAL=$<BOOL:${ARCXEL_THREADING_SERIAL}>
+        ARCXEL_THREADING_TASK_BASED=$<BOOL:${ARCXEL_THREADING_TASK_BASED}>
+        ARCXEL_THREADING_STATIC_PARTITIONING=$<BOOL:${ARCXEL_THREADING_STATIC_PARTITIONING}>
 )
 
-target_link_libraries(arcxel_lib PUBLIC raylib)
+target_link_libraries(arcxel_lib PUBLIC raylib ReactPhysics3D::reactphysics3d Threads::Threads)
+
 
 # ---- Entrypoint ----
 add_executable(arcxel src/main.cxx)
 target_compile_features(arcxel PUBLIC cxx_std_23)
 target_compile_options(arcxel PRIVATE ${ARCXEL_WARNINGS} ${ARCXEL_NO_EXCEPTIONS})
-target_link_libraries(arcxel PRIVATE arcxel_lib)
+target_compile_definitions(arcxel PRIVATE _HAS_EXCEPTIONS=0)
+target_link_libraries(arcxel PRIVATE arcxel_lib cxxopts)
+
 
 # ----  Enable Sanitizers ----
 if(ARCXEL_SANITIZERS)
@@ -107,6 +198,7 @@ if(ARCXEL_SANITIZERS)
 
     target_link_options(arcxel PRIVATE ${ARCXEL_SANITIZERS_FLAGS})
 endif()
+
 
 # ---- Installation ----
 #install(TARGETS arcxel RUNTIME COMPONENT runtime)

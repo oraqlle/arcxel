@@ -20,6 +20,7 @@
 #pragma once
 
 #include "types.h"
+#include "game_object.h"
 
 #include <raylib.h>
 #include <raymath.h>
@@ -27,19 +28,17 @@
 
 namespace arcxel {
 
-class Player {
+class Player : public GameObject {
 public:
-    Player() noexcept;
+    explicit Player() noexcept;
 
-    ~Player() noexcept = default;
+    virtual ~Player() noexcept = default;
 
-    [[nodiscard]] auto get_camera() -> Camera3D;
+    [[nodiscard]] auto get_camera() -> Camera3D&;
 
-    auto handle_events() -> void;
+    virtual auto update(f64 delta) -> void override;
 
-    auto update(f64 delta) -> void;
-
-    auto render(f64 delta) -> void;
+    virtual auto render(f64 delta) -> void override;
 
 protected:
     auto _movement_controls(f64 delta) -> void;

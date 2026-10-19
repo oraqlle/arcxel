@@ -19,31 +19,35 @@
 
 #pragma once
 
+#include "conf.h"
 #include "scene.h"
 #include "timing.h"
 #include "types.h"
 
+#include <optional>
 #include <raylib.h>
 
 namespace arcxel {
 
 class Engine {
 public:
-    Engine();
-
-    ~Engine() noexcept = default;
-
-    // make singleton
+    [[nodiscard]] static auto singleton(std::optional<Config> init = std::nullopt)
+        -> Engine&;
 
     [[nodiscard]] auto is_running() -> bool;
 
     auto stop() -> void;
 
-    auto handle_events() -> void;
+    [[nodiscard]] auto get_scene() -> Scene&;
 
     auto update(f64 delta) -> void;
 
-    auto render(f64 delta, SampleRecord& store) -> void;
+    auto render(f64 delta, SampleRecord& sample_record) -> void;
+
+private:
+    explicit Engine(std::optional<Config> init);
+
+    ~Engine() noexcept = default;
 
 private:
     bool running;

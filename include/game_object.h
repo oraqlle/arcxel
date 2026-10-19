@@ -19,8 +19,8 @@
 
 #pragma once
 
-#include "transform.h"
 #include "types.h"
+#include "workload.h"
 
 #include <raylib.h>
 
@@ -28,20 +28,18 @@ namespace arcxel {
 
 class GameObject {
 public:
-    GameObject() noexcept = default;
+    explicit GameObject(Transform transform) noexcept;
 
     virtual ~GameObject() noexcept = default;
 
-    explicit GameObject(Transform3D transform);
+    virtual auto update(f64 delta) -> void = 0;
 
-    auto handle_events() -> void;
-
-    auto update(f64 delta) -> void;
-
-    auto render(f64 delta) -> void;
+    virtual auto render(f64 delta) -> void = 0;
 
 public:
-    Transform3D transform;
+    Transform transform;
+    u32 work_iterations = 0;
+    volatile f32 work_sink = 1.0f; //< volatile so the compiler cannot delete it
 }; // class GameObject
 
 } // namespace arcxel

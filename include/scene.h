@@ -19,31 +19,63 @@
 
 #pragma once
 
-#include "cube.h"
-#include "player.h"
+#include "conf.h"
+#include "game_object.h"
+#include "types.h"
+#include "workload.h"
 
 #include <raylib.h>
+
+#include <memory>
+#include <random>
+#include <vector>
 
 namespace arcxel {
 
 class Scene {
 public:
-    Scene() noexcept;
+    static constexpr u8 BASE_OBJ_COUNT = 20;
 
-    auto handle_events() -> void;
+    static constexpr f32 MAZE_CENTRE_YPOS = 100.0f;
+    static constexpr f32 MAZE_HEIGHT = 125.0f;
+    static constexpr f32 MAZE_WIDTH = 50.0f;
+    static constexpr f32 MAZE_DEPTH = 7.0f;
+
+    static constexpr Color CONTAINER_COLOUR = GRAY;
+
+    static constexpr Vector3 BOX_SIZE = Vector3{ 100.0f, 20.0f, 100.0f };
+    static_assert(BOX_SIZE.x > 0.0f);
+    static_assert(BOX_SIZE.y > 0.0f);
+    static_assert(BOX_SIZE.z > 0.0f);
+
+public:
+    explicit Scene(Config config) noexcept;
 
     auto update(f64 delta) -> void;
 
+    auto update_range(usize first, usize last, f64 delta) -> void;
+
     auto render(f64 delta) -> void;
 
-    [[nodiscard]] auto primary_camera() -> Camera3D;
+    [[nodiscard]] auto primary_camera() -> Camera3D&;
 
-public: // Scene objects
-    Cube cube;
-    Player player;
+    auto unload() -> void;
 
 private:
-    Camera3D primary_cam;
+    auto
+    _M_add_plane(f32 length, f32 width, Vector3 position, Quaternion rotation, Color tint)
+        -> void;
+
+    auto _M_create_maze() -> void;
+
+    auto _M_generate_transparent_face() -> void;
+
+    auto _M_create_catchment_box() -> void;
+
+    auto _M_generate_objects(Config config) -> void;
+
+public:
+    std::vector<std::unique_ptr<GameObject>> objects;
 
 }; // class Scene
 

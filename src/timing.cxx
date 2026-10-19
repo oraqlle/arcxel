@@ -1,34 +1,19 @@
-// <timing.cxx> -*- C++ -*-
-
-//  Arcxel Test Bench
-//  Copyright (C) 2026  Tyler Swann, Georgia Kanellis
-//
-//  This library is free software; you can redistribute it and/or
-//  modify it under the terms of the GNU Lesser General Public
-//  License v2.1 as published by the Free Software Foundation.
-//
-//  This library is distributed in the hope that it will be useful,
-//  but WITHOUT ANY WARRANTY; without even the implied warranty of
-//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-//  Lesser General Public License for more details.
-//
-//  You should have received a copy of the GNU Lesser General Public
-//  License along with this library; if not, write to the Free Software
-//  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
-//  USA
-
 #include "timing.h"
 #include "log.h"
 #include "types.h"
 #include "utils.h"
 
 #include <algorithm>
+#include <array>
+#include <ranges>
 #include <chrono>
 #include <filesystem>
 #include <format>
 #include <fstream>
 #include <ios>
 #include <print>
+#include <cassert>
+#include <thread>
 
 namespace arcxel {
 
@@ -52,13 +37,14 @@ struct Totals {
 
 
 static inline auto totals = std::array<Totals, num_labels>{
-    Totals{.label = Sample::Label::Frame},
-    Totals{.label = Sample::Label::Events},
-    Totals{.label = Sample::Label::Update},
-    Totals{.label = Sample::Label::Render},
-    Totals{.label = Sample::Label::Construct},
-    Totals{.label = Sample::Label::Draw},
-    Totals{.label = Sample::Label::Present}
+    Totals{ .label = Sample::Label::Frame },
+    Totals{ .label = Sample::Label::Events },
+    Totals{ .label = Sample::Label::Update },
+    Totals{ .label = Sample::Label::PhysicsUpdate },
+    Totals{ .label = Sample::Label::Render },
+    Totals{ .label = Sample::Label::Construct },
+    Totals{ .label = Sample::Label::Draw },
+    Totals{ .label = Sample::Label::Present }
 };
 
 
@@ -112,14 +98,19 @@ auto log_trace_summary(const SampleRecord& store) -> void {
 
 
 SampleRecord::SampleRecord(usize max_num_samples) noexcept
-    : max_samples(max_num_samples)
-    , num_dropped_samples(0) {
+    : capacity(max_num_samples)
+    , num_dropped_samples(0)
+    , owner(std::this_thread::get_id()) {
     samples_store.reserve(max_num_samples);
 }
 
 
 auto SampleRecord::record(const Sample& sample) -> bool {
-    if (samples_store.size() <= max_samples) {
+    if constexpr (debug_enabled) {
+        assert(sample.tid == owner && "No timespan inside a task");
+    }
+
+    if (samples_store.size() < capacity) {
         samples_store.emplace_back(sample);
         return true;
     }
@@ -149,13 +140,13 @@ auto SampleRecord::record(const Sample& sample) -> bool {
 }
 
 
-[[nodiscard]] constexpr auto SampleRecord::max_num_samples() -> usize {
-    return max_samples;
+[[nodiscard]] constexpr auto SampleRecord::sample_capacity() -> usize {
+    return capacity;
 }
 
 
-[[nodiscard]] constexpr auto SampleRecord::max_num_samples() const -> usize {
-    return max_samples;
+[[nodiscard]] constexpr auto SampleRecord::sample_capacity() const -> usize {
+    return capacity;
 }
 
 
@@ -167,30 +158,24 @@ auto SampleRecord::record(const Sample& sample) -> bool {
         };
     }
 
-    const auto now = current_datetime();
-    const auto seconds = std::chrono::floor<std::chrono::seconds>(now);
-    const auto millis =
-        std::chrono::duration_cast<std::chrono::milliseconds>(now - seconds).count();
+    namespace chrono = std::chrono;
 
-    const auto fname =
-        std::format("arcxel-{0:%F}_{0:%R}:{1:%S}-{2:03}.csv", now, seconds, millis);
-
-    const auto fpath = std::filesystem::path{path} / fname;
+    const auto now = chrono::floor<chrono::seconds>(current_datetime());
+    const auto fname = std::format("arcxel_{:%F_%H-%M-%S}.csv", now);
+    const auto fpath = std::filesystem::path{ path } / fname;
 
     // TODO: overwrite warning
     auto file = std::fstream(fpath, std::ios::trunc | std::ios::out);
 
     if (!file.is_open()) {
         return std::unexpected(make_log_string(
-            LogLevel::Error, "profiler: could not open {} for writing", fname
-        ));
+            LogLevel::Error,
+            "profiler: could not open {} for writing",
+            fname));
     }
 
-    // CSV headings
-    std::println(file, "label,depth,thread,start (ns),end (ns),duration (ns)");
+    std::println(file, "label,depth,thread,start (us),end (us),duration (us)");
 
-    // Sort samples based on Sample::start, directly uses
-    // member as std::ranges::sort is in-place.
     std::ranges::sort(samples_store, {}, [](const auto& s) { return s.start; });
 
     const auto local_epoch = samples().front().start;
@@ -208,8 +193,7 @@ auto SampleRecord::record(const Sample& sample) -> bool {
             sample.tid,
             as_us(start),
             as_us(end),
-            as_us(diff)
-        );
+            as_us(diff));
     }
 
     log(LogLevel::Info,
@@ -218,6 +202,40 @@ auto SampleRecord::record(const Sample& sample) -> bool {
         fpath.string());
 
     return {};
+}
+
+
+auto SampleRecord::operator+=(const SampleRecord& other) -> void {
+	const auto size = samples_store.size();
+	const auto full_other_size = other.samples_store.size();
+
+	if (num_dropped_samples > 0) {
+		log(LogLevel::Warning,
+		"SampleRecord::operator+=: Samples already at capacity, dropping entire record of {} samples",
+		full_other_size);
+
+		num_dropped_samples += other.num_dropped_samples;
+		return;
+	}
+
+	const auto remaining = capacity - size;
+	auto other_dropped = usize{ 0 };
+
+	if (full_other_size > remaining) {
+		other_dropped = full_other_size - remaining;
+		log(LogLevel::Warning,
+		"SampleRecord::operator+=: Number of samples being added is greater than capacity, dropping {} samples",
+		other_dropped);
+		num_dropped_samples += other_dropped;
+	} else {
+		num_dropped_samples += other.num_dropped_samples;
+	}
+
+	// could use std::vector<T>::append_range() ??
+	const auto other_size = full_other_size - other_dropped;
+	for (const auto& x : other.samples_store | std::views::take(other_size)) {
+		samples_store.push_back(x);
+	}
 }
 
 } // namespace arcxel

@@ -1,4 +1,4 @@
-// <component.h> -*- C++ -*-
+// <physics.h> -*- C++ -*-
 
 //  Arcxel Test Bench
 //  Copyright (C) 2026  Tyler Swann, Georgia Kanellis
@@ -19,30 +19,35 @@
 
 #pragma once
 
-#include "object.h"
+#include "rp3d.h"
+#include "types.h"
 
-#include <raylib.h>
-
-#include <memory>
+#include <optional>
 
 namespace arcxel {
 
-class Entity; //< Forward declaration
-
-class Component : public Object {
+class Physics {
 public:
-    Component() noexcept
-        : entity() {}
+    static constexpr f32 timestep = 1.0f / 60.0f;
 
-    explicit Component(const std::shared_ptr<Entity>& ptr) noexcept
-        : entity(ptr) {}
+    [[nodiscard]] static auto
+    singleton(std::optional<rp3d::PhysicsWorld::WorldSettings> init = std::nullopt)
+        -> Physics&;
 
-    explicit Component(const std::weak_ptr<Entity>& ptr) noexcept
-        : entity(ptr) {}
+    auto update(f64 delta) -> void;
 
-    virtual ~Component() noexcept = default;
+private:
+    explicit Physics(
+        std::optional<rp3d::PhysicsWorld::WorldSettings> opt_settings) noexcept;
 
-    std::weak_ptr<Entity> entity;
-}; // class Object
+    ~Physics() noexcept;
+
+public:
+    rp3d::PhysicsWorld* world;
+    rp3d::PhysicsCommon common;
+
+private:
+    f64 accumulator;
+};
 
 } // namespace arcxel

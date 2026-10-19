@@ -1,4 +1,4 @@
-// <window.cxx> -*- C++ -*-
+// <physics_object.h> -*- C++ -*-
 
 //  Arcxel Test Bench
 //  Copyright (C) 2026  Tyler Swann, Georgia Kanellis
@@ -17,34 +17,43 @@
 //  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 //  USA
 
-#include "window.h"
+#pragma once
 
-#include "window_info.h"
+#include "game_object.h"
+#include "rp3d.h"
 
 #include <raylib.h>
 
-#include <expected>
-#include <string>
-#include <utility>
-
 namespace arcxel {
 
-Window::Window(Token) noexcept {}
+class PhysicsObject : public GameObject {
+public:
+    explicit PhysicsObject(
+        rp3d::BodyType btype,
+        Transform transform,
+        Color colour) noexcept;
 
-Window::~Window() { CloseWindow(); }
+    virtual ~PhysicsObject() noexcept;
 
-auto Window::create(const WindowInfo& info) -> std::expected<Window, std::string> {
-    InitWindow(info.width, info.height, info.name.c_str());
+    virtual auto update(f64 delta) -> void override;
 
-    if (!IsWindowReady()) {
-        // InitWindow may have got part way, so close before reporting.
-        CloseWindow();
-        return std::unexpected("arcxel: window failed to initialise");
-    }
+    virtual auto render(f64 delta) -> void override;
 
-    SetTargetFPS(info.target_fps); // 0 leaves the frame rate uncapped
+protected:
+    virtual auto _M_create_mesh() -> void = 0;
 
-    return std::expected<Window, std::string>(std::in_place, Token{});
-}
+    virtual auto _M_create_collision_shape() -> void = 0;
+
+    auto _M_sync_model_to_physics() -> void;
+
+    auto _M_render_physics_debug_shapes() -> void;
+
+protected:
+    Color tint;
+    Mesh mesh;
+    Model model;
+
+    rp3d::RigidBody* body;
+}; // class PhysicsObject
 
 } // namespace arcxel

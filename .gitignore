@@ -33,7 +33,9 @@
 
 # C++ Build Output Directories
 **/build
+**/dbuild
 **/out
+**/build-*
 
 # User tooling
 .vscode
@@ -60,3 +62,6 @@ vgcore.*
 
 # Scratchpads
 .notes/
+
+# Virtual env
+.venv

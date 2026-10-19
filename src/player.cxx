@@ -1,4 +1,5 @@
 #include "player.h"
+#include "utils.h"
 
 #include <raylib.h>
 #include <raymath.h>
@@ -6,27 +7,50 @@
 
 namespace arcxel {
 
+[[nodiscard]] static auto axis_vec3_to_mat4(
+	const Vector3& forward,
+	const Vector3& right,
+	const Vector3& up) -> Matrix {
+	return Matrix{
+		right.x,     right.y,     right.z,     0.0f,
+		up.x,        up.y,        up.z,        0.0f,
+		-forward.x,  -forward.y,  -forward.z,  0.0f,
+		0.0f,        0.0f,        0.0f,        1.0f
+	};
+}
+
+
 Player::Player() noexcept
-    : speed(5.0f)
-    , sprint_speed_scale(1.75f)
+    : GameObject(TransformIdentity)
+    , speed(10.0f)
+    , sprint_speed_scale(3.75f)
     , look_sensitivity(0.0015f) {
-    camera.position = Vector3Zero();
-    camera.target = Vector3{0.0f, 0.0f, -1.0f};
-    camera.up = Vector3{0.0f, 1.0f, 0.0f};
-    camera.fovy = 45.0;
+    camera.position = Vector3{ 150.0f, 180.0f, 0.0f };
+    camera.target = Vector3{ 0.0f, 115.0f, -1.0f };
+    camera.up = Vector3UnitY;
+    camera.fovy = 50.0;
     camera.projection = CameraProjection::CAMERA_PERSPECTIVE;
 }
 
-[[nodiscard]] auto Player::get_camera() -> Camera3D { return camera; }
 
-auto Player::handle_events() -> void {}
+[[nodiscard]] auto Player::get_camera() -> Camera3D& { return camera; }
+
 
 auto Player::update(f64 delta) -> void {
     _look_controls(delta);
     _movement_controls(delta);
+
+    transform.translation = camera.position; //< Update transform for consistency
+
+    const auto forward = Vector3Normalize(camera.target - camera.position);
+    const auto right = Vector3Normalize(Vector3CrossProduct(forward, camera.up));
+    const auto up = Vector3CrossProduct(right, forward);
+    transform.rotation = QuaternionFromMatrix(axis_vec3_to_mat4(forward, right, up));
 }
 
-auto Player::render(f64 delta) -> void {}
+
+auto Player::render(f64) -> void {}
+
 
 auto Player::_movement_controls(f64 delta) -> void {
     auto speed_delta = speed * static_cast<f32>(delta);
@@ -60,7 +84,8 @@ auto Player::_movement_controls(f64 delta) -> void {
     }
 }
 
-auto Player::_look_controls(f64 delta) -> void {
+
+auto Player::_look_controls(f64) -> void {
     auto mouse = GetMouseDelta();
     CameraYaw(&camera, -mouse.x * look_sensitivity, false);
     CameraPitch(&camera, -mouse.y * look_sensitivity, true, false, false);

@@ -1,33 +1,28 @@
-// <main.cxx> -*- C++ -*-
-
-//  Arcxel Test Bench
-//  Copyright (C) 2026  Tyler Swann, Georgia Kanellis
-//
-//  This library is free software; you can redistribute it and/or
-//  modify it under the terms of the GNU Lesser General Public
-//  License v2.1 as published by the Free Software Foundation.
-//
-//  This library is distributed in the hope that it will be useful,
-//  but WITHOUT ANY WARRANTY; without even the implied warranty of
-//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-//  Lesser General Public License for more details.
-//
-//  You should have received a copy of the GNU Lesser General Public
-//  License along with this library; if not, write to the Free Software
-//  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
-//  USA
-
+#include "conf.h"
 #include "engine.h"
 #include "log.h"
+#include "physics.h"
+#include "rp3d.h"
+#include "scene.h"
+#include "thread_pool.h"
 #include "timing.h"
+#include "game_loop.h"
 #include "types.h"
 #include "utils.h"
 #include "window_info.h"
 
 #include <raylib.h>
+#include <cxxopts.hpp>
 
+#include <cstdlib>
 #include <expected>
+#include <optional>
 #include <string>
+#include <string_view>
+#include <system_error>
+#include <utility>
+#include <thread>
+
 
 // clang-format off
 using arcxel::i8;
@@ -50,14 +45,65 @@ using arcxel::LogLevel;
 // clang-format on
 
 
-// ~4M samples, ~10mins of uncapped frames. Further Samples are dropped, no reallocation
-constexpr usize MAX_SAMPLES = 1U << 22U;
-
-constexpr std::string_view DEFAULT_LOGS_DIR = "logs";
-constexpr std::string_view DEFAULT_TRACES_DIR = "traces";
-
 constexpr i32 WIDTH = 1920;
 constexpr i32 HEIGHT = 1080;
+
+
+[[nodiscard]] static auto make_config_from_cli_opts(cxxopts::ParseResult opts) -> arcxel::Config {
+    auto config = arcxel::Config{};
+
+    if (opts.count("jobs")) {
+        const auto req_threads = opts["jobs"].as<u32>();
+
+        if constexpr (arcxel::threading_model == arcxel::ThreadingType::Serial) {
+			config.num_available_threads = 1;
+        } else if constexpr (arcxel::threading_model == arcxel::ThreadingType::Broad) {
+			if (config.num_hw_threads < arcxel::min_threads_required) {
+                log(LogLevel::Warning,
+                    "ARCXEL: Not enough threads to run game loop in [BROAD] mode");
+                config.num_available_threads = 1;
+			} else {
+				config.num_required_threads = std::min(req_threads, config.num_available_threads);
+			}
+        } else if constexpr (arcxel::threading_model == arcxel::ThreadingType::Fine) {
+			if (config.num_hw_threads < arcxel::min_threads_required) {
+                log(LogLevel::Warning,
+                    "ARCXEL: Not enough threads to run game loop in [FINE] mode");
+                config.num_available_threads = 1;
+			} else {
+				config.num_required_threads = std::min(req_threads, config.num_available_threads);
+			}
+        }
+    }
+
+    if (opts.count("num_objects")) {
+        config.num_sim_objects = opts["num_objects"].as<usize>();
+    }
+
+    if (opts.count("trace")) {
+        config.trace_dir = opts["trace"].as<std::string>();
+    }
+
+    if (opts.count("log")) {
+        config.log_dir = opts["log"].as<std::string>();
+    }
+
+    if (opts.count("window-name")) {
+        config.window_name = opts["window-name"].as<std::string>();
+    }
+
+	if (opts.count("workload-factor")) {
+		config.workload_factor = opts["workload-factor"].as<f32>();
+		log(LogLevel::Info, "ARCXEL: Using workload factor {}", config.workload_factor);
+	}
+
+	if (opts.count("seed")) {
+		config.seed = opts["seed"].as<u32>();
+		log(LogLevel::Info, "ARCXEL: Using seed {}", config.seed);
+	}
+
+	return config;
+}
 
 
 /**
@@ -69,104 +115,127 @@ constexpr i32 HEIGHT = 1080;
 
     if (!IsWindowReady()) {
         CloseWindow();
-        return std::unexpected("arcxel: window failed to initialise");
+        return std::unexpected("ARCXEL: Window failed to initialise");
     }
 
     SetTargetFPS(winfo.target_fps); // 0 leaves the frame rate uncapped
-    arcxel::log(LogLevel::Info, "window opened {}x{}", winfo.width, winfo.height);
+    arcxel::log(LogLevel::Info, "ARCXEL: Window opened {}x{}", winfo.width, winfo.height);
 
     return {};
 }
 
 
-static inline auto game_loop(arcxel::SampleRecord& store) -> void {
-    auto engine = arcxel::Engine();
-    while (engine.is_running()) {
-
-        const auto span = arcxel::Timespan(arcxel::Sample::Label::Frame, store);
-
-
-        {
-            const auto span = arcxel::Timespan(arcxel::Sample::Label::Events, store);
-            engine.handle_events();
-        }
-
-
-        const f64 delta = GetFrameTime();
-
-
-        {
-            const auto span = arcxel::Timespan(arcxel::Sample::Label::Update, store);
-            engine.update(delta);
-        }
-
-
-        {
-            const auto span = arcxel::Timespan(arcxel::Sample::Label::Render, store);
-            engine.render(delta, store);
-        }
-    }
-}
-
-
-[[nodiscard]] static auto run(arcxel::SampleRecord& store) -> arcxel::Fallible {
+[[nodiscard]] static auto run(arcxel::Config config, arcxel::SampleRecord& global_sample_record) -> arcxel::Fallible {
 
     // ---- WINDOW CREATION ----
-    const auto winfo =
-        arcxel::WindowInfo{.width = WIDTH, .height = HEIGHT, .target_fps = 0};
+    log(LogLevel::Info, "ARCXEL: Window Name: \"{}\"", config.window_name);
+    const auto winfo = arcxel::WindowInfo{ .width = WIDTH,
+                                           .height = HEIGHT,
+                                           .target_fps = 0,
+                                           .name = config.window_name };
 
     if (auto r = create_window(winfo); !r) {
         return r;
     }
 
+    // ---- PHYSICS WORLD CREATION ----
+    auto phys_info = rp3d::PhysicsWorld::WorldSettings{};
+    phys_info.isSleepingEnabled = true;
+    phys_info.gravity = rp3d::Vector3(0, -9.81f, 0);
+
+    auto& phys_sys = arcxel::Physics::singleton(std::make_optional(std::move(phys_info)));
+    arcxel::log(LogLevel::Info, "ARCXEL: Physics world created");
+
+    if constexpr (arcxel::physics_debug_renderer_enabled) {
+        phys_sys.world->setIsDebugRenderingEnabled(true);
+        auto& dbgr = phys_sys.world->getDebugRenderer();
+
+        dbgr.setIsDebugItemDisplayed(
+            rp3d::DebugRenderer::DebugItem::COLLISION_SHAPE,
+            true);
+        dbgr.setIsDebugItemDisplayed(rp3d::DebugRenderer::DebugItem::COLLIDER_AABB, true);
+        dbgr.setIsDebugItemDisplayed(
+            rp3d::DebugRenderer::DebugItem::COLLISION_SHAPE_NORMAL,
+            true);
+
+        arcxel::log(LogLevel::Info, "ARCXEL: Debug renderer enabled for physics engine");
+    } else {
+        arcxel::log(LogLevel::Info, "ARCXEL: Debug renderer disabled for physics engine");
+    }
+
+    arcxel::log(LogLevel::Info, "ARCXEL: Heavy workload factor set to {}", config.workload_factor);
+    auto& engine = arcxel::Engine::singleton({ config });
+
     // ---- GAME LOOP ----
     DisableCursor();
-    game_loop(store);
+    game_loop(config, global_sample_record);
     EnableCursor();
+
+    engine.stop();
 
     return {};
 }
 
-auto main() -> int {
+auto main(int argc, char* argv[]) -> int {
+
+    // ---- ARG PARSER ----
+    auto cli_options = cxxopts::Options{ "arcxel", "Arcxel Testbed" };
+    cli_options.add_options()
+        ("n,num_objects", "Number of objects to run simulation with", cxxopts::value<usize>())
+        ("j,jobs", "Number of parallel jobs (threads) to run engine with", cxxopts::value<u32>())
+        ("t,trace", "Output directory of trace file", cxxopts::value<std::string>())
+        ("l,log", "Output directory of log file", cxxopts::value<std::string>())
+        ("s,seed", "Seed used for random location generation for objects", cxxopts::value<u32>())
+        ("window-name", "Name of the window", cxxopts::value<std::string>())
+        ("workload-factor", "Factor for heavy workload", cxxopts::value<f32>())
+        ("h,help", "Show help");
+
+    auto parsed_cli_opts = cli_options.parse(argc, argv);
+    if (parsed_cli_opts.count("help")) {
+        arcxel::raw_log("{}", cli_options.help());
+        std::exit(0);
+    }
+
+    const auto config = make_config_from_cli_opts(parsed_cli_opts);
+
 
     // ---- OPEN LOGGING ----
     if constexpr (arcxel::logging_enabled) {
-        const auto r = arcxel::create_dir(DEFAULT_LOGS_DIR).and_then([](auto&& path) {
+        const auto r = arcxel::create_dir(config.log_dir).and_then([](auto&& path) {
             arcxel::capture_raylib_logs();
             return arcxel::open_log_file(path);
         });
 
         if (!r) {
             arcxel::raw_log("{}", r.error());
+            std::exit(-1);
         }
-
     } else {
         SetTraceLogLevel(LOG_NONE);
     }
-    
+
 
     // ---- CREATE PROFILE TRACE STORE ----
-    auto store = arcxel::SampleRecord(0);
-    if constexpr (arcxel::profiling_enabled) {
-        store = arcxel::SampleRecord(MAX_SAMPLES);
+    auto global_sample_record = arcxel::SampleRecord{};
 
-        if (const auto r = arcxel::create_dir(DEFAULT_TRACES_DIR); !r) {
+    if constexpr (arcxel::profiling_enabled) {
+        if (const auto r = arcxel::create_dir(config.trace_dir); !r) {
             arcxel::raw_log("{}", r.error());
+            std::exit(-1);
         };
     }
 
 
     // ---- ENGINE ----
-    if (const auto r = run(store); !r) {
+    if (const auto r = run(config, global_sample_record); !r) {
         arcxel::raw_log("{}", r.error());
     }
 
 
     // ---- WRITE PROFILE TRACE ----
     if constexpr (arcxel::profiling_enabled) {
-        arcxel::log_trace_summary(store);
-
-        if (const auto r = store.write_timings_to_csv(DEFAULT_TRACES_DIR); !r) {
+        arcxel::log_trace_summary(global_sample_record);
+        if (const auto r = global_sample_record.write_timings_to_csv(config.trace_dir); !r) {
             arcxel::raw_log("{}", r.error());
         }
     }
@@ -175,7 +244,8 @@ auto main() -> int {
     // ---- CLOSE LOGGING ----
     if (const auto r = arcxel::close_log_file(); !r) {
         arcxel::raw_log("{}", r.error());
+        std::exit(-1);
     }
 
-    return 0;
+    std::exit(0);
 }

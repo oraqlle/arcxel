@@ -4,13 +4,7 @@
 
 namespace arcxel {
 
-GameObject::GameObject(Transform3D transform)
+GameObject::GameObject(Transform transform) noexcept
     : transform(transform) {}
-
-auto GameObject::handle_events() -> void {}
-
-auto GameObject::update(f64 delta) -> void {}
-
-auto GameObject::render(f64 delta) -> void {}
 
 } // namespace arcxel

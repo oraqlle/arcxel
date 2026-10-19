@@ -20,6 +20,8 @@
 #pragma once
 
 #include "types.h"
+#include "conf.h"
+#include "log.h"
 
 #include <chrono>
 #include <format>
@@ -49,10 +51,11 @@ struct Sample {
         Frame = 0,
         Events,
         Update,
+        PhysicsUpdate,
         Render,
         Construct,
         Draw,
-        Present
+        Present,
     }; // enum class Label
 
 
@@ -67,8 +70,8 @@ constexpr u8 num_labels = static_cast<u8>(Sample::Label::Present) + 1;
 
 
 static_assert(
-    Sample::Clock::is_steady, "Profiling measurements require a monotonic clock"
-);
+    Sample::Clock::is_steady,
+    "Profiling measurements require a monotonic clock");
 
 
 [[nodiscard]] inline constexpr auto sample_label_to_depth(Sample::Label label) -> u32 {
@@ -80,6 +83,7 @@ static_assert(
 
         case Sample::Label::Events:
         case Sample::Label::Update:
+        case Sample::Label::PhysicsUpdate:
         case Sample::Label::Render:
             return 1;
 
@@ -92,7 +96,10 @@ static_assert(
 
 struct SampleRecord {
 public:
-    explicit SampleRecord(usize max_num_samples) noexcept;
+    // ~4M samples, ~10mins of frames. Further Samples are dropped, no reallocation
+    static constexpr usize MAX_SAMPLES = 1U << 22U;
+
+    explicit SampleRecord(usize max_num_samples = MAX_SAMPLES) noexcept;
 
     auto record(const Sample& sample) -> bool;
 
@@ -104,16 +111,19 @@ public:
 
     [[nodiscard]] constexpr auto dropped() const -> usize;
 
-    [[nodiscard]] constexpr auto max_num_samples() -> usize;
+    [[nodiscard]] constexpr auto sample_capacity() -> usize;
 
-    [[nodiscard]] constexpr auto max_num_samples() const -> usize;
+    [[nodiscard]] constexpr auto sample_capacity() const -> usize;
 
     [[nodiscard]] auto write_timings_to_csv(std::string_view pathstr) -> Fallible;
 
+    auto operator+=(const SampleRecord& other) -> void;
+
 private:
     std::vector<Sample> samples_store;
-    usize max_samples;
+    usize capacity;
     usize num_dropped_samples;
+    Sample::ThreadId owner;
 }; // class SampleRecord
 
 
@@ -128,13 +138,10 @@ public:
 
     ~Timespan() noexcept {
         store.record(
-            Sample{
-                .start = start,
-                .end = Sample::Clock::now(),
-                .tid = std::this_thread::get_id(),
-                .label = label
-            }
-        );
+            Sample{ .start = start,
+                    .end = Sample::Clock::now(),
+                    .tid = std::this_thread::get_id(),
+                    .label = label });
     }
 
     Timespan(const Timespan&) = delete;
@@ -177,6 +184,8 @@ struct formatter<arcxel::Sample::Label, CharT>
                 return "Events";
             case arcxel::Sample::Label::Update:
                 return "Update";
+            case arcxel::Sample::Label::PhysicsUpdate:
+                return "PhysicsUpdate";
             case arcxel::Sample::Label::Render:
                 return "Render";
             case arcxel::Sample::Label::Construct:

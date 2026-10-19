@@ -1,4 +1,4 @@
-// <object.h> -*- C++ -*-
+// <game_loop.h> -*- C++ -*-
 
 //  Arcxel Test Bench
 //  Copyright (C) 2026  Tyler Swann, Georgia Kanellis
@@ -19,30 +19,16 @@
 
 #pragma once
 
-#include "types.h"
-
-#include <raylib.h>
-
-#include <string>
+#include "conf.h"
+#include "timing.h"
 
 namespace arcxel {
 
-class Object {
-public:
-    struct Type {
-        std::string classname;
-        u32 classid;
-    }; // struct Type
+auto serial_game_loop_fallback(
+    [[maybe_unused]] Config config,
+    SampleRecord& global_sample_record) -> void;
 
-    Object() noexcept;
 
-    virtual ~Object() = default;
-
-    Object::Type type();
-
-private:
-    Type classtype;
-
-}; // class Object
+auto game_loop(Config config, SampleRecord& global_sample_record) -> void;
 
 } // namespace arcxel
